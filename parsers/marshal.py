@@ -574,15 +574,15 @@ def decode(obj: MarshalObject, encoding: Optional[str]=None, seen=None) -> Marsh
     if seen is None:
         seen = set()
 
-    obj_id = id(obj)
-        
-    if obj_id in seen:
-        # unfortunately it's not much use giving the obj id here because we'll be replacing it
-        # with a new object
-        # really the easiest way to deal with this is to make the tree mutable and decode it in-place
-        return MarshalCyclicRef(obj_id)
-    else:
-        seen.add(obj_id)
+#    obj_id = id(obj)
+#        
+#    if obj_id in seen:
+#         unfortunately it's not much use giving the obj id here because we'll be replacing it
+#         with a new object
+#         really the easiest way to deal with this is to make the tree mutable and decode it in-place
+#        return MarshalCyclicRef(obj_id)
+#    else:
+#        seen.add(obj_id)
             
     res: MarshalObject = None
 

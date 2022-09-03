@@ -11,9 +11,9 @@
 
 	<p>
 		One way to evolve
-		<a href="/pokemon/{{ from_name|slug }}.html#{{ from_form|slug }}">{{ pokemon_form_name(from_name, from_form) }}</a>
+		<a href="{{ url_base }}/pokemon/{{ from_name|slug }}.html#{{ from_form|slug }}">{{ pokemon_form_name(from_name, from_form) }}</a>
 		into
-		<a href="/pokemon/{{ to_name|slug }}.html#{{ to_form|slug }}">{{ pokemon_form_name(to_name, to_form) }}</a>
+		<a href="{{ url_base }}/pokemon/{{ to_name|slug }}.html#{{ to_form|slug }}">{{ pokemon_form_name(to_name, to_form) }}</a>
 		is to
 		{{ describe_evolution_scheme_mapless(scheme) }}
 		in one of the following areas:
@@ -26,7 +26,7 @@
 		</tr>
 		{% for map in scheme.requirements.map %}
 		<tr>
-			<td><a href="/area/{{ map[0] }}.html">{{ map[1] }}</a></td>
+			<td><a href="{{ url_base }}/area/{{ map[0] }}.html">{{ map[1] }}</a></td>
 			<td>{{ map[1] }}</td>
 		</tr>
 		{% endfor %}
@@ -36,7 +36,7 @@
 
 	<ul>
 		{% for map in maps %}
-			<li><a href="/area/{{ map.id }}">{{ map.name }} ({{ map.id }})</a></li>
+			<li><a href="{{ url_base }}/area/{{ map.id }}">{{ map.name }} ({{ map.id }})</a></li>
 		{% endfor %}
 	</ul>
 

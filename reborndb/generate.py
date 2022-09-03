@@ -7,6 +7,8 @@ import jinja2
 from slugify import slugify
 from reborndb import DB
 
+URL_BASE = '/reborn-db-site'
+
 def frac_mixed(x):
     q, r = divmod(frac(x), 1)
     
@@ -82,7 +84,7 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
             vs = [v[0] for v in vs]
             item_names = vs#get_names(vs, 'item')
             article = 'a' + ('n' if item_names[0][0].lower() in 'aeiou' else '')
-            item_names = [f'<a href="/item/{slugify(name)}.html">{name}</a>' for name in item_names]
+            item_names = [f'<a href="{URL_BASE}/item/{slugify(name)}.html">{name}</a>' for name in item_names]
             sentence += f' {article} ' + conjunction_join('or', item_names)
         elif kind == 'level':
             assert len(vs) == 1
@@ -95,7 +97,7 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
         elif kind == 'trademate':
             vs = [v[0] for v in vs]
             pokemon_names = vs#get_names(vs, 'pokemon')
-            pokemon_names = [f'<a href="/pokemon/{slugify(name)}.html">{name}</a>' for name in pokemon_names]
+            pokemon_names = [f'<a href="{URL_BASE}/pokemon/{slugify(name)}.html">{name}</a>' for name in pokemon_names]
             sentence += ' in exchange for ' + conjunction_join('or', pokemon_names)
         elif kind == 'time':
             vs = [v[0] for v in vs]
@@ -104,18 +106,18 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
             vs = [v[0] for v in vs]
             item_names = vs#get_names(vs, 'item')
             article = 'a' + ('n' if item_names[0][0].lower() in 'aeiou' else '')
-            item_names = [f'<a href="/item/{slugify(name)}.html">{name}</a>' for name in item_names]
+            item_names = [f'<a href="{URL_BASE}/item/{slugify(name)}.html">{name}</a>' for name in item_names]
             sentence += f' holding {article} ' + conjunction_join('or', item_names)
         elif kind == 'move':
             vs = [v[0] for v in vs]
             move_names = vs#get_names(vs, 'move')
-            move_names = [f'<a href="/move/{slugify(name)}.html">{name}</a>' for name in move_names]
+            move_names = [f'<a href="{URL_BASE}/move/{slugify(name)}.html">{name}</a>' for name in move_names]
             sentence += ' knowing ' + conjunction_join('or', move_names)
         elif kind == 'move_type':
             vs = [v[0] for v in vs]
             type_names = vs#get_names(vs, 'type')
             article = 'a' + ('n' if type_names[0][0].lower() in 'aeiou' else '')
-            type_names = [f'<a href="/type/{slugify(name)}.html">{name}</a>-' for name in type_names]
+            type_names = [f'<a href="{URL_BASE}/type/{slugify(name)}.html">{name}</a>-' for name in type_names]
             type_names = conjunction_join('or', type_names)
             sentence += f' knowing {article} {type_names}type move'
         elif kind == 'weather':
@@ -124,13 +126,13 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
         elif kind == 'teammate':
             vs = [v[0] for v in vs]
             pokemon_names = vs#get_names(vs, 'pokemon')
-            pokemon_names = [f'<a href="/pokemon/{slugify(name)}.html">{name}</a>' for name in pokemon_names]
+            pokemon_names = [f'<a href="{URL_BASE}/pokemon/{slugify(name)}.html">{name}</a>' for name in pokemon_names]
             sentence += ' with ' + conjunction_join('or', pokemon_names) + ' in the party'
         elif kind == 'teammate_type':
             vs = [v[0] for v in vs]
             type_names = vs#get_names(vs, 'type')
             article = 'a' + ('n' if type_names[0][0].lower() in 'aeiou' else '')
-            type_names = [f'<a href="/type/{slugify(name)}.html">{name}</a>-' for name in type_names]
+            type_names = [f'<a href="{URL_BASE}/type/{slugify(name)}.html">{name}</a>-' for name in type_names]
             type_names = conjunction_join('or', type_names)
             sentence += f' with {article} {type_names}type Pokémon in the party'
         elif kind == 'stat_cmp':
@@ -143,9 +145,9 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
 
             if len(vs) == 1:
                 map_id, map_name = vs.pop()
-                sentence += f' in <a href="/area/{map_id}.html">map {map_id} ({map_name})</a>'
+                sentence += f' in <a href="{URL_BASE}/area/{map_id}.html">map {map_id} ({map_name})</a>'
             else:
-                sentence += f' in certain areas (<a href="/evolution_area/{scheme_id}.html">details</a>)'
+                sentence += f' in certain areas (<a href="{URL_BASE}/evolution_area/{scheme_id}.html">details</a>)'
         elif kind == 'leftover':
             sentence += ' with an empty slot in the party and a Poké Ball in the bag (replaces the empty slot rather than the original Pokémon)'
         elif kind == 'cancel':
@@ -175,6 +177,7 @@ def render_template(path, template, **args):
     path_obj.parent.mkdir(parents=True, exist_ok=True)
     #print(str(path_obj))
     template_obj = jinja_env.get_template(template)
+    args['url_base'] = URL_BASE
     content = template_obj.render(**args)
 
     with path_obj.open('w', encoding='utf-8') as f:

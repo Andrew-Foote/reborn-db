@@ -7,7 +7,7 @@
 {% block content %}
 
 <div class="backlinks">
-	<a href="/areas.html">Area List</a>
+	<a href="{{ url_base }}/areas.html">Area List</a>
 </div>
 
 <section>
@@ -17,15 +17,15 @@
 		<tr>
 			<th>Parent area</th>
 			<td>{% if area.parent_id is none %} None {% else %}
-					<a href="/area/{{ area.parent_id }}.html">{{ area.parent_name }} ({{ area.parent_id }})</a>
+					<a href="{{ url_base }}/area/{{ area.parent_id }}.html">{{ area.parent_name }} ({{ area.parent_id }})</a>
 			{% endif %}</td>
 			<th>Underwater area (<abbr title="The area Dive will take the player to, if it is used in this area.">?</abbr>)</th>
 			<td>{% if area.underwater_id is none %} None {% else %}
-				<a href="/area/{{ area.underwater_id }}.html">{{ area.underwater_name }} ({{ area.underwater_id }})</a>
+				<a href="{{ url_base }}/area/{{ area.underwater_id }}.html">{{ area.underwater_name }} ({{ area.underwater_id }})</a>
 			{% endif %}</td>
 			<th>Surface area (<abbr title="The area the player will end up in if they resurface after having been Diving in this area.">?</abbr>)</th>
 			<td>{% if area.surface_id is none %} None {% else %}
-				<a href="/area/{{ area.surface_id }}.html">{{ area.surface_name }} ({{ area.surface_id }})</a>
+				<a href="{{ url_base }}/area/{{ area.surface_id }}.html">{{ area.surface_name }} ({{ area.surface_id }})</a>
 			{% endif %}</td>
 		</tr>
 		<tr>
@@ -33,7 +33,7 @@
 			<td colspan="5">
 			{% if area.children %}
 		 	{% for child in area.children %}
-		 		<a href="/area/{{ child.id }}.html">{{ child.name }}</a>{% if not loop.last %},{% endif %}
+		 		<a href="{{ url_base }}/area/{{ child.id }}.html">{{ child.name }}</a>{% if not loop.last %},{% endif %}
 		 	{% endfor %}
 			{% else %}
 			 	None
@@ -98,10 +98,10 @@
 					<td>{{ encounter.method }}</td>
 					<td>
 						{% if encounter.form is none %}
-							<a href="/pokemon/{{ encounter.pokemon }}.html">{{ encounter.pokemon }}</a>
+							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon }}.html">{{ encounter.pokemon }}</a>
 							<sup><a href="#form-note-{{ encounter.form_note }}">{{ encounter.form_note }}</a></sup>
 						{% else %}
-							<a href="/pokemon/{{ encounter.pokemon }}.html{% if encounter.form %}#{% endif %}{{ encounter.form }}">
+							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon }}.html{% if encounter.form %}#{% endif %}{{ encounter.form }}">
 							{{ encounter.pokemon }}
 							{% if encounter.form %}
 								({{ encounter.form }} Form)
@@ -138,7 +138,7 @@
 			</tr>
 			{% for encounter in area.special_encounters %}
 			<tr>
-				<td><a href="/pokemon/{{ encounter.pokemon }}.html#{{ encounter.form }}">
+				<td><a href="{{ url_base }}/pokemon/{{ encounter.pokemon }}.html#{{ encounter.form }}">
 						{{ encounter.pokemon }}{% if encounter.form %}-{{ encounter.form }}{% endif %}
 				</a></td>
 				<td>{{ encounter.type }}</td>

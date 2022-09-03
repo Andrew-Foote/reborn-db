@@ -20,11 +20,11 @@ def stringify(obj, indent=4, _indents=0, seen_ids=None):
 
     obj_id = id(obj)
 
-    if obj_id in seen_ids:
-        #print('cycle')
-        return f'<cycle to {id(obj)}>'
-    else:
-        seen_ids.add(obj_id)
+#    if obj_id in seen_ids:
+#        print('cycle')
+#        return f'<cycle to {id(obj)}>'
+#    else:
+#        seen_ids.add(obj_id)
 
     this_indent = indent * _indents * ' '
     next_indent = indent * (_indents + 1) * ' '

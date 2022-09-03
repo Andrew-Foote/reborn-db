@@ -8,7 +8,7 @@
 <section>
 
 <div class="backlinks">
-	<a href="/trainers.html">Trainer List</a>
+	<a href="{{ url_base }}/trainers.html">Trainer List</a>
 </div>
 
 <h1>{{ trainer.name }}</h1>
@@ -52,11 +52,11 @@
 	{% for pokemon in trainer.pokemons %}			
 		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
 			<figure style="margin-right: 0.4em">
-				<a href="/pokemon/{{ pokemon.name|slug }}.html">
+				<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">
 					{# we need to show the shiny sprite if it's shiny #}
 					{# gender diffs too i guess #}
 					<img
-						src="/img/pokemon/{{ '{0:0>3}'.format(pokemon.number) }}_{{ pokemon.form_order }}.png"
+						src="{{ url_base }}/img/pokemon/{{ '{0:0>3}'.format(pokemon.number) }}_{{ pokemon.form_order }}.png"
 						alt="{{ pokemon.name }}{% if pokemon.gender is not none or pokemon.shiny == 1 %} ({% if pokemon.gender is not none %}{{ pokemon.gender|lower }}{% endif %}{% if pokemon.shiny == 1 %}{% if pokemon.gender is not none %}, {% endif %}shiny{% endif %}){% endif %}"
 					>
 				</a>
@@ -67,7 +67,7 @@
 				<table class="data-table" style="margin-bottom: 0.5em">
 					<tr>
 						<th>Species</th>
-						<td><a href="/pokemon/{{ pokemon.name|slug }}.html#{{ pokemon.form }}">{{ pokemon.name }}</a>{% if pokemon.form %} ({{ pokemon.form }}){% endif %}</td>
+						<td><a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html#{{ pokemon.form }}">{{ pokemon.name }}</a>{% if pokemon.form %} ({{ pokemon.form }}){% endif %}</td>
 						<th>Level</th>
 						<td>{{ pokemon.level }}</td>
 						<th>Gender</th>
@@ -90,7 +90,7 @@
 						</th>
 						<td colspan="3">
 						{% for ability in pokemon.abilities %}
-							<a href="/ability/{{ ability|slug }}.html">{{ ability }}</a>
+							<a href="{{ url_base }}/ability/{{ ability|slug }}.html">{{ ability }}</a>
 							{% if not loop.last %}, {% endif %}
 						{% endfor %}
 						{% if len(pokemon.abilities) > 1 %}
@@ -102,7 +102,7 @@
 						{% if pokemon.item is none %}
 							No item
 						{% else %}
-							<a href="/item/{{ pokemon.item|slug }}.html">{{ pokemon.item }}</a>
+							<a href="{{ url_base }}/item/{{ pokemon.item|slug }}.html">{{ pokemon.item }}</a>
 						{% endif %}
 						</td>
 						<th>Nature</th>
@@ -145,7 +145,7 @@
 					<table>
 						<tr>
 						{% for move in pokemon.moves %}
-							<td><a href="/move/{{ move|slug }}.html">{{ move }}</a></td>
+							<td><a href="{{ url_base }}/move/{{ move|slug }}.html">{{ move }}</a></td>
 						{% endfor %}
 						</tr>
 					</table>

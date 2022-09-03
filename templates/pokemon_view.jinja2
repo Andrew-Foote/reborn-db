@@ -6,8 +6,8 @@
 {% endblock %}
 
 {% block links %}
-{% if pokemon.prev_name is not none %}<link rel="next" href="/pokemon/{{ pokemon.prev_name|slug }}.html">{% endif %}
-{% if pokemon.next_name is not none %}<link rel="next" href="/pokemon/{{ pokemon.next_name|slug }}.html">{% endif %}
+{% if pokemon.prev_name is not none %}<link rel="next" href="{{ url_base }}/pokemon/{{ pokemon.prev_name|slug }}.html">{% endif %}
+{% if pokemon.next_name is not none %}<link rel="next" href="{{ url_base }}/pokemon/{{ pokemon.next_name|slug }}.html">{% endif %}
 {% endblock %}
 
 {% block script %}
@@ -63,13 +63,13 @@
 	document.addEventListener('keydown', (event) => {
 		{% if pokemon.prev_name is not none %}
 		if (event.shiftKey && event.code === 'ArrowLeft') {
-			window.location.assign('/pokemon/{{ pokemon.prev_name|slug }}.html')
+			window.location.assign('{{ url_base }}/pokemon/{{ pokemon.prev_name|slug }}.html')
 		}
 		{% endif %}
 
 		{% if pokemon.next_name is not none %}
 		if (event.shiftKey && event.code === 'ArrowRight') {
-			window.location.assign('/pokemon/{{ pokemon.next_name|slug }}.html')
+			window.location.assign('{{ url_base }}/pokemon/{{ pokemon.next_name|slug }}.html')
 		}
 		{% endif %}
 	});
@@ -79,13 +79,13 @@
 {% block content %}
 <div class="backlinks">
 	{% if pokemon.prev_name is not none %}
-	<a href="/pokemon/{{ pokemon.prev_name|slug }}.html">&leftarrow; {{ '{0:0>3}'.format(pokemon.number - 1) }} {{ pokemon.prev_name }}</a>
+	<a href="{{ url_base }}/pokemon/{{ pokemon.prev_name|slug }}.html">&leftarrow; {{ '{0:0>3}'.format(pokemon.number - 1) }} {{ pokemon.prev_name }}</a>
 	{% else %}
 	<span>&nbsp;</span>
 	{% endif %}
-	<a href="/pokemon.html">Pokémon List</a>
+	<a href="{{ url_base }}/pokemon.html">Pokémon List</a>
 	{% if pokemon.next_name is not none %}
-	<a href="/pokemon/{{ pokemon.next_name|slug }}.html">{{ '{0:0>3}'.format(pokemon.number + 1) }} {{ pokemon.next_name }} &rightarrow;</a>
+	<a href="{{ url_base }}/pokemon/{{ pokemon.next_name|slug }}.html">{{ '{0:0>3}'.format(pokemon.number + 1) }} {{ pokemon.next_name }} &rightarrow;</a>
 	{% else %}
 	<span>&nbsp;</span>
 	{% endif %}
@@ -103,7 +103,7 @@
 				<th>Gender Ratio</th>
 				<td style="white-space: nowrap">{{ pokemon.male_frequency|gender_ratio }}</td>
 				<th>Growth rate</th>
-				<td><a href="/growth_rate/{{ pokemon.growth_rate|slug }}.html">{{ pokemon.growth_rate }}</a></td>
+				<td><a href="{{ url_base }}/growth_rate/{{ pokemon.growth_rate|slug }}.html">{{ pokemon.growth_rate }}</a></td>
 			</tr>
 			<tr>
 				<th>Category</th>
@@ -119,7 +119,7 @@
 				<th>Egg groups</th>
 				<td colspan="3">
 					{% for egg_group in pokemon.egg_groups %}
-						<a href="/egg_group/{{ egg_group|slug }}.html">{{ egg_group }}</a>{% if not loop.last %},{% endif %}
+						<a href="{{ url_base }}/egg_group/{{ egg_group|slug }}.html">{{ egg_group }}</a>{% if not loop.last %},{% endif %}
 					{% endfor %}
 				</td>
 			</tr>
@@ -154,7 +154,7 @@
 			  {% endif %}
 				<!--<img src="/img/pokemon/{{ '{0:0>3}'.format(pokemon.number) }}_{{ form.order }}.png">-->
 				<figcaption>
-				  <a href="/pokemon_sprites/{{ pokemon.name|slug }}/{{ form.name|slug }}.html">More sprites</a>
+				  <a href="{{ url_base }}/pokemon_sprites/{{ pokemon.name|slug }}/{{ form.name|slug }}.html">More sprites</a>
 				</figcaption>
 			</figure>
 
@@ -212,14 +212,14 @@
 				</tr>
 				<tr>
 				{% if '2' in form.abilities %}
-					<td><a href="/ability/{{ form.abilities['2'].name|slug }}.html">{{ form.abilities['2'].name }}</a></td>
+					<td><a href="{{ url_base }}/ability/{{ form.abilities['2'].name|slug }}.html">{{ form.abilities['2'].name }}</a></td>
 					<td>{{ form.abilities['2'].desc }}</td>
 				{% endif %}
 				</tr>
 				{% if '3' in form.abilities %}
 				<tr>
 					<th>Hidden Ability</th>
-					<td><a href="/ability/{{ form.abilities['3'].name|slug }}.html">{{ form.abilities['3'].name }}</a></td>
+					<td><a href="{{ url_base }}/ability/{{ form.abilities['3'].name|slug }}.html">{{ form.abilities['3'].name }}</a></td>
 					<td>{{ form.abilities['3'].desc }}
 				</td>
 				{% endif %}
@@ -244,7 +244,7 @@
 				<td colspan="5">
 				{% if form.wild_held_items %}
 					{% for item in form.wild_held_items %}
-						<a href="/item/{{ item.name|slug }}.html">{{ item.name }}</a> ({{ item.rarity }}%){% if not loop.last %},{% endif %}
+						<a href="{{ url_base }}/item/{{ item.name|slug }}.html">{{ item.name }}</a> ({{ item.rarity }}%){% if not loop.last %},{% endif %}
 					{% endfor %}
 				{% else %}
 					None
@@ -318,7 +318,7 @@
 						{% for move in form.level_moves %}
 						<tr>
 							<td>{{ move.level }}</td>
-							<td><a href="/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+							<td><a href="{{ url_base }}/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
 						</tr>
 						{% endfor %}
 					</table>
@@ -331,7 +331,7 @@
 					<table>
 						{% for move in form.evolution_moves %}
 						<tr>
-							<td><a href="/move/{{ move|slug }}.html">{{ move }}</a></td>
+							<td><a href="{{ url_base }}/move/{{ move|slug }}.html">{{ move }}</a></td>
 						</tr>
 						{% endfor %}
 					</table>
@@ -350,8 +350,8 @@
 				    </tr>
 				    {% for move in form.preevo_moves %}
 				    <tr>
-				      <td><a href="/pokemon/{{ move.preevo|slug }}.html#{{ move.preevo_form }}">{{ pokemon_form_name(move.preevo, move.preevo_form) }}</a></td>
-				      <td><a href="/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+				      <td><a href="{{ url_base }}/pokemon/{{ move.preevo|slug }}.html#{{ move.preevo_form }}">{{ pokemon_form_name(move.preevo, move.preevo_form) }}</a></td>
+				      <td><a href="{{ url_base }}/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
 				      <td>
 				        {% if move.method == 'level' %}
 				          {% if move.level == 0 %}
@@ -379,7 +379,7 @@
 					<table>
 						{% for move in form.egg_moves %}
 						<tr>
-							<td><a href="/move/{{ move|slug }}.html">{{ move }}</a></td>
+							<td><a href="{{ url_base }}/move/{{ move|slug }}.html">{{ move }}</a></td>
 						</tr>
 						{% endfor %}
 					</table>
@@ -396,8 +396,8 @@
 						</tr>
 						{% for move in form.machine_moves %}
 						<tr>
-							<td><a href="/item/{{ move.item|slug }}.html">{{ move.item }}</a></td>
-							<td><a href="/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+							<td><a href="{{ url_base }}/item/{{ move.item|slug }}.html">{{ move.item }}</a></td>
+							<td><a href="{{ url_base }}/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
 						</tr>
 						{% endfor %}
 					</table>
@@ -410,7 +410,7 @@
 					<table>
 						{% for move in form.tutor_moves %}
 						<tr>
-							<td><a href="/move/{{ move|slug }}.html">{{ move }}</a></td>
+							<td><a href="{{ url_base }}/move/{{ move|slug }}.html">{{ move }}</a></td>
 						</tr>
 						{% endfor %}
 					</table>
@@ -433,7 +433,7 @@
 				</tr>
 				{% for encounter in form.encounters %}
 				<tr>
-					<td><a href="/area/{{ encounter.map_id }}.html">{{ encounter.map_id }}</a></td>
+					<td><a href="{{ url_base }}/area/{{ encounter.map_id }}.html">{{ encounter.map_id }}</a></td>
 					<td>{{ encounter.map_name }}</td>
 					<td>{{ encounter.method }}</td>
 					<td>{{ encounter.min_level }}{% if encounter.max_level != encounter.min_level %}&ndash;{{ encounter.max_level }}{% endif %}</td>
@@ -459,7 +459,7 @@
 				</tr>
 				{% for encounter in form.special_encounters %}
 				<tr>
-					<td><a href="/area/{{ encounter.map_id }}.html">{{ encounter.map_id }}</a></td>
+					<td><a href="{{ url_base }}/area/{{ encounter.map_id }}.html">{{ encounter.map_id }}</a></td>
 					<td>{{ encounter.map_name }}</td>
 					<td>{{ encounter.type }}</td>
 					<td>{{ encounter.level }}</td>

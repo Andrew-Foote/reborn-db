@@ -33,10 +33,10 @@ figure { display: inline-block; }
 			class="sprite"
 			style="background-image: url(/img/pokemon/sheet_{{ (pokemon.number - 1) // MAX_SPRITES_IN_SHEET }}.png); background-position: left {{ -(((pokemon.number - 1) % MAX_SPRITES_IN_SHEET) * SPRITE_SIZE) }}px"></a>
 		-->
-		<a href="/pokemon/{{ pokemon.name|slug }}.html">{{ base64_image(pokemon.sprite, '', 192, 192) }}</a>
+		<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">{{ base64_image(pokemon.sprite, '', 192, 192) }}</a>
 		<figcaption>
 			{{ '{0:0>3}'.format(pokemon.number) }}
-			<a href="/pokemon/{{ pokemon.name|slug }}.html">{{ pokemon.name }}</a>
+			<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">{{ pokemon.name }}</a>
 		</figcaption>
 	</figure>
 	{% endfor %}

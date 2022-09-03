@@ -1,7 +1,7 @@
 {% macro type_icon(type) %}
 <a
 	class="type-icon {{ type|slug }}-type-color"
-	href="/types/{{ type|slug }}.html"
+	href="{{ url_base }}/types/{{ type|slug }}.html"
 >
 	{{ type }}
 </a>
@@ -9,7 +9,7 @@
 
 {% macro evolution_diagram(pokemon, form, tree) %}
 {% if pokemon.id == tree.node.result.id and form.name == tree.node.result.form %}<b>{% endif %}
-<a href="/pokemon/{{ tree.node.result.name|slug }}.html#{{ tree.node.result.form|slug }}">
+<a href="{{ url_base }}/pokemon/{{ tree.node.result.name|slug }}.html#{{ tree.node.result.form|slug }}">
 	{{ tree.node.result.name }}
 	{% if tree.node.result.form %}
 		({{ tree.node.result.form }} Form)
@@ -43,7 +43,7 @@
 <ul>
 	{% for child in tree %}
 		<li>
-			<a href="#" class="tree-collapse">[&minus;]</a> <a href="/area/{{ child.node.id }}.html">{{ child.node.name }} ({{ child.node.id }})</a>
+			<a href="#" class="tree-collapse">[&minus;]</a> <a href="{{ url_base }}/area/{{ child.node.id }}.html">{{ child.node.name }} ({{ child.node.id }})</a>
 			{{ area_subtree(child.children) }}
 		</li>
 	{% endfor %}	
