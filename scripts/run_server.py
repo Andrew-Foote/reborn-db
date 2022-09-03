@@ -4,7 +4,7 @@ from reborndb import DB
 
 def run():
     #DB.H.close()
-	sys.argv[1:] = ('--directory', 'site')
+	sys.argv[1:] = ('--directory', '')
 	runpy.run_module('http.server', {'sys': sys}, '__main__')
 
 if __name__ == '__main__':
