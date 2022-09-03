@@ -1,0 +1,152 @@
+{% extends 'base.jinja2' %}
+
+{% block title %}
+{{ area.name }} ({{ area.id }})
+{% endblock %}
+
+{% block content %}
+
+<div class="backlinks">
+	<a href="/areas.html">Area List</a>
+</div>
+
+<section>
+	<h1>{{ area.name }} ({{ area.id }})</h1>
+
+	<table class="data-table" style="width: 85%; margin: auto">
+		<tr>
+			<th>Parent area</th>
+			<td>{% if area.parent_id is none %} None {% else %}
+					<a href="/area/{{ area.parent_id }}.html">{{ area.parent_name }} ({{ area.parent_id }})</a>
+			{% endif %}</td>
+			<th>Underwater area (<abbr title="The area Dive will take the player to, if it is used in this area.">?</abbr>)</th>
+			<td>{% if area.underwater_id is none %} None {% else %}
+				<a href="/area/{{ area.underwater_id }}.html">{{ area.underwater_name }} ({{ area.underwater_id }})</a>
+			{% endif %}</td>
+			<th>Surface area (<abbr title="The area the player will end up in if they resurface after having been Diving in this area.">?</abbr>)</th>
+			<td>{% if area.surface_id is none %} None {% else %}
+				<a href="/area/{{ area.surface_id }}.html">{{ area.surface_name }} ({{ area.surface_id }})</a>
+			{% endif %}</td>
+		</tr>
+		<tr>
+			<th>Child areas</th>
+			<td colspan="5">
+			{% if area.children %}
+		 	{% for child in area.children %}
+		 		<a href="/area/{{ child.id }}.html">{{ child.name }}</a>{% if not loop.last %},{% endif %}
+		 	{% endfor %}
+			{% else %}
+			 	None
+			{% endif %}
+		 	</td>
+		</tr>
+		<tr>
+			<th>Outdoor map?</th>
+			<td>{% if area.outdoor %} Yes {% else %} No {% endif %}</td>
+			<th>Bicycle usable?</th>
+			<td>{% if area.bicycle_usable %} Yes {% else %} No {% endif %}</td>
+			<th>Dark area (Flash usable)?</th>
+			<td>{% if area.flashable %} Yes {% else %} No {% endif %}</td>
+		</tr>
+		<tr>
+			<th>Battle background</th>
+			<td>{{ area.backdrop }}</td>
+			<th>Base field effect</th>
+			<td>{{ area.field_effect }}</td>
+			<th>Fixed weather</th>
+			<td>{{ area.weather }}</td>
+		</tr>
+	</table>
+
+	<section>
+		<h2>Wild encounters</h2>
+
+		{% if area.encrates and area.encounters %}
+		<section>
+			<h3>Base encounter rates</h3>
+
+			<p>These are the chances of a wild encounter being initiated per step, for each terrain type.</p>
+
+			<table class="data-table" style="width: 70%; margin: auto">
+				<tr>
+				{% for enc in area.encrates %}
+					<th>{{ enc.terrain }}</th>
+				{% endfor %}	
+				</tr>
+				<tr>
+				{% for enc in area.encrates %}
+					<td>{{ enc.rate|frac_mixed }} %</td>
+				{% endfor %}
+				</tr>
+			</table>
+
+		</section>
+		<section>
+			<h3>Pokémon encounter rates</h3>
+
+			<p>Given that an encounter has begun, the chance of encountering a given Pokémon with a given level can be read off from the table below. If a level range is given, each level within that range is equally likely.</p>
+
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Encounter method</th>
+					<th>Pokémon</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				{% for encounter in area.encounters %}
+				<tr>
+					<td>{{ encounter.method }}</td>
+					<td>
+						{% if encounter.form is none %}
+							<a href="/pokemon/{{ encounter.pokemon }}.html">{{ encounter.pokemon }}</a>
+							<sup><a href="#form-note-{{ encounter.form_note }}">{{ encounter.form_note }}</a></sup>
+						{% else %}
+							<a href="/pokemon/{{ encounter.pokemon }}.html{% if encounter.form %}#{% endif %}{{ encounter.form }}">
+							{{ encounter.pokemon }}
+							{% if encounter.form %}
+								({{ encounter.form }} Form)
+							{% endif %}
+						{% endif %}
+					</a></td>
+					<td>{{ encounter.min_level }}{% if encounter.max_level != encounter.min_level %}&ndash;{{ encounter.max_level }}{% endif %}</td>
+					<td>{{ encounter.rate|frac_mixed }} %</td>
+				</tr>
+				{% endfor %}
+			</table>
+
+			<small class="notes">
+			{% for note in area.encounter_form_notes %}
+				{{ note.content }}
+			{% endfor %}
+			</small>
+
+		</section>
+		{% else %}
+		<p>There are no wild encounters in this area.</p>
+		{% endif %}
+	</section>
+
+	{% if area.special_encounters %}
+	<section>
+		<h2>Special encounters</h2>
+
+		<table style="width: 70%; margin: auto">
+			<tr>
+				<th>Pokémon</th>
+				<th>Encounter type</th>
+				<th>Level</th>
+			</tr>
+			{% for encounter in area.special_encounters %}
+			<tr>
+				<td><a href="/pokemon/{{ encounter.pokemon }}.html#{{ encounter.form }}">
+						{{ encounter.pokemon }}{% if encounter.form %}-{{ encounter.form }}{% endif %}
+				</a></td>
+				<td>{{ encounter.type }}</td>
+				<td>{{ encounter.level }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</section>
+	{% endif %}
+</section>
+{% endblock %}

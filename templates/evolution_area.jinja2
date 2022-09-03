@@ -1,0 +1,46 @@
+{% extends 'base.jinja2' %}
+
+{% block title %}
+	{{ pokemon_form_name(to_name, to_form) }} Evolution Areas
+{% endblock %}
+
+{% block content %}
+
+<section>
+	<h1>{{ to_name }}{% if to_form %} ({{ to_form }} Form){% endif %} Evolution Areas</h1>
+
+	<p>
+		One way to evolve
+		<a href="/pokemon/{{ from_name|slug }}.html#{{ from_form|slug }}">{{ pokemon_form_name(from_name, from_form) }}</a>
+		into
+		<a href="/pokemon/{{ to_name|slug }}.html#{{ to_form|slug }}">{{ pokemon_form_name(to_name, to_form) }}</a>
+		is to
+		{{ describe_evolution_scheme_mapless(scheme) }}
+		in one of the following areas:
+	</p>
+
+	<table class="data=table" style="width: 60%; margin: auto">
+		<tr>
+			<th>Area ID</th>
+			<th>Area Name</th>
+		</tr>
+		{% for map in scheme.requirements.map %}
+		<tr>
+			<td><a href="/area/{{ map[0] }}.html">{{ map[1] }}</a></td>
+			<td>{{ map[1] }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+
+	{#
+
+	<ul>
+		{% for map in maps %}
+			<li><a href="/area/{{ map.id }}">{{ map.name }} ({{ map.id }})</a></li>
+		{% endfor %}
+	</ul>
+
+	#}
+</section>
+
+{% endblock %}

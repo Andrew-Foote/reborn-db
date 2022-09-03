@@ -1,0 +1,68 @@
+{% macro type_icon(type) %}
+<a
+	class="type-icon {{ type|slug }}-type-color"
+	href="/types/{{ type|slug }}.html"
+>
+	{{ type }}
+</a>
+{% endmacro %}
+
+{% macro evolution_diagram(pokemon, form, tree) %}
+{% if pokemon.id == tree.node.result.id and form.name == tree.node.result.form %}<b>{% endif %}
+<a href="/pokemon/{{ tree.node.result.name|slug }}.html#{{ tree.node.result.form|slug }}">
+	{{ tree.node.result.name }}
+	{% if tree.node.result.form %}
+		({{ tree.node.result.form }} Form)
+	{% endif %}
+</a>
+{% if pokemon.id == tree.node.result.id and form.name == tree.node.result.form %}</b>{% endif %}
+<div class="evo-col">
+	{% for branch in tree.children %}
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			{% for method in branch.node.methods %}
+				{{ describe_evolution_scheme(
+					method, loop.index - 1,
+					tree.node.result.name, tree.node.result.form,
+					branch.node.result.name, branch.node.result.form
+				) }}
+				{% if not loop.last %}<br><i>OR</i><br>{% endif %}
+			{% endfor %}
+			</small>
+		</div>
+		{{ evolution_diagram(pokemon, form, branch) }}
+	</div>
+	{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro area_subtree(tree) %}
+{% if tree %}
+<ul>
+	{% for child in tree %}
+		<li>
+			<a href="#" class="tree-collapse">[&minus;]</a> <a href="/area/{{ child.node.id }}.html">{{ child.node.name }} ({{ child.node.id }})</a>
+			{{ area_subtree(child.children) }}
+		</li>
+	{% endfor %}	
+</ul>
+{% endif %}
+{% endmacro %}
+
+{% macro base64_image(base64, alt, width, height) %}
+<img src="data:image/png;base64,{{ base64 }}" alt="{{ alt }}" width="{{ width }}" height="{{ height }}">
+{% endmacro %}
+
+{% macro pokemon_sprite_row(sprites, width, height) %}
+{% if sprites.genderdiff %}
+<td>{{ base64_image(sprites.nonshiny_male, '', width, height) }}</td>
+<td>{{ base64_image(sprites.nonshiny_female, '', width, height) }}</td>
+<td>{{ base64_image(sprites.shiny_male, '', width, height) }}</td>
+<td>{{ base64_image(sprites.shiny_female, '', width, height) }}</td>
+{% else %}
+<td colspan="2">{{ base64_image(sprites.nonshiny, '', width, height) }}</td>
+<td colspan="2">{{ base64_image(sprites.shiny, '', width, height) }}</td>
+{% endif %}
+{% endmacro %}

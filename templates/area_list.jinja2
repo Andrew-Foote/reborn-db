@@ -1,0 +1,51 @@
+{% from 'macros.jinja2' import area_subtree %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Area List
+{% endblock %}
+
+{% block style %}
+ul {
+	padding-top: 0.5em;
+	padding-left: 0.5em;
+	margin-left: 0.5em;
+	list-style-type: none;
+	border-left: 1px solid #ccc; 
+}
+
+li { margin-bottom: 0.5em; }
+{% endblock %}	
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	collapsers = document.getElementsByClassName('tree-collapse');
+
+	for (collapser of Array.from(collapsers)) {
+		collapser.addEventListener('click', event => {
+			event.preventDefault();
+			const link = event.currentTarget;
+			const ul = link.nextElementSibling.nextElementSibling;
+			console.log(link.textContent);
+
+			if (link.textContent == '[−]') {
+				link.textContent = '[+]';
+				if (ul !== null) ul.style.display = 'none';
+			} else {
+				link.textContent = '[−]';
+				if (ul !== null) ul.style.display = 'block';
+			}
+		});
+	}
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<section>
+	<h1>Area List</h1>
+
+	{{ area_subtree(area_tree) }}
+</section>
+{% endblock %}

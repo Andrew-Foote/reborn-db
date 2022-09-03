@@ -1,0 +1,30 @@
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Item List
+{% endblock %}
+
+{% block content %}
+<section>
+	<h1>Item List</h1>
+
+	<table class="data=table" style="width: 90%; margin: auto">
+		<tr>
+			<th>Name</th>
+			<th>Bag pocket</th>
+			<th>Buy price</th>
+			<th>Sell price</th>
+			<th style="width: 50%">Description</th>
+		</tr> 
+		{% for item in items %}
+		<tr>
+			<td><a href="/item/{{ item.name|slug }}.html">{{ item.name }}</a></td>
+			<td>{{ item.pocket }}</td>
+			<td>{{ item.buy_price }}</td>
+			<td>{{ item.sell_price }}</td>
+			<td>{{ item.desc }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</section>
+{% endblock %}

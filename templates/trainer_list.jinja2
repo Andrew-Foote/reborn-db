@@ -1,0 +1,40 @@
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Trainer List
+{% endblock %}
+
+{% block style %}
+figure { display: inline-block; }
+
+.sprite {
+	display: block;
+	background-repeat: no-repeat;
+	/*width: 192px;
+	height: 192px;*/
+	margin-bottom: 0.4em;
+}
+{% endblock %}
+
+{% block content %}
+<section>
+
+<h1>Trainer List</h1>
+
+<div style="text-align: center">
+{% for trainer in trainers %}
+	<figure>
+		{# it takes 5 seconds or so to load the page, so we probably still
+		need to use a spritesheet #}
+		<a href="/trainer/{{ trainer.name|slug|urlencode }}.html" class="sprite">
+			<img src="data:image/png;base64,{{ trainer.sprite }}" alt="">
+		</a>
+		<figcaption>
+			<a href="/trainer/{{ trainer.name|slug|urlencode }}.html">{{ trainer.name }}</a>
+		</figcaption>
+	</figure>
+{% endfor %}
+</div>
+
+</section>
+{% endblock %}

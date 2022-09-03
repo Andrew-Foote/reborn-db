@@ -1,0 +1,223 @@
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Stat Calculator
+{% endblock %}
+
+{% block style %}
+input:invalid { background-color: #ff8888; }
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="/js/thirdparty/sql-wasm.js"></script>
+<script>
+	const STATS = {{ stats|tojson }};
+	
+	const BASE_STAT_MAP = {};
+	
+	{% for pokemon in pokemons %}
+	  BASE_STAT_MAP[{{ pokemon.id|tojson }} + '-' + {{ pokemon.form|tojson }}] = {{ pokemon.baseStats|tojson }};
+	{% endfor %}
+	
+	const NATURE_MAP = {
+	  {% for nature in natures %}
+	  {{ nature.id|tojson }}: {'increasedStat': {{ nature.increasedStat|tojson }}, 'decreasedStat': {{ nature.decreasedStat|tojson }}},
+	  {% endfor %}
+	};
+		
+	function loadBaseStats() {
+	  const form = document.forms['main'];
+	  const pokemon = form.elements['pokemon'].value;
+	  const baseStats = BASE_STAT_MAP[pokemon];
+		  
+	  for (const {stat, value} of baseStats) {
+	    form.elements[`base-${stat}`].value = value;
+	  }
+	}
+	
+	function checkEVs() {
+	  const form = document.forms['main'];
+	  const totalLimit = form.elements['total-ev-limit'].checked;
+	  const individualLimit = form.elements['individual-ev-limit'].checked;
+		  
+	  let total = 0;
+	  
+	  for (const {id: stat} of STATS) {
+	    const elem = form.elements[`ev-${stat}`];
+	    let individual = parseInt(elem.value);
+	    if (individualLimit && individual > 252) { elem.value = 252; individual = 252; }
+	    total += individual;
+	  }
+	  
+    const msg = totalLimit && total > 510 ? 'total EVs exceed 510' : '';
+  
+    for (const {id: stat} of STATS) {
+      const elem = form.elements[`ev-${stat}`];
+      elem.setCustomValidity(msg);
+    }
+	}
+	
+	function calcResults() {
+	  const form = document.forms['main'];
+	  const nature = NATURE_MAP[form.elements['nature'].value];
+	  const level = form.elements['level'].value;
+	
+	  for (const {id: stat} of STATS) {
+	    const resultElem = form.elements[`result-${stat}`];
+	    const base = parseInt(form.elements[`base-${stat}`].value);
+	    if (stat === 'HP' && base === 1) { resultElem.value = 1; continue; }
+	    const iv = parseInt(form.elements[`iv-${stat}`].value);
+	    const ev = parseInt(form.elements[`ev-${stat}`].value);
+	    let result = Math.floor(level * (8 * base + 4 * iv + ev) / 400) + 5;
+	    if (stat === 'HP') result += 5;
+	    let natureMultiplier = 1;
+	    if (nature.increasedStat === stat) natureMultiplier += 0.1;
+	    if (nature.decreasedStat === stat) natureMultiplier -= 0.1;
+	    resultElem.value = Math.floor(result * natureMultiplier);
+	  }
+	}
+	
+	document.addEventListener('DOMContentLoaded', () => {
+		const form = document.forms['main'];
+		
+		form.elements['pokemon'].addEventListener('change', () => { loadBaseStats(); calcResults(); });
+		form.elements['nature'].addEventListener('change', calcResults);
+		form.elements['level'].addEventListener('change', calcResults);
+		form.elements['total-ev-limit'].addEventListener('change', () => { checkEVs(); calcResults(); });
+		form.elements['individual-ev-limit'].addEventListener('change', () => { checkEVs(); calcResults(); });
+		
+		for (const category of ['base', 'ev', 'iv']) {
+  		for (const {id: stat} of STATS) {
+  		  const handler = category === 'ev' ? (() => { checkEVs(); calcResults(); }) : calcResults;
+  		  form.elements[`${category}-${stat}`].addEventListener('change', handler);
+  		}
+  	}
+  	
+  	loadBaseStats();
+  	checkEVs();
+  	calcResults();
+  });
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<section>
+
+<h1>Stat Calculator</h1>
+
+<form name="main">
+  <p>
+    <label for="pokemon">Pokemon</label>
+    <select name="pokemon">
+      {% for pokemon in pokemons %}
+        <option value="{{ pokemon.id }}-{{ pokemon.form }}">{{ pokemon_form_name(pokemon.name, pokemon.form) }}</option>
+      {% endfor %}
+    </select>
+  </p>
+  <p>
+    <label for="nature">Nature</label>
+    <select name="nature">
+      {% for nature in natures %}
+        <option value="{{ nature.id }}">{{ nature.name }}</option>
+      {% endfor %}
+    </select>
+  </p>
+  <p><label for="level">Level</label> <input type="number" name="level" value="150" min="1" max="150"></p>
+  <p>
+    <label for="total-ev-limit">Require no more than 510 total EVs</label>
+    <input name="total-ev-limit" type="checkbox" checked>
+  </p>
+  <p>
+    <label for="individual-ev-limit">Require no more than 252 EVs in any particular stat</label>
+    <input name="individual-ev-limit" type="checkbox" checked>
+  </p>
+
+  <table>
+    <tr>
+      <th></th>
+    {% for stat in stats %}
+      <th>{{ stat.name }}</th>
+    {% endfor %}
+    </tr>
+    <tr>
+      <th>Base stat</th>
+    {% for stat in stats %}
+      <td><input type="number" name="base-{{ stat.id }}" min="0" max="255"></td>
+    {% endfor %}
+    </tr>
+    <tr>
+      <th>EVs</th>
+    {% for stat in stats %}
+      <td><input type="number" name="ev-{{ stat.id }}" value="0" min="0"></td>
+    {% endfor %}
+    </tr>
+    <tr>
+      <th>IVs</th>
+    {% for stat in stats %}
+      <td><input type="number" name="iv-{{ stat.id }}" value="31" min="0" max="31"></td>
+    {% endfor %}
+    </tr>
+    <tr>
+      <th>Result</th>
+    {% for stat in stats %}
+      <td><input type="number" readonly name="result-{{ stat.id }}"></td>
+    {% endfor %}
+    </tr>
+  </table>
+</form>
+
+<section>
+<h2>How it works</h2>
+
+<p>In short, the formula is</p>
+
+\[ v = \left \lfloor n \left( 5 + 5h + \left \lfloor \ell \left( \frac b {50} + \frac i {100} + \frac e {400} \right) \right \rfloor \right) \right \rfloor \]
+
+<p>where \(v\) is the calculated value, \(n\) is 1.1, 0.9 or 1 depending on how the nature affects the stat, \(h\) is 1 if the stat is HP and 0 otherwise, (\ell\) is the level, \(b\) is the base stat value, \(i\) is the number of IVs and \(e\) is the number of EVs.</p>
+
+<p>There is one special case where this formula doesn't apply: if the base HP is 1, then the calculated HP is always 1, regardless of the Pokémon's nature, level, EVs and IVs.</p>
+
+<p>You might also find it more helpful to see the calculation described as a step-by-step process:</p>
+
+<ol>
+  <li>If the stat is HP and the base stat value is 1, ignore all the following steps; the result is simply 1.</li>
+  <li>Add the following values together: the base stat value divided by 50, the number of IVs divided by 100, and the number of EVs divided by 400.</li>
+  <li>Multiply the result by the level.</li>
+  <li>Round the result down so that it's a whole number.</li>
+  <li>Add 5.</li>
+  <li>Add 5 again if the stat is HP.</li>
+  <li>Multiply by 1.1 if the stat is increased by the nature and by 0.9 if the stat is decreased by the nature. Otherwise (including when the nature is a neutral one, or the stat is HP) don't change the stat (or multiply it by 1&mdash;same thing).</li>
+  <li>Round the result down so that it's a whole number.</li>
+</ol>
+
+<p>It might also be helpful to keep in mind what each base stat point, IV or EV is "worth" in terms of calculated stat points at certain key levels:</p>
+
+<ul>
+  <li>At level 50, each base stat point is worth 1 point, each IV is worth 1&frasl;2 of a point and each EV is worth 1&frasl;8 of a point.</li>
+  <li>At level 100, each base stat point is worth 2 points, each IV is worth 1 point and each EV is worth 1&frasl;4 of a point.</li>
+  <li>At level 150, each base stat point is worth 3 points, each IV is worth 1.5 points and each EV is worth 3&frasl;8 of a point.</li>
+</ul>
+
+<p>This is without taking the nature multiplier into consideration, which basically alters how much each point is "worth" by a factor of 1.1 or 0.9. Although the fact that the value is rounded down before the nature multiplier is applied makes it slightly more complicated than that.</p>
+
+</section>
+
+<section>
+<h2>A note about min/maxing EV spreads</h2>
+
+<p>You may have come across the idea that a Pokémon's number of EVs in any particular stat should always be a multiple of 4. This comes from the context of competitive online battling, where Pokémon are always at level 100. The rationale for this is that each EV is worth no more than 1&frasl;4 of a point, and since the calculation process involves rounding down after the EVs are factored in (step 4 above), any extra 1&frasl;4s of a point at that stage are effectively wasted.</p>
+
+<p>However, this relies on the assumption that the EV is only added to whole numbers before the rounding down happens, and hence any fractional part of the value at the time of the rounding down comes from the EVs. This is true at level 100, but not at earlier levels. For example, at level 95, each IV is only worth 1 &times; 95&frasl;100 = 0.95 points. So if a Pokémon has 31 IVs, that's worth 31 &times; 0.95 = 29.45 points before anything else, which would be rounded down to 29. But if the Pokémon also has 3 EVs in the stat, which would be worth 3 &times; 95&frasl;100 = 0.7125 points, adding that to 29.45 gives 30.1625, which would only be rounded down to 30. The two fractional parts combine to make something which is greater than 1. So the idea that EVs should always be a multiple of 4 isn't really valid when you consider levels lower than 100.</p>
+
+<p>The same goes for levels above 100. And even if you consider only battles at the level cap of 150, it is no longer the case that EVs beyond a multiple of 4 are worthless, because each EV is now worth 3&frasl;8 of a point rather than 1&frasl;4. So 2 EVs are worth 6&frasl;8, 3 EVs are worth 1 1&frasl;8 and 4 EVs are worth 1 4&frasl;8, i.e. 1.5. Having 4 EVs in a stat is still better than having 3 EVs if the Pokémon has an odd number of IVs (e.g. 31), because since each IV is worth 1.5 points, having an odd number of IVs means a half is left over, which would need to combine with a half from the EVs to be worth anything. But 3 EVs will still give your Pokémon an extra point in the stat, no matter what.</p>
+
+<p>One of the most notable implications of this is that if you are maximising two stats with 252 EVs in both, and then dumping the extra 6 available EVs in some other stat, <em>it makes a difference if you put all 6 EVs in that stat, rather than just 4</em>. Specifically, if you put all 6 in the third stat, you get 2 extra points in that stat rather than just 1. (This is the case from level 134 and up.)</p>
+
+</section>
+
+
+</section>
+{% endblock %}

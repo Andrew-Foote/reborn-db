@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Pokémon Reborn Type Chart</title>
+		<style>
+
+body {
+	font-family: sans-serif;
+}
+
+table { border-collapse: collapse }
+th, td { padding: 5px; border: 1px solid gray; width: 10em }
+th { background-color: aqua; }
+
+a.type-icon {
+	padding: 2px 5px;
+	border-radius: 5px;
+	border: 1px solid black;
+	text-decoration: none;
+	color: white;
+	text-transform: uppercase;
+	font-size: small;
+	font-weight: bold;
+	text-shadow: 1px 1px 1px black;
+}
+
+.grass-type-color { background-color: #78c850/*lightgreen*/ }
+.fire-type-color { background-color: #f08030/*red*/ }
+.water-type-color { background-color: #6890f0/*blue*/ }
+.electric-type-color { background-color: #f8d030/*yellow*/ }
+.normal-type-color { background-color: #a8a878/*silver*/ }
+.flying-type-color { background-color: #a890f0/*skyblue*/ }
+.bug-type-color { background-color: #a8b820/*orange*/ }
+.poison-type-color { background-color: #a040a0/*purple*/ }
+.ground-type-color { background-color: #e0c068/*khaki*/ }
+.rock-type-color { background-color: #b8a038/*sandybrown*/ }
+.ice-type-color { background-color: #98d8d8/*aqua*/ }
+.dragon-type-color { background-color: #7038f8/*magenta*/ }
+.ghost-type-color { background-color: #705898/*violet*/ }
+.psychic-type-color { background-color: #f85888/*hotpink*/ }
+.fighting-type-color { background-color: #c03028/*maroon*/ }
+.dark-type-color { background-color: #705848/*black*/ }
+.steel-type-color { background-color: #b8b8d0/*gray*/ }
+.fairy-type-color { background-color: #ee99ac/*pink*/ }
+
+		</style>
+	</head>
+	<body>
+		<table>
+			<tr>
+				<th></th>
+				{% for type in types %}
+				<th><a class="type-icon {{ type|slug }}-type-color" href="types/{{ type|slug }}.html">
+					{{ type }}
+				</a></th>
+				{% endfor %}
+			</tr>
+			{% for attacking_type in types %}
+			<tr>
+				<th><a class="type-icon {{ attacking_type|slug }}-type-color" href="types/{{ attacking_type|slug }}.html">
+					{{ attacking_type }}
+				</a></th>
+				{% for defending_type in types %}
+				{% set multiplier = type_chart[attacking_type, defending_type] or 1 %}
+				<td style="
+				{% if multiplier == '0' %}
+					background-color: gray; color: white
+				{% elif multiplier == '0.5' %}
+					background-color: skyblue
+				{% elif multiplier == '2' %}
+					background-color: pink
+				{% endif %}
+				">
+				{{ multiplier }}
+				</td>
+				{% endfor %}
+			</tr>
+			{% endfor %}
+	</body>
+</html>

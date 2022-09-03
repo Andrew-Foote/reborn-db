@@ -1,0 +1,53 @@
+{% extends 'base.jinja2' %}
+
+{% block title %}
+{{ ability.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="backlinks">
+	<a href="/abilities.html">Ability List</a>
+</div>
+
+<section>
+
+<h1>{{ ability.name }}</h1>
+
+<section>
+
+<h2>Description</h2>
+
+<p>{{ ability.desc }}</p>
+
+</section>
+
+<section>
+
+<h2>Pokémon with this ability</h2>
+
+{% if ability.forms %}
+
+<table class="data=table" style="margin: auto">
+	<tr>
+		<th>Name</th>
+		<th>Slot</th>
+	</tr> 
+	{% for form in ability.forms %}
+	<tr>
+		<td><a href="/pokemon/{{ form.pokemon|slug }}.html#{{ form.name|slug }}">{{ pokemon_form_name(form.pokemon, form.name) }}</a></td>
+		<td>{{ form.slot }}</td>
+	</tr>
+	{% endfor %}
+</table>
+
+{% else %}
+
+<p>There are no Pokémon with this ability. (It's probably a Gen 8 ability that's snuck its way into the database by mistake.)</p>
+
+{% endif %}
+
+</section>
+
+</section>
+{% endblock %}

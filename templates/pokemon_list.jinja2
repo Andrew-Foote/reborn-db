@@ -1,0 +1,45 @@
+{% from 'macros.jinja2' import base64_image %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Pokémon List
+{% endblock %}
+
+{% block style %}
+figure { display: inline-block; }
+
+.sprite {
+	display: block;
+	background-repeat: no-repeat;
+	width: 192px;
+	height: 192px;
+	margin-bottom: 0.4em;
+}
+{% endblock %}
+
+{% block content %}
+<section>
+	<h1>Pokémon List</h1>
+
+	{% set MAX_SPRITES_IN_SHEET = 341 %}
+	{% set SPRITE_SIZE = 192 %}
+
+	<div style="text-align: center">
+	{% for pokemon in pokemons %}
+	<figure>
+	  <!--
+		<a
+			href="/pokemon/{{ pokemon.name|slug }}.html"
+			class="sprite"
+			style="background-image: url(/img/pokemon/sheet_{{ (pokemon.number - 1) // MAX_SPRITES_IN_SHEET }}.png); background-position: left {{ -(((pokemon.number - 1) % MAX_SPRITES_IN_SHEET) * SPRITE_SIZE) }}px"></a>
+		-->
+		<a href="/pokemon/{{ pokemon.name|slug }}.html">{{ base64_image(pokemon.sprite, '', 192, 192) }}</a>
+		<figcaption>
+			{{ '{0:0>3}'.format(pokemon.number) }}
+			<a href="/pokemon/{{ pokemon.name|slug }}.html">{{ pokemon.name }}</a>
+		</figcaption>
+	</figure>
+	{% endfor %}
+	</div>
+</section>
+{% endblock %}

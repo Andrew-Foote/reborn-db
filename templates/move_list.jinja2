@@ -1,0 +1,37 @@
+{% from 'macros.jinja2' import type_icon %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Move List
+{% endblock %}
+
+{% block content %}
+<section>
+	<h1>Move List</h1>
+
+	<table class="data=table" style="width: 90%; margin: auto">
+		<tr>
+			<th>Name</th>
+			<th>Damage class</th>
+			<th>Type</th>
+			<th>Power</th>
+			<th>Accuracy</th>
+			<th>PP</th>
+			<th style="width: 40%">Description</th>
+		</tr> 
+		{% for move in moves %}
+		<tr>
+			<td><a href="/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+			<td>{{ move.damage_class }}</td>
+			<td><a href="/type/{{ move.type|slug }}.html">
+				{{ type_icon(move.type) }}
+			</a></td>
+			<td>{{ move.power }}</td>
+			<td>{{ move.accuracy }}</td>
+			<td>{{ move.pp }}</td>
+			<td>{{ move.desc }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+</section>
+{% endblock %}

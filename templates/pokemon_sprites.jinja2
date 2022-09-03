@@ -1,0 +1,49 @@
+{% from 'macros.jinja2' import pokemon_sprite_row %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+{{ pokemon_form_name(pokemon, form) }} Sprites
+{% endblock %}
+
+{% block content %}
+<section>
+  <h1>{{ pokemon_form_name(pokemon, form) }} Sprites</h1>
+  
+  <table class="data-table">
+    <tr>
+      <th></th>
+      <th colspan="2">Non-shiny</th>
+      <th colspan="2">Shiny</th>
+    </tr>
+    {% if genderdiff %}
+    <tr>
+      <th></th>
+      <th>Male</th>
+      <th>Female</th>
+      <th>Male</th>
+      <th>Female</th>
+    </tr>
+    {% endif %}
+    <tr>
+      <th>Front</th>
+      {{ pokemon_sprite_row(front_sprite, 192, 192) }}
+    </tr>
+    <tr>
+      <th>Back</th>
+      {{ pokemon_sprite_row(back_sprite, 192, 192) }}
+    </tr>
+    <tr>
+      <th>Egg</th>
+      {{ pokemon_sprite_row(egg_sprite, 64, 64) }}
+    </tr>
+    <tr>
+      <th>Icon</th>
+      {{ pokemon_sprite_row(icon, 64, 64) }}
+    </tr>
+    <tr>
+      <th>Egg icon</th>
+      {{ pokemon_sprite_row(egg_icon, 64, 64) }}
+    </tr>
+  </table>
+</section>
+{% endblock %}

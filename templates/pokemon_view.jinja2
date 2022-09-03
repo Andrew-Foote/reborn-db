@@ -1,0 +1,478 @@
+{% from 'macros.jinja2' import evolution_diagram, type_icon %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+{{ pokemon.name }}
+{% endblock %}
+
+{% block links %}
+{% if pokemon.prev_name is not none %}<link rel="next" href="/pokemon/{{ pokemon.prev_name|slug }}.html">{% endif %}
+{% if pokemon.next_name is not none %}<link rel="next" href="/pokemon/{{ pokemon.next_name|slug }}.html">{% endif %}
+{% endblock %}
+
+{% block script %}
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		{% if pokemon.prev_name is not none %}
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/{{ pokemon.prev_name|slug }}.html')
+		}
+		{% endif %}
+
+		{% if pokemon.next_name is not none %}
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/{{ pokemon.next_name|slug }}.html')
+		}
+		{% endif %}
+	});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="backlinks">
+	{% if pokemon.prev_name is not none %}
+	<a href="/pokemon/{{ pokemon.prev_name|slug }}.html">&leftarrow; {{ '{0:0>3}'.format(pokemon.number - 1) }} {{ pokemon.prev_name }}</a>
+	{% else %}
+	<span>&nbsp;</span>
+	{% endif %}
+	<a href="/pokemon.html">Pokémon List</a>
+	{% if pokemon.next_name is not none %}
+	<a href="/pokemon/{{ pokemon.next_name|slug }}.html">{{ '{0:0>3}'.format(pokemon.number + 1) }} {{ pokemon.next_name }} &rightarrow;</a>
+	{% else %}
+	<span>&nbsp;</span>
+	{% endif %}
+</div>
+
+<section>
+	<h1>{{ pokemon.name }}</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>{{ '{:0>3}'.format(pokemon.number) }}</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">{{ pokemon.male_frequency|gender_ratio }}</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/{{ pokemon.growth_rate|slug }}.html">{{ pokemon.growth_rate }}</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>{{ pokemon.category }} Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>{{ pokemon.hatch_steps }}
+				<th>Base EXP yield</th>
+				<td>{{ pokemon.base_exp }}
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>{{ pokemon.base_friendship }}
+				<th>Egg groups</th>
+				<td colspan="3">
+					{% for egg_group in pokemon.egg_groups %}
+						<a href="/egg_group/{{ egg_group|slug }}.html">{{ egg_group }}</a>{% if not loop.last %},{% endif %}
+					{% endfor %}
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	{% if len(pokemon.forms) > 1 %}
+	<ul class="tabs" id="hash-tabs">
+		{% for form in pokemon.forms %}
+		<li><a class="tab" href="#" data-tab-target="hash-tab-{{ form.name|slug }}">{{ form.name or 'Normal' }}</a></li>
+		{% endfor %}
+	</ul>
+	<div class="tab-targets">
+	{% endif %}
+
+	{% for form in pokemon.forms %}
+
+		{% if len(pokemon.forms) > 1 %}
+		<section id="hash-tab-{{ form.name|slug }}">
+			<h2 class="tab">{{ form.name or 'Normal' }} Form</h2>
+		{% endif %}
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  {% if form.sprite is none %}
+			  <div style="width: 192px; height: 192px"></div>
+			  {% else %}
+			  <img src="data:image/png;base64,{{ form.sprite }}" alt="" width="192" height="192">
+			  {% endif %}
+				<!--<img src="/img/pokemon/{{ '{0:0>3}'.format(pokemon.number) }}_{{ form.order }}.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/{{ pokemon.name|slug }}/{{ form.name|slug }}.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						{% for type in form.types %}
+							{{ type_icon(type) }}
+						{% endfor %}
+					</td>
+				</tr>
+				{% if form.double_weaknesses %}
+				<tr>
+					<th>Double weaknesses</th>
+					<td>{% for type in form.double_weaknesses %} {{ type_icon(type) }} {% endfor %}</td>
+				</tr>
+				{% endif %}
+				{% if form.weaknesses %}
+				<tr>
+					<th>Weaknesses</th>
+					<td>{% for type in form.weaknesses %} {{ type_icon(type) }} {% endfor %}</td>
+				</tr>
+				{% endif %}
+				{% if form.resistances %}
+				<tr>
+					<th>Resistances</th>
+					<td>{% for type in form.resistances %} {{ type_icon(type) }} {% endfor %}</td>
+				</tr>
+				{% endif %}
+				{% if form.double_resistances %}
+				<tr>
+					<th>Double resistances</th>
+					<td>{% for type in form.double_resistances %} {{ type_icon(type) }} {% endfor %}</td>
+				</tr>
+				{% endif %}
+				{% if form.immunities %}
+				<tr>
+					<th>Immunities</th>
+					<td>{% for type in form.immunities %} {{ type_icon(type) }} {% endfor %}</td>
+				</tr>
+				{% endif %}
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td {% if '2' not in form.abilities %} rowspan="2" {% endif %}><a href="../ability/{{ form.abilities['1'].name|slug }}.html">{{ form.abilities['1'].name }}</a></td>
+					<td {% if '2' not in form.abilities %} rowspan="2" {% endif %}>{{ form.abilities['1'].desc }}</td>
+				</tr>
+				<tr>
+				{% if '2' in form.abilities %}
+					<td><a href="/ability/{{ form.abilities['2'].name|slug }}.html">{{ form.abilities['2'].name }}</a></td>
+					<td>{{ form.abilities['2'].desc }}</td>
+				{% endif %}
+				</tr>
+				{% if '3' in form.abilities %}
+				<tr>
+					<th>Hidden Ability</th>
+					<td><a href="/ability/{{ form.abilities['3'].name|slug }}.html">{{ form.abilities['3'].name }}</a></td>
+					<td>{{ form.abilities['3'].desc }}
+				</td>
+				{% endif %}
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">{{ form.pokedex_entry }}
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>{{ form.height_feet }}&prime;{{ form.height_inches }}&Prime; / {{ form.height_m }} m</td>
+				<th>Weight</th>
+				<td>{{ form.weight_pounds }} lb / {{ form.weight_kg }} kg</td>
+				<th>Catch Rate</th>
+				<td>{{ form.catch_rate }}
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				{% if form.wild_held_items %}
+					{% for item in form.wild_held_items %}
+						<a href="/item/{{ item.name|slug }}.html">{{ item.name }}</a> ({{ item.rarity }}%){% if not loop.last %},{% endif %}
+					{% endfor %}
+				{% else %}
+					None
+				{% endif %}
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>{{ form.base_stats['HP'] }}</td>
+					<td>{{ form.base_stats['ATK'] }}</td>
+					<td>{{ form.base_stats['DEF'] }}</td>
+					<td>{{ form.base_stats['SPD'] }}</td>
+					<td>{{ form.base_stats['SA'] }}</td>
+					<td>{{ form.base_stats['SD'] }}</td>
+					<td>{{ form.bst }}</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>{{ form.ev_yields['HP'] or 0 }}</td>
+					<td>{{ form.ev_yields['ATK'] or 0 }}</td>
+					<td>{{ form.ev_yields['DEF'] or 0 }}</td>
+					<td>{{ form.ev_yields['SPD'] or 0 }}</td>
+					<td>{{ form.ev_yields['SA'] or 0 }}</td>
+					<td>{{ form.ev_yields['SD'] or 0 }}</td>
+					<td>{{ form.evtot }}</td>
+				</tr>
+			</table>
+		</section>
+
+		{% if form.evo_tree is not none and form.evo_tree[0].children %}
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+				{% for branch in form.evo_tree %}				
+				{{ evolution_diagram(pokemon, form, branch) }}
+				{% endfor %}
+			</div>
+		</section>
+		{% endif %}
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						{% for move in form.level_moves %}
+						<tr>
+							<td>{{ move.level }}</td>
+							<td><a href="/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+						</tr>
+						{% endfor %}
+					</table>
+
+				</section>
+				{% if form.evolution_moves %}
+				<section>
+					<h4>Learnt on evolution</h4>
+
+					<table>
+						{% for move in form.evolution_moves %}
+						<tr>
+							<td><a href="/move/{{ move|slug }}.html">{{ move }}</a></td>
+						</tr>
+						{% endfor %}
+					</table>
+				</section>
+				{% endif %}
+				
+				{% if form.preevo_moves %}
+				<section>
+				  <h4>Learnt from a pre-evolution</h4>
+				  
+				  <table>
+				    <tr>
+				      <th>Pre-evolution</th>
+				      <th>Move</th>
+				      <th>Method</th>
+				    </tr>
+				    {% for move in form.preevo_moves %}
+				    <tr>
+				      <td><a href="/pokemon/{{ move.preevo|slug }}.html#{{ move.preevo_form }}">{{ pokemon_form_name(move.preevo, move.preevo_form) }}</a></td>
+				      <td><a href="/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+				      <td>
+				        {% if move.method == 'level' %}
+				          {% if move.level == 0 %}
+				            Evolution
+				          {% else %}
+  				          Level {{ move.level }}
+				          {% endif %}
+				        {% elif move.method == 'machine' %}
+				          TM/TMX
+				        {% elif move.method == 'tutor' %}
+				          Move Tutor
+				        {% endif %}
+				      </td>
+				    </tr>
+				    {% endfor %}
+				  </table>
+				</section>
+				{% endif %}
+				
+				</div>
+				{% if form.egg_moves %}
+				<section>
+					<h4>Egg Moves</h4>
+
+					<table>
+						{% for move in form.egg_moves %}
+						<tr>
+							<td><a href="/move/{{ move|slug }}.html">{{ move }}</a></td>
+						</tr>
+						{% endfor %}
+					</table>
+				</section>
+				{% endif %}
+				{% if form.machine_moves %}
+				<section>
+					<h4>Learnt from TMs/TMXs</h4>
+
+					<table>
+						<tr>
+							<th>Item</th>
+							<th>Move</th>
+						</tr>
+						{% for move in form.machine_moves %}
+						<tr>
+							<td><a href="/item/{{ move.item|slug }}.html">{{ move.item }}</a></td>
+							<td><a href="/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+						</tr>
+						{% endfor %}
+					</table>
+				</section>
+				{% endif %}
+				{% if form.tutor_moves %}
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						{% for move in form.tutor_moves %}
+						<tr>
+							<td><a href="/move/{{ move|slug }}.html">{{ move }}</a></td>
+						</tr>
+						{% endfor %}
+					</table>
+				</section>
+				{% endif %}
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			{% if form.encounters %}
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				{% for encounter in form.encounters %}
+				<tr>
+					<td><a href="/area/{{ encounter.map_id }}.html">{{ encounter.map_id }}</a></td>
+					<td>{{ encounter.map_name }}</td>
+					<td>{{ encounter.method }}</td>
+					<td>{{ encounter.min_level }}{% if encounter.max_level != encounter.min_level %}&ndash;{{ encounter.max_level }}{% endif %}</td>
+					<td>{{ encounter.rate|frac_mixed }} %</td>
+				</tr>
+				{% endfor %}
+			</table>
+			{% else %}
+			<p>There are no regular wild encounters for this Pokémon.</p>
+			{% endif %}
+		</section>
+
+		{% if form.special_encounters %}
+		<section>
+			<h3>Special encounters</h3>
+
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter type</th>
+					<th>Level</th>
+				</tr>
+				{% for encounter in form.special_encounters %}
+				<tr>
+					<td><a href="/area/{{ encounter.map_id }}.html">{{ encounter.map_id }}</a></td>
+					<td>{{ encounter.map_name }}</td>
+					<td>{{ encounter.type }}</td>
+					<td>{{ encounter.level }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+		</section>
+		{% endif %}
+
+		{% if len(pokemon.forms) > 1 %}
+		</section>
+		{% endif %}
+	{% endfor %}
+	{% if len(pokemon.forms) > 1 %}</div>{% endif %}
+</section>
+{% endblock %}
