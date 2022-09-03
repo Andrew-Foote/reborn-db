@@ -1,0 +1,548 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Caterpie
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/blastoise.html">
+<link rel="next" href="/pokemon/metapod.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/blastoise.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/metapod.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/blastoise.html">&leftarrow; 009 Blastoise</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/metapod.html">011 Metapod &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Caterpie</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>010</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Worm Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>4080
+				<th>Base EXP yield</th>
+				<td>39
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/bug.html">Bug</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAAG7klEQVR4nO3dLVQcZxTG8bs9FRBFqoorMicKCVUBRx2NIlFNVWNTBShYVeLaqqQqQaW4xGWjAhKVVhJHVEEluK1458KZm32ZnZ1dsuzz/xnY7z05ufeZ92MGMwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGqtpm/Q7XaH8T2AgbRazf4LfzWk7wFcSxQApFEAkEYBQBoFAGkUAKRRAJBGAUAaBQBpFACkUQCQRgFAGgUAaRQApFEAkEYBQBoFAGkUAKRRAJBGAUAaBQBpFACkUQCQRgFAGgUAaRQApFEAkEYBQBoFAGkUAKRRAJBGAUAaBQBpFACkUQCQRgFAGgUAaRQApFEAkEYBQBoFAGkUAKRRAJBGAUAaBQBpFACkUQCQ9vWX/gLjZmPxh26v+7f3X7au+rtg9EgASGvc1brdng3z2vHOv730Kd2xcJZ+HkylxzvTZlY/CUiU0Wq1mv0zkgCQxhgg2vdfpi592txG787u7nXSz+31k/TL4/L7nScOSfBFkQCQxhggOO/MU8VYYDE8XowF5l9/Kt1/uDxdun3e+V1IgNabN2Zm1u12SYAGGAMADZAAGf0mgfts9uhx7zGEd/5v1+6U7j9+3iEJBkACAA2QAIHP7uysp45+90ZxrH6n6NiLvV93br980zu+++XdfOn2wb8zZmZ2vJdukwT1kABAA6wDBDfnP13+hP3LH67q+NHCrVMzMztYnUmvb7W6ZswOXRUSANJIgMLFsX/5/hcf07F/K44FChtnaTaoffDKzKo7/s7sWs/7jz6k2aP7L9JtkuBqkACQRgIU/Ni/c3RqZmZLczO1Xl+387f/SInS3kzJ8e71lpmZPbu5ZGZmt608lsBokACQJp8Afuy/snZaut+TwHmH3/i5vAJ88uS41ud5549uL2+a2UUSzL8oxh6MBUaKBIA0+QQ4O6qY9w/qdvzIj/kxHkgASJNPgBzfo3NyOH3p83z2yFd0q3z87zczM7vxza+l+9e3Vup9QQwFCQBpJECw154xM7OpudT5fVdo5LNEr3Zn0+uK3Zyzq+lnTIRHx7vp/Yr1AE+Co8Oz0vPun3R6ft7svaWuGbtFh40EgDTOByh4h3W/P7n8+XGdIO7r9yRwuTGCvy7n8G5aN/B1CE8okiDhfACgAcYAwer6afHbjJmZtTPT9gu34u30uldzaUxwvJfGDp4EVZ0+ip0fo0ECQBpjgILvufGO67M7uVmgR+00S7SyllaGY4f3Du57evrl6w7vi+jx18cxRL9jgR8flK9g9/fTyboSHWMAoAESoOAJ8N16WpH1zp4TV4rjucSeAC6XBLHj557/dqm8Uuwrybldot75n+2U3+f+o/S9JiUJSACgAWaBCt5JPQkO5usdu7vc3qGYCJEnT0wSP0Ps+05KiH73HOVs3Vsws4uEmJQkGBQJAGkkQBCTINeZ47F/7li+ir9/5J0/tzeoinf2fzrbPQdpe38V3/PpQG8/MUgASCMBMuLsiidC9D7c9nN6o939AzNrfkbYww9paflPO+zr+ZvP0+f6sT/KSABIYx2gJp898Y7qnX39YX+zRvGqEJ4IcSzgYwsfCzi/ekTdq0R4gnlCDfo+44Z1AKABxgB9yq2sVl0t2nnnj0mxtpiSxDtyTAKfBao6N7lKnN1a/YlzkM1IAIgjARryDp7r8IPKrSv4Mfyg5wh75/cxjPqV50gASGMWqKY4m+L8GN6v7xOTwHdvxtdVrQ/4mODlUurYPibwvUV1O3c893lxKiXNdd0TxCwQ0AAJMKC4MhxnWVy84luu08f5+ardof48/3vDubFA7PjxahWDJsm4IAGABkiAIfMEyI0FXLwinI8FnCdF7kwyv/7Q6wcpEZaf9t416o/HXaUxSUgAQBDrAEPind+v+enrArHTR975fT3hXDFZ1L5bToLY+WNn92P8qvMJ/HOva+cfFhIA0hgDDEnV+kDuPIHc43F9wGd7/KrVcbeod/rctUndpBz7O8YAQAMkwJDlzhxzub8EU7US7OK6QBQTYFjnE4wrEgBogAS4YrmxQpWqq0N4p8/NKk1a53ckANAACfCFxBXjz9YBaoqd3zu+m7TO70gAoAESYEzkdpFWJUPufIJJ7fgRCQA0QAKMuap1BZVOn0MCAA2wG3TMqXf4USMBII0CgDQKANIoAEijACCNAoA0CgDSKABIowAgjQKANAoA0igASKMAII0CgDQKANIoAEijACCNAoA0CgDSKABIowAgjQKANAoA0igASKMAII0CgDQKANIoAEijACCNAoA0CgDSKABIowAgjQKANAoA0igASKMAII0CgDQKANIoAEijACCNAoA0CgDSKABIowAg7X+dXXRLSjv8GgAAAABJRU5ErkJggg==" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/010_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/caterpie/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	Bug
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon flying-type-color"
+	href="/types/flying.html"
+>
+	FLYING
+</a>
+  
+<a
+	class="type-icon rock-type-color"
+	href="/types/rock.html"
+>
+	ROCK
+</a>
+  
+<a
+	class="type-icon fire-type-color"
+	href="/types/fire.html"
+>
+	FIRE
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon ground-type-color"
+	href="/types/ground.html"
+>
+	GROUND
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/shield-dust.html">Shield Dust</a></td>
+					<td >This Pokémon is immune to additional effects.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/run-away.html">Run Away</a></td>
+					<td>This Pokémon can always flee from wild Pokémon.</td>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">Its voracious appetite compels it to devour leaves bigger than itself without hesitation. It releases a terribly strong odor from its antennae.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>1&prime;12&Prime; / 0.3 m</td>
+				<th>Weight</th>
+				<td>64 lb / 2.9 kg</td>
+				<th>Catch Rate</th>
+				<td>255
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>45</td>
+					<td>30</td>
+					<td>35</td>
+					<td>45</td>
+					<td>20</td>
+					<td>20</td>
+					<td>195</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+<b>
+<a href="/pokemon/caterpie.html#">
+	Caterpie
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 7
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/metapod.html#">
+	Metapod
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 10
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/butterfree.html#">
+	Butterfree
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/tackle.html">Tackle</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/string-shot.html">String Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td>9</td>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/electroweb.html">Electroweb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snore.html">Snore</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/string-shot.html">String Shot</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (morning)</td>
+					<td>2&ndash;6</td>
+					<td>15  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>4&ndash;5</td>
+					<td>21 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>3</td>
+					<td>6 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>6</td>
+					<td>4  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (night)</td>
+					<td>4&ndash;7</td>
+					<td>15  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (morning)</td>
+					<td>2&ndash;6</td>
+					<td>15  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>4&ndash;5</td>
+					<td>21 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>3</td>
+					<td>6 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>6</td>
+					<td>4  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (night)</td>
+					<td>4&ndash;7</td>
+					<td>15  %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

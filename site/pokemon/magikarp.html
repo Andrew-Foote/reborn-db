@@ -1,0 +1,476 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Magikarp
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/tauros.html">
+<link rel="next" href="/pokemon/gyarados.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/tauros.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/gyarados.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/tauros.html">&leftarrow; 128 Tauros</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/gyarados.html">130 Gyarados &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Magikarp</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>129</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/slow.html">Slow</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Fish Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>1530
+				<th>Base EXP yield</th>
+				<td>40
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/dragon.html">Dragon</a>,
+					
+						<a href="/egg_group/water-2.html">Water 2</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/129_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/magikarp/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon water-type-color"
+	href="/types/water.html"
+>
+	Water
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+  
+<a
+	class="type-icon electric-type-color"
+	href="/types/electric.html"
+>
+	ELECTRIC
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon steel-type-color"
+	href="/types/steel.html"
+>
+	STEEL
+</a>
+  
+<a
+	class="type-icon fire-type-color"
+	href="/types/fire.html"
+>
+	FIRE
+</a>
+  
+<a
+	class="type-icon water-type-color"
+	href="/types/water.html"
+>
+	WATER
+</a>
+  
+<a
+	class="type-icon ice-type-color"
+	href="/types/ice.html"
+>
+	ICE
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/swift-swim.html">Swift Swim</a></td>
+					<td >This Pokémon's Speed stat is doubled during rain.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/rattled.html">Rattled</a></td>
+					<td>Bug, Dark, or Ghost move damage raises its Speed.</td>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">Its swimming muscles are weak, so it is easily washed away. In places where water pools, you can see many Magikarp deposited there by the flow.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>3&prime;11&Prime; / 0.9 m</td>
+				<th>Weight</th>
+				<td>220 lb / 10.0 kg</td>
+				<th>Catch Rate</th>
+				<td>255
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>20</td>
+					<td>10</td>
+					<td>55</td>
+					<td>80</td>
+					<td>15</td>
+					<td>20</td>
+					<td>200</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+<b>
+<a href="/pokemon/magikarp.html#">
+	Magikarp
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 20
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/gyarados.html#">
+	Gyarados
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/splash.html">Splash</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/tackle.html">Tackle</a></td>
+						</tr>
+						
+						<tr>
+							<td>30</td>
+							<td><a href="/move/flail.html">Flail</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/bounce.html">Bounce</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/celebrate.html">Celebrate</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/834.html">834</a></td>
+					<td>New World</td>
+					<td>Surf</td>
+					<td>1&ndash;5</td>
+					<td>3  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/844.html">844</a></td>
+					<td>Vacant Past</td>
+					<td>Super Rod</td>
+					<td>1&ndash;100</td>
+					<td>7  %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+		<section>
+			<h3>Special encounters</h3>
+
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter type</th>
+					<th>Level</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/693.html">693</a></td>
+					<td>1R253 Scrapyard</td>
+					<td>gift</td>
+					<td>5</td>
+				</tr>
+				
+			</table>
+		</section>
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

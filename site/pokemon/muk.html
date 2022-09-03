@@ -1,0 +1,5755 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Muk
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/grimer.html">
+<link rel="next" href="/pokemon/shellder.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/grimer.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/shellder.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/grimer.html">&leftarrow; 088 Grimer</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/shellder.html">090 Shellder &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Muk</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>089</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Sludge Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>5355
+				<th>Base EXP yield</th>
+				<td>175
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/amorphous.html">Amorphous</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+	<ul class="tabs" id="hash-tabs">
+		
+		<li><a class="tab" href="#" data-tab-target="hash-tab-normal">Normal</a></li>
+		
+		<li><a class="tab" href="#" data-tab-target="hash-tab-alolan">Alolan</a></li>
+		
+		<li><a class="tab" href="#" data-tab-target="hash-tab-pulse">PULSE</a></li>
+		
+	</ul>
+	<div class="tab-targets">
+	
+
+	
+
+		
+		<section id="hash-tab-normal">
+			<h2 class="tab">Normal Form</h2>
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/089_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/muk/normal.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	Poison
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon ground-type-color"
+	href="/types/ground.html"
+>
+	GROUND
+</a>
+  
+<a
+	class="type-icon psychic-type-color"
+	href="/types/psychic.html"
+>
+	PSYCHIC
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	POISON
+</a>
+  
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	BUG
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+  
+<a
+	class="type-icon fairy-type-color"
+	href="/types/fairy.html"
+>
+	FAIRY
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/stench.html">Stench</a></td>
+					<td >Damaging a target makes it flinch by a small chance. </td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/sticky-hold.html">Sticky Hold</a></td>
+					<td>An item it holds cannot be stolen or knocked off.</td>
+				
+				</tr>
+				
+				<tr>
+					<th>Hidden Ability</th>
+					<td><a href="/ability/poison-touch.html">Poison Touch</a></td>
+					<td>May cause poisoning on contact when attacking.
+				</td>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">It prefers warm and humid habitats. In the summertime, the toxic substances in its body intensify, making Muk reek like putrid kitchen garbage.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>4&prime;11&Prime; / 1.2 m</td>
+				<th>Weight</th>
+				<td>661 lb / 30.0 kg</td>
+				<th>Catch Rate</th>
+				<td>75
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					
+						<a href="/item/black-sludge.html">Black Sludge</a> (5%)
+					
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>105</td>
+					<td>105</td>
+					<td>75</td>
+					<td>50</td>
+					<td>65</td>
+					<td>100</td>
+					<td>500</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>1</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>2</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+
+<a href="/pokemon/grimer.html#normal">
+	Grimer
+	
+		(Normal Form)
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 38
+				
+			
+			</small>
+		</div>
+		
+<b>
+<a href="/pokemon/muk.html#normal">
+	Muk
+	
+		(Normal Form)
+	
+</a>
+</b>
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/poison-gas.html">Poison Gas</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/pound.html">Pound</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td>4</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+						<tr>
+							<td>7</td>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td>12</td>
+							<td><a href="/move/disable.html">Disable</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/sludge.html">Sludge</a></td>
+						</tr>
+						
+						<tr>
+							<td>18</td>
+							<td><a href="/move/mud-bomb.html">Mud Bomb</a></td>
+						</tr>
+						
+						<tr>
+							<td>21</td>
+							<td><a href="/move/minimize.html">Minimize</a></td>
+						</tr>
+						
+						<tr>
+							<td>26</td>
+							<td><a href="/move/fling.html">Fling</a></td>
+						</tr>
+						
+						<tr>
+							<td>29</td>
+							<td><a href="/move/sludge-bomb.html">Sludge Bomb</a></td>
+						</tr>
+						
+						<tr>
+							<td>32</td>
+							<td><a href="/move/sludge-wave.html">Sludge Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td>37</td>
+							<td><a href="/move/screech.html">Screech</a></td>
+						</tr>
+						
+						<tr>
+							<td>40</td>
+							<td><a href="/move/gunk-shot.html">Gunk Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td>46</td>
+							<td><a href="/move/acid-armor.html">Acid Armor</a></td>
+						</tr>
+						
+						<tr>
+							<td>52</td>
+							<td><a href="/move/belch.html">Belch</a></td>
+						</tr>
+						
+						<tr>
+							<td>57</td>
+							<td><a href="/move/memento.html">Memento</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				<section>
+					<h4>Learnt on evolution</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/venom-drench.html">Venom Drench</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				<section>
+					<h4>Egg Moves</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/acid-spray.html">Acid Spray</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/curse.html">Curse</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/haze.html">Haze</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/imprison.html">Imprison</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/lick.html">Lick</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/mean-look.html">Mean Look</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/power-up-punch.html">Power-Up Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/scary-face.html">Scary Face</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/shadow-punch.html">Shadow Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/shadow-sneak.html">Shadow Sneak</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/spit-up.html">Spit Up</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/stockpile.html">Stockpile</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/swallow.html">Swallow</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				<section>
+					<h4>Learnt from TMs/TMXs</h4>
+
+					<table>
+						<tr>
+							<th>Item</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm06.html">TM06</a></td>
+							<td><a href="/move/toxic.html">Toxic</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm09.html">TM09</a></td>
+							<td><a href="/move/venoshock.html">Venoshock</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm10.html">TM10</a></td>
+							<td><a href="/move/hidden-power.html">Hidden Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm11.html">TM11</a></td>
+							<td><a href="/move/sunny-day.html">Sunny Day</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm12.html">TM12</a></td>
+							<td><a href="/move/taunt.html">Taunt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm15.html">TM15</a></td>
+							<td><a href="/move/hyper-beam.html">Hyper Beam</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm17.html">TM17</a></td>
+							<td><a href="/move/protect.html">Protect</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm18.html">TM18</a></td>
+							<td><a href="/move/rain-dance.html">Rain Dance</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm21.html">TM21</a></td>
+							<td><a href="/move/frustration.html">Frustration</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm24.html">TM24</a></td>
+							<td><a href="/move/thunderbolt.html">Thunderbolt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm25.html">TM25</a></td>
+							<td><a href="/move/thunder.html">Thunder</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm27.html">TM27</a></td>
+							<td><a href="/move/return.html">Return</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm30.html">TM30</a></td>
+							<td><a href="/move/shadow-ball.html">Shadow Ball</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm31.html">TM31</a></td>
+							<td><a href="/move/brick-break.html">Brick Break</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm32.html">TM32</a></td>
+							<td><a href="/move/double-team.html">Double Team</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm34.html">TM34</a></td>
+							<td><a href="/move/sludge-wave.html">Sludge Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm35.html">TM35</a></td>
+							<td><a href="/move/flamethrower.html">Flamethrower</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm36.html">TM36</a></td>
+							<td><a href="/move/sludge-bomb.html">Sludge Bomb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm38.html">TM38</a></td>
+							<td><a href="/move/fire-blast.html">Fire Blast</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm39.html">TM39</a></td>
+							<td><a href="/move/rock-tomb.html">Rock Tomb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm41.html">TM41</a></td>
+							<td><a href="/move/torment.html">Torment</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm42.html">TM42</a></td>
+							<td><a href="/move/facade.html">Facade</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm44.html">TM44</a></td>
+							<td><a href="/move/rest.html">Rest</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm45.html">TM45</a></td>
+							<td><a href="/move/attract.html">Attract</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm46.html">TM46</a></td>
+							<td><a href="/move/thief.html">Thief</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm48.html">TM48</a></td>
+							<td><a href="/move/round.html">Round</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm52.html">TM52</a></td>
+							<td><a href="/move/focus-blast.html">Focus Blast</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm56.html">TM56</a></td>
+							<td><a href="/move/fling.html">Fling</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm59.html">TM59</a></td>
+							<td><a href="/move/brutal-swing.html">Brutal Swing</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm60.html">TM60</a></td>
+							<td><a href="/move/quash.html">Quash</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm63.html">TM63</a></td>
+							<td><a href="/move/embargo.html">Embargo</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm64.html">TM64</a></td>
+							<td><a href="/move/explosion.html">Explosion</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm66.html">TM66</a></td>
+							<td><a href="/move/payback.html">Payback</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm68.html">TM68</a></td>
+							<td><a href="/move/giga-impact.html">Giga Impact</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm69.html">TM69</a></td>
+							<td><a href="/move/rock-polish.html">Rock Polish</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm71.html">TM71</a></td>
+							<td><a href="/move/stone-edge.html">Stone Edge</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm80.html">TM80</a></td>
+							<td><a href="/move/rock-slide.html">Rock Slide</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm83.html">TM83</a></td>
+							<td><a href="/move/infestation.html">Infestation</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm84.html">TM84</a></td>
+							<td><a href="/move/poison-jab.html">Poison Jab</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm87.html">TM87</a></td>
+							<td><a href="/move/swagger.html">Swagger</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm88.html">TM88</a></td>
+							<td><a href="/move/sleep-talk.html">Sleep Talk</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm90.html">TM90</a></td>
+							<td><a href="/move/substitute.html">Substitute</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm94.html">TM94</a></td>
+							<td><a href="/move/secret-power.html">Secret Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm95.html">TM95</a></td>
+							<td><a href="/move/snarl.html">Snarl</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm97.html">TM97</a></td>
+							<td><a href="/move/dark-pulse.html">Dark Pulse</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm98.html">TM98</a></td>
+							<td><a href="/move/power-up-punch.html">Power-Up Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm100.html">TM100</a></td>
+							<td><a href="/move/confide.html">Confide</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tmx4.html">TMX4</a></td>
+							<td><a href="/move/strength.html">Strength</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tmx7.html">TMX7</a></td>
+							<td><a href="/move/rock-smash.html">Rock Smash</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/block.html">Block</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/fire-punch.html">Fire Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/focus-punch.html">Focus Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/gastro-acid.html">Gastro Acid</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/giga-drain.html">Giga Drain</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/gunk-shot.html">Gunk Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/ice-punch.html">Ice Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/knock-off.html">Knock Off</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/pain-split.html">Pain Split</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/recycle.html">Recycle</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/shock-wave.html">Shock Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snore.html">Snore</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/spite.html">Spite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/thunder-punch.html">Thunder Punch</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/97.html">97</a></td>
+					<td>Coral Ward</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/109.html">109</a></td>
+					<td>Coral Ward</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/14.html">14</a></td>
+					<td>Coral Ward</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/878.html">878</a></td>
+					<td>Idyll of Pestilence</td>
+					<td>Grass</td>
+					<td>113&ndash;120</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/894.html">894</a></td>
+					<td>Endgame</td>
+					<td>Grass</td>
+					<td>113&ndash;120</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/450.html">450</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass</td>
+					<td>45&ndash;55</td>
+					<td>12  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/825.html">825</a></td>
+					<td>New World</td>
+					<td>Grass</td>
+					<td>96&ndash;102</td>
+					<td>2  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/15.html">15</a></td>
+					<td>Apophyll Beach</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/17.html">17</a></td>
+					<td>Apophyll Academy</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/18.html">18</a></td>
+					<td>Apophyll Beach</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/20.html">20</a></td>
+					<td>Apophyll Beach</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/206.html">206</a></td>
+					<td>Azurine Island</td>
+					<td>Good Rod</td>
+					<td>40&ndash;50</td>
+					<td>60  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (day)</td>
+					<td>36&ndash;37</td>
+					<td>9 5&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (day)</td>
+					<td>33&ndash;34</td>
+					<td>6 2&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (day)</td>
+					<td>35</td>
+					<td>4 11&frasl;28 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (day)</td>
+					<td>31&ndash;32</td>
+					<td>4 2&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (day)</td>
+					<td>38</td>
+					<td>1 15&frasl;28 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (day)</td>
+					<td>39&ndash;42</td>
+					<td>1 1&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (night)</td>
+					<td>35&ndash;40</td>
+					<td>5  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (night)</td>
+					<td>42&ndash;44</td>
+					<td>3  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/209.html">209</a></td>
+					<td>Byxbysion Wasteland</td>
+					<td>Grass (night)</td>
+					<td>45&ndash;47</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/895.html">895</a></td>
+					<td>Neoteric Isle</td>
+					<td>Grass</td>
+					<td>113&ndash;120</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Good Rod</td>
+					<td>40&ndash;45</td>
+					<td>24 8&frasl;33 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Good Rod</td>
+					<td>46&ndash;50</td>
+					<td>9 1&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Good Rod</td>
+					<td>37&ndash;39</td>
+					<td>6 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Super Rod</td>
+					<td>60&ndash;70</td>
+					<td>34 723&frasl;806 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Super Rod</td>
+					<td>50&ndash;59</td>
+					<td>29 1&frasl;31 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Super Rod</td>
+					<td>71&ndash;79</td>
+					<td>16 757&frasl;806 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Super Rod</td>
+					<td>40&ndash;49</td>
+					<td>12 28&frasl;31 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Super Rod</td>
+					<td>81&ndash;85</td>
+					<td>2 203&frasl;286 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Super Rod</td>
+					<td>80</td>
+					<td>2 1373&frasl;8866 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/695.html">695</a></td>
+					<td>Tourmaline Desert</td>
+					<td>Super Rod</td>
+					<td>86&ndash;90</td>
+					<td>1 4&frasl;11 %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+
+		
+		</section>
+		
+	
+
+		
+		<section id="hash-tab-alolan">
+			<h2 class="tab">Alolan Form</h2>
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/089_1.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/muk/alolan.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	Poison
+</a>
+
+						
+							
+<a
+	class="type-icon dark-type-color"
+	href="/types/dark.html"
+>
+	Dark
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon ground-type-color"
+	href="/types/ground.html"
+>
+	GROUND
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	POISON
+</a>
+  
+<a
+	class="type-icon ghost-type-color"
+	href="/types/ghost.html"
+>
+	GHOST
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+  
+<a
+	class="type-icon dark-type-color"
+	href="/types/dark.html"
+>
+	DARK
+</a>
+ </td>
+				</tr>
+				
+				
+				
+				<tr>
+					<th>Immunities</th>
+					<td> 
+<a
+	class="type-icon psychic-type-color"
+	href="/types/psychic.html"
+>
+	PSYCHIC
+</a>
+ </td>
+				</tr>
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/poison-touch.html">Poison Touch</a></td>
+					<td >May cause poisoning on contact when attacking.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/gluttony.html">Gluttony</a></td>
+					<td>This Pokémon eats its held Berry at half HP already.</td>
+				
+				</tr>
+				
+				<tr>
+					<th>Hidden Ability</th>
+					<td><a href="/ability/alchemy-power.html">Alchemy Power</a></td>
+					<td>Takes over the Ability of a fainting ally.
+				</td>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">While it's unexpectedly quiet and friendly, if it's not fed any trash for a while, it will smash its Trainer's furnishings and eat up the fragments.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>33&prime;10&Prime; / 10.0 m</td>
+				<th>Weight</th>
+				<td>11464 lb / 520.0 kg</td>
+				<th>Catch Rate</th>
+				<td>75
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					
+						<a href="/item/black-sludge.html">Black Sludge</a> (5%)
+					
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>105</td>
+					<td>105</td>
+					<td>75</td>
+					<td>50</td>
+					<td>65</td>
+					<td>100</td>
+					<td>500</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>1</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>2</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+
+<a href="/pokemon/grimer.html#alolan">
+	Grimer
+	
+		(Alolan Form)
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 38
+				
+			
+			</small>
+		</div>
+		
+<b>
+<a href="/pokemon/muk.html#alolan">
+	Muk
+	
+		(Alolan Form)
+	
+</a>
+</b>
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/pound.html">Pound</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/poison-gas.html">Poison Gas</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+						<tr>
+							<td>4</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+						<tr>
+							<td>7</td>
+							<td><a href="/move/bite.html">Bite</a></td>
+						</tr>
+						
+						<tr>
+							<td>12</td>
+							<td><a href="/move/disable.html">Disable</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/acid-spray.html">Acid Spray</a></td>
+						</tr>
+						
+						<tr>
+							<td>18</td>
+							<td><a href="/move/poison-fang.html">Poison Fang</a></td>
+						</tr>
+						
+						<tr>
+							<td>21</td>
+							<td><a href="/move/minimize.html">Minimize</a></td>
+						</tr>
+						
+						<tr>
+							<td>26</td>
+							<td><a href="/move/fling.html">Fling</a></td>
+						</tr>
+						
+						<tr>
+							<td>29</td>
+							<td><a href="/move/knock-off.html">Knock Off</a></td>
+						</tr>
+						
+						<tr>
+							<td>32</td>
+							<td><a href="/move/crunch.html">Crunch</a></td>
+						</tr>
+						
+						<tr>
+							<td>37</td>
+							<td><a href="/move/screech.html">Screech</a></td>
+						</tr>
+						
+						<tr>
+							<td>40</td>
+							<td><a href="/move/gunk-shot.html">Gunk Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td>46</td>
+							<td><a href="/move/acid-armor.html">Acid Armor</a></td>
+						</tr>
+						
+						<tr>
+							<td>52</td>
+							<td><a href="/move/belch.html">Belch</a></td>
+						</tr>
+						
+						<tr>
+							<td>57</td>
+							<td><a href="/move/memento.html">Memento</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				<section>
+					<h4>Learnt on evolution</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/venom-drench.html">Venom Drench</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				<section>
+					<h4>Egg Moves</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/assurance.html">Assurance</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/clear-smog.html">Clear Smog</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/curse.html">Curse</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/imprison.html">Imprison</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/mean-look.html">Mean Look</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/power-up-punch.html">Power-Up Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/pursuit.html">Pursuit</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/scary-face.html">Scary Face</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/shadow-sneak.html">Shadow Sneak</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/spit-up.html">Spit Up</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/spite.html">Spite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/stockpile.html">Stockpile</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/swallow.html">Swallow</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				<section>
+					<h4>Learnt from TMs/TMXs</h4>
+
+					<table>
+						<tr>
+							<th>Item</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm06.html">TM06</a></td>
+							<td><a href="/move/toxic.html">Toxic</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm09.html">TM09</a></td>
+							<td><a href="/move/venoshock.html">Venoshock</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm10.html">TM10</a></td>
+							<td><a href="/move/hidden-power.html">Hidden Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm11.html">TM11</a></td>
+							<td><a href="/move/sunny-day.html">Sunny Day</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm12.html">TM12</a></td>
+							<td><a href="/move/taunt.html">Taunt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm15.html">TM15</a></td>
+							<td><a href="/move/hyper-beam.html">Hyper Beam</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm17.html">TM17</a></td>
+							<td><a href="/move/protect.html">Protect</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm18.html">TM18</a></td>
+							<td><a href="/move/rain-dance.html">Rain Dance</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm21.html">TM21</a></td>
+							<td><a href="/move/frustration.html">Frustration</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm24.html">TM24</a></td>
+							<td><a href="/move/thunderbolt.html">Thunderbolt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm25.html">TM25</a></td>
+							<td><a href="/move/thunder.html">Thunder</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm27.html">TM27</a></td>
+							<td><a href="/move/return.html">Return</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm30.html">TM30</a></td>
+							<td><a href="/move/shadow-ball.html">Shadow Ball</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm31.html">TM31</a></td>
+							<td><a href="/move/brick-break.html">Brick Break</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm32.html">TM32</a></td>
+							<td><a href="/move/double-team.html">Double Team</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm34.html">TM34</a></td>
+							<td><a href="/move/sludge-wave.html">Sludge Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm35.html">TM35</a></td>
+							<td><a href="/move/flamethrower.html">Flamethrower</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm36.html">TM36</a></td>
+							<td><a href="/move/sludge-bomb.html">Sludge Bomb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm38.html">TM38</a></td>
+							<td><a href="/move/fire-blast.html">Fire Blast</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm39.html">TM39</a></td>
+							<td><a href="/move/rock-tomb.html">Rock Tomb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm41.html">TM41</a></td>
+							<td><a href="/move/torment.html">Torment</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm42.html">TM42</a></td>
+							<td><a href="/move/facade.html">Facade</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm44.html">TM44</a></td>
+							<td><a href="/move/rest.html">Rest</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm45.html">TM45</a></td>
+							<td><a href="/move/attract.html">Attract</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm46.html">TM46</a></td>
+							<td><a href="/move/thief.html">Thief</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm48.html">TM48</a></td>
+							<td><a href="/move/round.html">Round</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm52.html">TM52</a></td>
+							<td><a href="/move/focus-blast.html">Focus Blast</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm56.html">TM56</a></td>
+							<td><a href="/move/fling.html">Fling</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm59.html">TM59</a></td>
+							<td><a href="/move/brutal-swing.html">Brutal Swing</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm60.html">TM60</a></td>
+							<td><a href="/move/quash.html">Quash</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm63.html">TM63</a></td>
+							<td><a href="/move/embargo.html">Embargo</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm64.html">TM64</a></td>
+							<td><a href="/move/explosion.html">Explosion</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm66.html">TM66</a></td>
+							<td><a href="/move/payback.html">Payback</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm68.html">TM68</a></td>
+							<td><a href="/move/giga-impact.html">Giga Impact</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm69.html">TM69</a></td>
+							<td><a href="/move/rock-polish.html">Rock Polish</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm71.html">TM71</a></td>
+							<td><a href="/move/stone-edge.html">Stone Edge</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm80.html">TM80</a></td>
+							<td><a href="/move/rock-slide.html">Rock Slide</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm83.html">TM83</a></td>
+							<td><a href="/move/infestation.html">Infestation</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm84.html">TM84</a></td>
+							<td><a href="/move/poison-jab.html">Poison Jab</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm87.html">TM87</a></td>
+							<td><a href="/move/swagger.html">Swagger</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm88.html">TM88</a></td>
+							<td><a href="/move/sleep-talk.html">Sleep Talk</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm90.html">TM90</a></td>
+							<td><a href="/move/substitute.html">Substitute</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm94.html">TM94</a></td>
+							<td><a href="/move/secret-power.html">Secret Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm95.html">TM95</a></td>
+							<td><a href="/move/snarl.html">Snarl</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm97.html">TM97</a></td>
+							<td><a href="/move/dark-pulse.html">Dark Pulse</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm98.html">TM98</a></td>
+							<td><a href="/move/power-up-punch.html">Power-Up Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm100.html">TM100</a></td>
+							<td><a href="/move/confide.html">Confide</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tmx4.html">TMX4</a></td>
+							<td><a href="/move/strength.html">Strength</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tmx7.html">TMX7</a></td>
+							<td><a href="/move/rock-smash.html">Rock Smash</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/block.html">Block</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/fire-punch.html">Fire Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/focus-punch.html">Focus Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/gastro-acid.html">Gastro Acid</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/giga-drain.html">Giga Drain</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/gunk-shot.html">Gunk Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/ice-punch.html">Ice Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/knock-off.html">Knock Off</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/pain-split.html">Pain Split</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/recycle.html">Recycle</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/shock-wave.html">Shock Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snore.html">Snore</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/spite.html">Spite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/thunder-punch.html">Thunder Punch</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/467.html">467</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/470.html">470</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/479.html">479</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/480.html">480</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/497.html">497</a></td>
+					<td>North Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/469.html">469</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/481.html">481</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/498.html">498</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/482.html">482</a></td>
+					<td>Central Obsidia Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/471.html">471</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/483.html">483</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/484.html">484</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/499.html">499</a></td>
+					<td>Onyx Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/472.html">472</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/485.html">485</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/486.html">486</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/500.html">500</a></td>
+					<td>Coral Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/473.html">473</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/487.html">487</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/488.html">488</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/501.html">501</a></td>
+					<td>Opal Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/474.html">474</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/489.html">489</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/490.html">490</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/502.html">502</a></td>
+					<td>Peridot Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/468.html">468</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/491.html">491</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/492.html">492</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/503.html">503</a></td>
+					<td>Lapis Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/475.html">475</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/493.html">493</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/494.html">494</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/504.html">504</a></td>
+					<td>Jasper Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/476.html">476</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/495.html">495</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/496.html">496</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/505.html">505</a></td>
+					<td>Beryl Water Grid</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/478.html">478</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>62&ndash;70</td>
+					<td>3 3&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>71&ndash;75</td>
+					<td>2 11&frasl;14 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Grass</td>
+					<td>76&ndash;80</td>
+					<td>1  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Good Rod</td>
+					<td>50&ndash;65</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>50&ndash;64</td>
+					<td>25  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>65&ndash;70</td>
+					<td>13 9&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Super Rod</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>50&ndash;64</td>
+					<td>10 5&frasl;7 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>65&ndash;70</td>
+					<td>8 8&frasl;77 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/477.html">477</a></td>
+					<td>Water Treatment Center</td>
+					<td>Surf</td>
+					<td>71&ndash;75</td>
+					<td>3 2&frasl;11 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/879.html">879</a></td>
+					<td>Idyll of Panaceance</td>
+					<td>Grass</td>
+					<td>113&ndash;120</td>
+					<td>10  %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+
+		
+		</section>
+		
+	
+
+		
+		<section id="hash-tab-pulse">
+			<h2 class="tab">PULSE Form</h2>
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/089_2.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/muk/pulse.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	Poison
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon ground-type-color"
+	href="/types/ground.html"
+>
+	GROUND
+</a>
+  
+<a
+	class="type-icon psychic-type-color"
+	href="/types/psychic.html"
+>
+	PSYCHIC
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	POISON
+</a>
+  
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	BUG
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+  
+<a
+	class="type-icon fairy-type-color"
+	href="/types/fairy.html"
+>
+	FAIRY
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td  rowspan="2" ><a href="../ability/protean.html">Protean</a></td>
+					<td  rowspan="2" >Matches the type of the move it is about to use.</td>
+				</tr>
+				<tr>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">It prefers warm and humid habitats. In the summertime, the toxic substances in its body intensify, making Muk reek like putrid kitchen garbage.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>4&prime;11&Prime; / 1.2 m</td>
+				<th>Weight</th>
+				<td>22553 lb / 1023.0 kg</td>
+				<th>Catch Rate</th>
+				<td>75
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					
+						<a href="/item/black-sludge.html">Black Sludge</a> (5%)
+					
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>105</td>
+					<td>105</td>
+					<td>70</td>
+					<td>40</td>
+					<td>97</td>
+					<td>250</td>
+					<td>667</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>1</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>2</td>
+				</tr>
+			</table>
+		</section>
+
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/poison-gas.html">Poison Gas</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/pound.html">Pound</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td>4</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+						<tr>
+							<td>7</td>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td>12</td>
+							<td><a href="/move/disable.html">Disable</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/sludge.html">Sludge</a></td>
+						</tr>
+						
+						<tr>
+							<td>18</td>
+							<td><a href="/move/mud-bomb.html">Mud Bomb</a></td>
+						</tr>
+						
+						<tr>
+							<td>21</td>
+							<td><a href="/move/minimize.html">Minimize</a></td>
+						</tr>
+						
+						<tr>
+							<td>26</td>
+							<td><a href="/move/fling.html">Fling</a></td>
+						</tr>
+						
+						<tr>
+							<td>29</td>
+							<td><a href="/move/sludge-bomb.html">Sludge Bomb</a></td>
+						</tr>
+						
+						<tr>
+							<td>32</td>
+							<td><a href="/move/sludge-wave.html">Sludge Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td>37</td>
+							<td><a href="/move/screech.html">Screech</a></td>
+						</tr>
+						
+						<tr>
+							<td>40</td>
+							<td><a href="/move/gunk-shot.html">Gunk Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td>46</td>
+							<td><a href="/move/acid-armor.html">Acid Armor</a></td>
+						</tr>
+						
+						<tr>
+							<td>52</td>
+							<td><a href="/move/belch.html">Belch</a></td>
+						</tr>
+						
+						<tr>
+							<td>57</td>
+							<td><a href="/move/memento.html">Memento</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				<section>
+					<h4>Learnt on evolution</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/venom-drench.html">Venom Drench</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				
+				<section>
+					<h4>Learnt from TMs/TMXs</h4>
+
+					<table>
+						<tr>
+							<th>Item</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm06.html">TM06</a></td>
+							<td><a href="/move/toxic.html">Toxic</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm09.html">TM09</a></td>
+							<td><a href="/move/venoshock.html">Venoshock</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm10.html">TM10</a></td>
+							<td><a href="/move/hidden-power.html">Hidden Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm11.html">TM11</a></td>
+							<td><a href="/move/sunny-day.html">Sunny Day</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm12.html">TM12</a></td>
+							<td><a href="/move/taunt.html">Taunt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm15.html">TM15</a></td>
+							<td><a href="/move/hyper-beam.html">Hyper Beam</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm17.html">TM17</a></td>
+							<td><a href="/move/protect.html">Protect</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm18.html">TM18</a></td>
+							<td><a href="/move/rain-dance.html">Rain Dance</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm21.html">TM21</a></td>
+							<td><a href="/move/frustration.html">Frustration</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm24.html">TM24</a></td>
+							<td><a href="/move/thunderbolt.html">Thunderbolt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm25.html">TM25</a></td>
+							<td><a href="/move/thunder.html">Thunder</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm27.html">TM27</a></td>
+							<td><a href="/move/return.html">Return</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm30.html">TM30</a></td>
+							<td><a href="/move/shadow-ball.html">Shadow Ball</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm31.html">TM31</a></td>
+							<td><a href="/move/brick-break.html">Brick Break</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm32.html">TM32</a></td>
+							<td><a href="/move/double-team.html">Double Team</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm34.html">TM34</a></td>
+							<td><a href="/move/sludge-wave.html">Sludge Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm35.html">TM35</a></td>
+							<td><a href="/move/flamethrower.html">Flamethrower</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm36.html">TM36</a></td>
+							<td><a href="/move/sludge-bomb.html">Sludge Bomb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm38.html">TM38</a></td>
+							<td><a href="/move/fire-blast.html">Fire Blast</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm39.html">TM39</a></td>
+							<td><a href="/move/rock-tomb.html">Rock Tomb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm41.html">TM41</a></td>
+							<td><a href="/move/torment.html">Torment</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm42.html">TM42</a></td>
+							<td><a href="/move/facade.html">Facade</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm44.html">TM44</a></td>
+							<td><a href="/move/rest.html">Rest</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm45.html">TM45</a></td>
+							<td><a href="/move/attract.html">Attract</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm46.html">TM46</a></td>
+							<td><a href="/move/thief.html">Thief</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm48.html">TM48</a></td>
+							<td><a href="/move/round.html">Round</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm52.html">TM52</a></td>
+							<td><a href="/move/focus-blast.html">Focus Blast</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm56.html">TM56</a></td>
+							<td><a href="/move/fling.html">Fling</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm59.html">TM59</a></td>
+							<td><a href="/move/brutal-swing.html">Brutal Swing</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm60.html">TM60</a></td>
+							<td><a href="/move/quash.html">Quash</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm63.html">TM63</a></td>
+							<td><a href="/move/embargo.html">Embargo</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm64.html">TM64</a></td>
+							<td><a href="/move/explosion.html">Explosion</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm66.html">TM66</a></td>
+							<td><a href="/move/payback.html">Payback</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm68.html">TM68</a></td>
+							<td><a href="/move/giga-impact.html">Giga Impact</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm69.html">TM69</a></td>
+							<td><a href="/move/rock-polish.html">Rock Polish</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm71.html">TM71</a></td>
+							<td><a href="/move/stone-edge.html">Stone Edge</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm80.html">TM80</a></td>
+							<td><a href="/move/rock-slide.html">Rock Slide</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm83.html">TM83</a></td>
+							<td><a href="/move/infestation.html">Infestation</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm84.html">TM84</a></td>
+							<td><a href="/move/poison-jab.html">Poison Jab</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm87.html">TM87</a></td>
+							<td><a href="/move/swagger.html">Swagger</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm88.html">TM88</a></td>
+							<td><a href="/move/sleep-talk.html">Sleep Talk</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm90.html">TM90</a></td>
+							<td><a href="/move/substitute.html">Substitute</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm94.html">TM94</a></td>
+							<td><a href="/move/secret-power.html">Secret Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm95.html">TM95</a></td>
+							<td><a href="/move/snarl.html">Snarl</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm97.html">TM97</a></td>
+							<td><a href="/move/dark-pulse.html">Dark Pulse</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm98.html">TM98</a></td>
+							<td><a href="/move/power-up-punch.html">Power-Up Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm100.html">TM100</a></td>
+							<td><a href="/move/confide.html">Confide</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tmx4.html">TMX4</a></td>
+							<td><a href="/move/strength.html">Strength</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tmx7.html">TMX7</a></td>
+							<td><a href="/move/rock-smash.html">Rock Smash</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/block.html">Block</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/fire-punch.html">Fire Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/focus-punch.html">Focus Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/gastro-acid.html">Gastro Acid</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/giga-drain.html">Giga Drain</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/gunk-shot.html">Gunk Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/ice-punch.html">Ice Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/knock-off.html">Knock Off</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/pain-split.html">Pain Split</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/recycle.html">Recycle</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/shock-wave.html">Shock Wave</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snore.html">Snore</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/spite.html">Spite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/thunder-punch.html">Thunder Punch</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<p>There are no regular wild encounters for this Pokémon.</p>
+			
+		</section>
+
+		
+
+		
+		</section>
+		
+	
+	</div>
+</section>
+
+	</body>
+</html>

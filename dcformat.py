@@ -8,22 +8,27 @@ def pretty_print(obj, indent=4):
     """
     print(stringify(obj, indent))
 
-def stringify(obj, indent=4, _indents=0, seen_ids=set()):
+def stringify(obj, indent=4, _indents=0, seen_ids=None):
     if not is_dataclass(obj) and not isinstance(obj, (Mapping, Iterable)):
         return str(obj)
 
     if isinstance(obj, str):
         return f"'{obj}'"
 
-    if id(obj) in seen_ids:
-        print('cycle')
-        return f'<cycle to {id(obj)}>'
+    if seen_ids is None:
+        seen_ids = set()
 
-    seen_ids.add(id(obj))
+    obj_id = id(obj)
+
+    if obj_id in seen_ids:
+        #print('cycle')
+        return f'<cycle to {id(obj)}>'
+    else:
+        seen_ids.add(obj_id)
 
     this_indent = indent * _indents * ' '
     next_indent = indent * (_indents + 1) * ' '
-    start, end = f'{type(obj).__name__}(', ')'  # dicts, lists, and tuples will re-assign this
+    start, end = f'{obj_id}:{type(obj).__name__}(', ')'  # dicts, lists, and tuples will re-assign this
 
     if is_dataclass(obj):
         body = '\n'.join(

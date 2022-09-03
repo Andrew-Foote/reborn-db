@@ -1,0 +1,941 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Poochyena
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/swampert.html">
+<link rel="next" href="/pokemon/mightyena.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/swampert.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/mightyena.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/swampert.html">&leftarrow; 260 Swampert</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/mightyena.html">262 Mightyena &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Poochyena</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>261</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Bite Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>4080
+				<th>Base EXP yield</th>
+				<td>56
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/field.html">Field</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/261_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/poochyena/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon dark-type-color"
+	href="/types/dark.html"
+>
+	Dark
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	BUG
+</a>
+  
+<a
+	class="type-icon fairy-type-color"
+	href="/types/fairy.html"
+>
+	FAIRY
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon ghost-type-color"
+	href="/types/ghost.html"
+>
+	GHOST
+</a>
+  
+<a
+	class="type-icon dark-type-color"
+	href="/types/dark.html"
+>
+	DARK
+</a>
+ </td>
+				</tr>
+				
+				
+				
+				<tr>
+					<th>Immunities</th>
+					<td> 
+<a
+	class="type-icon psychic-type-color"
+	href="/types/psychic.html"
+>
+	PSYCHIC
+</a>
+ </td>
+				</tr>
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/run-away.html">Run Away</a></td>
+					<td >This Pokémon can always flee from wild Pokémon.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/quick-feet.html">Quick Feet</a></td>
+					<td>Status conditions greatly increase its Speed stat.</td>
+				
+				</tr>
+				
+				<tr>
+					<th>Hidden Ability</th>
+					<td><a href="/ability/rattled.html">Rattled</a></td>
+					<td>Bug, Dark, or Ghost move damage raises its Speed.
+				</td>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">It savagely threatens foes with bared fangs. It chases after fleeing targets tenaciously. It turns tail and runs, however, if the foe strikes back.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>2&prime;8&Prime; / 0.5 m</td>
+				<th>Weight</th>
+				<td>300 lb / 13.6 kg</td>
+				<th>Catch Rate</th>
+				<td>255
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>35</td>
+					<td>55</td>
+					<td>35</td>
+					<td>35</td>
+					<td>30</td>
+					<td>30</td>
+					<td>220</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>0</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+<b>
+<a href="/pokemon/poochyena.html#">
+	Poochyena
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 18
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/mightyena.html#">
+	Mightyena
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/tackle.html">Tackle</a></td>
+						</tr>
+						
+						<tr>
+							<td>4</td>
+							<td><a href="/move/howl.html">Howl</a></td>
+						</tr>
+						
+						<tr>
+							<td>7</td>
+							<td><a href="/move/sand-attack.html">Sand Attack</a></td>
+						</tr>
+						
+						<tr>
+							<td>10</td>
+							<td><a href="/move/bite.html">Bite</a></td>
+						</tr>
+						
+						<tr>
+							<td>13</td>
+							<td><a href="/move/odor-sleuth.html">Odor Sleuth</a></td>
+						</tr>
+						
+						<tr>
+							<td>16</td>
+							<td><a href="/move/roar.html">Roar</a></td>
+						</tr>
+						
+						<tr>
+							<td>19</td>
+							<td><a href="/move/swagger.html">Swagger</a></td>
+						</tr>
+						
+						<tr>
+							<td>22</td>
+							<td><a href="/move/assurance.html">Assurance</a></td>
+						</tr>
+						
+						<tr>
+							<td>25</td>
+							<td><a href="/move/scary-face.html">Scary Face</a></td>
+						</tr>
+						
+						<tr>
+							<td>28</td>
+							<td><a href="/move/embargo.html">Embargo</a></td>
+						</tr>
+						
+						<tr>
+							<td>31</td>
+							<td><a href="/move/taunt.html">Taunt</a></td>
+						</tr>
+						
+						<tr>
+							<td>34</td>
+							<td><a href="/move/crunch.html">Crunch</a></td>
+						</tr>
+						
+						<tr>
+							<td>37</td>
+							<td><a href="/move/yawn.html">Yawn</a></td>
+						</tr>
+						
+						<tr>
+							<td>40</td>
+							<td><a href="/move/take-down.html">Take Down</a></td>
+						</tr>
+						
+						<tr>
+							<td>43</td>
+							<td><a href="/move/sucker-punch.html">Sucker Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td>46</td>
+							<td><a href="/move/play-rough.html">Play Rough</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				<section>
+					<h4>Egg Moves</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/astonish.html">Astonish</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/covet.html">Covet</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/fire-fang.html">Fire Fang</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/ice-fang.html">Ice Fang</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/leer.html">Leer</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/me-first.html">Me First</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/play-rough.html">Play Rough</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/poison-fang.html">Poison Fang</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/sleep-talk.html">Sleep Talk</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snatch.html">Snatch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/sucker-punch.html">Sucker Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/thunder-fang.html">Thunder Fang</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/yawn.html">Yawn</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				<section>
+					<h4>Learnt from TMs/TMXs</h4>
+
+					<table>
+						<tr>
+							<th>Item</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm05.html">TM05</a></td>
+							<td><a href="/move/roar.html">Roar</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm06.html">TM06</a></td>
+							<td><a href="/move/toxic.html">Toxic</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm10.html">TM10</a></td>
+							<td><a href="/move/hidden-power.html">Hidden Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm11.html">TM11</a></td>
+							<td><a href="/move/sunny-day.html">Sunny Day</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm12.html">TM12</a></td>
+							<td><a href="/move/taunt.html">Taunt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm17.html">TM17</a></td>
+							<td><a href="/move/protect.html">Protect</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm18.html">TM18</a></td>
+							<td><a href="/move/rain-dance.html">Rain Dance</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm21.html">TM21</a></td>
+							<td><a href="/move/frustration.html">Frustration</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm27.html">TM27</a></td>
+							<td><a href="/move/return.html">Return</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm30.html">TM30</a></td>
+							<td><a href="/move/shadow-ball.html">Shadow Ball</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm32.html">TM32</a></td>
+							<td><a href="/move/double-team.html">Double Team</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm41.html">TM41</a></td>
+							<td><a href="/move/torment.html">Torment</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm42.html">TM42</a></td>
+							<td><a href="/move/facade.html">Facade</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm44.html">TM44</a></td>
+							<td><a href="/move/rest.html">Rest</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm45.html">TM45</a></td>
+							<td><a href="/move/attract.html">Attract</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm46.html">TM46</a></td>
+							<td><a href="/move/thief.html">Thief</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm48.html">TM48</a></td>
+							<td><a href="/move/round.html">Round</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm63.html">TM63</a></td>
+							<td><a href="/move/embargo.html">Embargo</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm66.html">TM66</a></td>
+							<td><a href="/move/payback.html">Payback</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm87.html">TM87</a></td>
+							<td><a href="/move/swagger.html">Swagger</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm88.html">TM88</a></td>
+							<td><a href="/move/sleep-talk.html">Sleep Talk</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm90.html">TM90</a></td>
+							<td><a href="/move/substitute.html">Substitute</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm94.html">TM94</a></td>
+							<td><a href="/move/secret-power.html">Secret Power</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm95.html">TM95</a></td>
+							<td><a href="/move/snarl.html">Snarl</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm97.html">TM97</a></td>
+							<td><a href="/move/dark-pulse.html">Dark Pulse</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tm100.html">TM100</a></td>
+							<td><a href="/move/confide.html">Confide</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/item/tmx7.html">TMX7</a></td>
+							<td><a href="/move/rock-smash.html">Rock Smash</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/covet.html">Covet</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/foul-play.html">Foul Play</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/headbutt.html">Headbutt</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/hyper-voice.html">Hyper Voice</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/iron-tail.html">Iron Tail</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/mud-slap.html">Mud-Slap</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snatch.html">Snatch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snore.html">Snore</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/spite.html">Spite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/sucker-punch.html">Sucker Punch</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/super-fang.html">Super Fang</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/uproar.html">Uproar</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/165.html">165</a></td>
+					<td>North Obsidia Alleyway</td>
+					<td>Cave</td>
+					<td>23&ndash;28</td>
+					<td>15  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/105.html">105</a></td>
+					<td>Obsidia Alleyway</td>
+					<td>Cave</td>
+					<td>13&ndash;15</td>
+					<td>11 3&frasl;20 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/105.html">105</a></td>
+					<td>Obsidia Alleyway</td>
+					<td>Cave</td>
+					<td>16</td>
+					<td>2 1&frasl;20 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/105.html">105</a></td>
+					<td>Obsidia Alleyway</td>
+					<td>Cave</td>
+					<td>17</td>
+					<td> 4&frasl;5 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/52.html">52</a></td>
+					<td>Lower Peridot Alley</td>
+					<td>Cave</td>
+					<td>4&ndash;5</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/52.html">52</a></td>
+					<td>Lower Peridot Alley</td>
+					<td>Cave</td>
+					<td>3</td>
+					<td>3 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/52.html">52</a></td>
+					<td>Lower Peridot Alley</td>
+					<td>Cave</td>
+					<td>7&ndash;9</td>
+					<td>3  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/52.html">52</a></td>
+					<td>Lower Peridot Alley</td>
+					<td>Cave</td>
+					<td>6</td>
+					<td>2 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/58.html">58</a></td>
+					<td>North Peridot Alley</td>
+					<td>Cave</td>
+					<td>11</td>
+					<td>11 1&frasl;2 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/58.html">58</a></td>
+					<td>North Peridot Alley</td>
+					<td>Cave</td>
+					<td>12</td>
+					<td>9 1&frasl;2 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/58.html">58</a></td>
+					<td>North Peridot Alley</td>
+					<td>Cave</td>
+					<td>10</td>
+					<td>6 1&frasl;2 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/58.html">58</a></td>
+					<td>North Peridot Alley</td>
+					<td>Cave</td>
+					<td>13</td>
+					<td>4 1&frasl;2 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/58.html">58</a></td>
+					<td>North Peridot Alley</td>
+					<td>Cave</td>
+					<td>9</td>
+					<td>4  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/529.html">529</a></td>
+					<td>North Obsidia Alleyway</td>
+					<td>Cave</td>
+					<td>25&ndash;50</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/570.html">570</a></td>
+					<td>Obsidia Alleyway</td>
+					<td>Cave</td>
+					<td>25&ndash;50</td>
+					<td>15  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/531.html">531</a></td>
+					<td>South Peridot Alley</td>
+					<td>Cave</td>
+					<td>25&ndash;50</td>
+					<td>15  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/532.html">532</a></td>
+					<td>North Peridot Alley</td>
+					<td>Cave</td>
+					<td>25&ndash;50</td>
+					<td>15  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/524.html">524</a></td>
+					<td>Lapis Ward</td>
+					<td>Grass (morning)</td>
+					<td>25&ndash;50</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/524.html">524</a></td>
+					<td>Lapis Ward</td>
+					<td>Grass (day)</td>
+					<td>25&ndash;50</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/524.html">524</a></td>
+					<td>Lapis Ward</td>
+					<td>Grass (night)</td>
+					<td>25&ndash;50</td>
+					<td>10  %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+		<section>
+			<h3>Special encounters</h3>
+
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter type</th>
+					<th>Level</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/886.html">886</a></td>
+					<td>Rhodochrine Tree</td>
+					<td>battle</td>
+					<td>100</td>
+				</tr>
+				
+			</table>
+		</section>
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

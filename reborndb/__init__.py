@@ -7,6 +7,16 @@ import apsw
 from reborndb.connection import Connection
 from reborndb import settings
 
+def altconnect(db_path):
+    def handle_error(errcode, message):
+        errstr = apsw.mapping_result_codes[errcode & 255]
+        extended = errcode # & ~ 255 [was in the example in the APSW docs but seems to be wrong]
+        extended_errstr = apsw.mapping_extended_result_codes.get(extended, "")
+        print(f'SQLITE_LOG: {message} ({errcode}) {errstr} {extended_errstr}')
+
+    apsw.config(apsw.SQLITE_CONFIG_LOG, handle_error)
+    return Connection(db_path)
+
 connection = None
 
 def connect():

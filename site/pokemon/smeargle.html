@@ -1,0 +1,697 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Smeargle
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/stantler.html">
+<link rel="next" href="/pokemon/tyrogue.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/stantler.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/tyrogue.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/stantler.html">&leftarrow; 234 Stantler</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/tyrogue.html">236 Tyrogue &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Smeargle</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>235</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/fast.html">Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Painter Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>5355
+				<th>Base EXP yield</th>
+				<td>88
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/field.html">Field</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+	<ul class="tabs" id="hash-tabs">
+		
+		<li><a class="tab" href="#" data-tab-target="hash-tab-">Normal</a></li>
+		
+		<li><a class="tab" href="#" data-tab-target="hash-tab-dev">Dev</a></li>
+		
+	</ul>
+	<div class="tab-targets">
+	
+
+	
+
+		
+		<section id="hash-tab-">
+			<h2 class="tab">Normal Form</h2>
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/235_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/smeargle/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon normal-type-color"
+	href="/types/normal.html"
+>
+	Normal
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+ </td>
+				</tr>
+				
+				
+				
+				
+				<tr>
+					<th>Immunities</th>
+					<td> 
+<a
+	class="type-icon ghost-type-color"
+	href="/types/ghost.html"
+>
+	GHOST
+</a>
+ </td>
+				</tr>
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/own-tempo.html">Own Tempo</a></td>
+					<td >This Pokémon cannot become confused.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/technician.html">Technician</a></td>
+					<td>Greatly boosts its moves with power 60 or less.</td>
+				
+				</tr>
+				
+				<tr>
+					<th>Hidden Ability</th>
+					<td><a href="/ability/moody.html">Moody</a></td>
+					<td>Sharply raises a stat and lowers another each turn.
+				</td>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">A Smeargle marks its territory using a fluid that leaks out from the tip of its tail. About 5,000 different marks left by this Pokémon have been found.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>4&prime;11&Prime; / 1.2 m</td>
+				<th>Weight</th>
+				<td>1279 lb / 58.0 kg</td>
+				<th>Catch Rate</th>
+				<td>45
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>55</td>
+					<td>20</td>
+					<td>35</td>
+					<td>75</td>
+					<td>20</td>
+					<td>45</td>
+					<td>250</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>11</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>21</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>31</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>41</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>51</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>61</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>71</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>81</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>91</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/251.html">251</a></td>
+					<td>Lost Railcave</td>
+					<td>Cave</td>
+					<td>35&ndash;38</td>
+					<td>5 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/251.html">251</a></td>
+					<td>Lost Railcave</td>
+					<td>Cave</td>
+					<td>39&ndash;45</td>
+					<td>2 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/251.html">251</a></td>
+					<td>Lost Railcave</td>
+					<td>Cave</td>
+					<td>40</td>
+					<td> 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/840.html">840</a></td>
+					<td>Chrysolia Deepwoods</td>
+					<td>Grass (morning)</td>
+					<td>99&ndash;105</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/840.html">840</a></td>
+					<td>Chrysolia Deepwoods</td>
+					<td>Grass (day)</td>
+					<td>99&ndash;106</td>
+					<td>4  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/840.html">840</a></td>
+					<td>Chrysolia Deepwoods</td>
+					<td>Grass (night)</td>
+					<td>101&ndash;107</td>
+					<td>2  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/875.html">875</a></td>
+					<td>Chrysolia Deepwoods</td>
+					<td>Cave</td>
+					<td>118&ndash;125</td>
+					<td>2  %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+
+		
+		</section>
+		
+	
+
+		
+		<section id="hash-tab-dev">
+			<h2 class="tab">Dev Form</h2>
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <div style="width: 192px; height: 192px"></div>
+			  
+				<!--<img src="/img/pokemon/235_1.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/smeargle/dev.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon normal-type-color"
+	href="/types/normal.html"
+>
+	Normal
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+ </td>
+				</tr>
+				
+				
+				
+				
+				<tr>
+					<th>Immunities</th>
+					<td> 
+<a
+	class="type-icon ghost-type-color"
+	href="/types/ghost.html"
+>
+	GHOST
+</a>
+ </td>
+				</tr>
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td  rowspan="2" ><a href="../ability/prankster.html">Prankster</a></td>
+					<td  rowspan="2" >Gains increased priority on its status moves.</td>
+				</tr>
+				<tr>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">A Smeargle marks its territory using a fluid that leaks out from the tip of its tail. About 5,000 different marks left by this Pokémon have been found.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>4&prime;11&Prime; / 1.2 m</td>
+				<th>Weight</th>
+				<td>1279 lb / 58.0 kg</td>
+				<th>Catch Rate</th>
+				<td>45
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>55</td>
+					<td>20</td>
+					<td>35</td>
+					<td>75</td>
+					<td>20</td>
+					<td>45</td>
+					<td>250</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>11</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>21</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>31</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>41</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>51</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>61</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>71</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>81</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+						<tr>
+							<td>91</td>
+							<td><a href="/move/sketch.html">Sketch</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<p>There are no regular wild encounters for this Pokémon.</p>
+			
+		</section>
+
+		
+
+		
+		</section>
+		
+	
+	</div>
+</section>
+
+	</body>
+</html>

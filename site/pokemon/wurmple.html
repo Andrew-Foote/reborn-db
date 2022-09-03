@@ -1,0 +1,635 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Wurmple
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/linoone.html">
+<link rel="next" href="/pokemon/silcoon.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/linoone.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/silcoon.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/linoone.html">&leftarrow; 264 Linoone</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/silcoon.html">266 Silcoon &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Wurmple</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>265</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Worm Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>4080
+				<th>Base EXP yield</th>
+				<td>56
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/bug.html">Bug</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/265_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/wurmple/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	Bug
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon flying-type-color"
+	href="/types/flying.html"
+>
+	FLYING
+</a>
+  
+<a
+	class="type-icon rock-type-color"
+	href="/types/rock.html"
+>
+	ROCK
+</a>
+  
+<a
+	class="type-icon fire-type-color"
+	href="/types/fire.html"
+>
+	FIRE
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon ground-type-color"
+	href="/types/ground.html"
+>
+	GROUND
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/shield-dust.html">Shield Dust</a></td>
+					<td >This Pokémon is immune to additional effects.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/run-away.html">Run Away</a></td>
+					<td>This Pokémon can always flee from wild Pokémon.</td>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">It sticks to tree branches and eats leaves. The thread it spits from its mouth slows the movement of its foes.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>1&prime;12&Prime; / 0.3 m</td>
+				<th>Weight</th>
+				<td>79 lb / 3.6 kg</td>
+				<th>Catch Rate</th>
+				<td>255
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					
+						<a href="/item/pecha-berry.html">Pecha Berry</a> (50%),
+					
+						<a href="/item/bright-powder.html">Bright Powder</a> (5%)
+					
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>45</td>
+					<td>45</td>
+					<td>35</td>
+					<td>20</td>
+					<td>20</td>
+					<td>30</td>
+					<td>195</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+<b>
+<a href="/pokemon/wurmple.html#">
+	Wurmple
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 7 (50% chance)
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/silcoon.html#">
+	Silcoon
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 10
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/beautifly.html#">
+	Beautifly
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+	</div>
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 7 (50% chance)
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/cascoon.html#">
+	Cascoon
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 10
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/dustox.html#">
+	Dustox
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/tackle.html">Tackle</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/string-shot.html">String Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td>5</td>
+							<td><a href="/move/poison-sting.html">Poison Sting</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/electroweb.html">Electroweb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/snore.html">Snore</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/string-shot.html">String Shot</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (morning)</td>
+					<td>2&ndash;5</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>4&ndash;5</td>
+					<td>16 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>3</td>
+					<td>5  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>6</td>
+					<td>3 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/57.html">57</a></td>
+					<td>Peridot Ward</td>
+					<td>Grass (night)</td>
+					<td>4&ndash;7</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (morning)</td>
+					<td>2&ndash;5</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>4&ndash;5</td>
+					<td>16 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>3</td>
+					<td>5  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (day)</td>
+					<td>6</td>
+					<td>3 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/37.html">37</a></td>
+					<td>Lower Peridot Ward</td>
+					<td>Grass (night)</td>
+					<td>4&ndash;7</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/333.html">333</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (day)</td>
+					<td>40&ndash;45</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/334.html">334</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (day)</td>
+					<td>40&ndash;45</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/335.html">335</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (day)</td>
+					<td>40&ndash;45</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/849.html">849</a></td>
+					<td>Aegir Cave</td>
+					<td>Headbutt</td>
+					<td>103&ndash;110</td>
+					<td>100  %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

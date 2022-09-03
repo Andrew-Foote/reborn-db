@@ -1,0 +1,522 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Wynaut
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/absol.html">
+<link rel="next" href="/pokemon/snorunt.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/absol.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/snorunt.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/absol.html">&leftarrow; 359 Absol</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/snorunt.html">361 Snorunt &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Wynaut</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>360</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Bright Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>5355
+				<th>Base EXP yield</th>
+				<td>52
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/no-eggs-discovered.html">No Eggs Discovered</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/360_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/wynaut/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon psychic-type-color"
+	href="/types/psychic.html"
+>
+	Psychic
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	BUG
+</a>
+  
+<a
+	class="type-icon ghost-type-color"
+	href="/types/ghost.html"
+>
+	GHOST
+</a>
+  
+<a
+	class="type-icon dark-type-color"
+	href="/types/dark.html"
+>
+	DARK
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon psychic-type-color"
+	href="/types/psychic.html"
+>
+	PSYCHIC
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/shadow-tag.html">Shadow Tag</a></td>
+					<td >Opponents cannot flee or switch out normally.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/telepathy.html">Telepathy</a></td>
+					<td>This Pokémon dodges damaging moves of allies.</td>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">A Wynaut loves to eat sweet fruits. It cleverly picks fruits using its earlike arms. They gather in fruit gardens, drawn by the fragrance.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>2&prime;12&Prime; / 0.6 m</td>
+				<th>Weight</th>
+				<td>309 lb / 14.0 kg</td>
+				<th>Catch Rate</th>
+				<td>125
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>95</td>
+					<td>23</td>
+					<td>48</td>
+					<td>23</td>
+					<td>23</td>
+					<td>48</td>
+					<td>260</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+<b>
+<a href="/pokemon/wynaut.html#">
+	Wynaut
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 15
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/wobbuffet.html#">
+	Wobbuffet
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/splash.html">Splash</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/charm.html">Charm</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/encore.html">Encore</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/counter.html">Counter</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/mirror-coat.html">Mirror Coat</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/safeguard.html">Safeguard</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/destiny-bond.html">Destiny Bond</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/333.html">333</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (morning)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/333.html">333</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (day)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/333.html">333</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (night)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/334.html">334</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (morning)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/334.html">334</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (day)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/334.html">334</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (night)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/335.html">335</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (morning)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/335.html">335</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (day)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/335.html">335</a></td>
+					<td>Iolia Valley</td>
+					<td>Grass (night)</td>
+					<td>45&ndash;55</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/836.html">836</a></td>
+					<td>New World</td>
+					<td>Grass</td>
+					<td>99&ndash;105</td>
+					<td>12  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/837.html">837</a></td>
+					<td>New World</td>
+					<td>Grass</td>
+					<td>99&ndash;105</td>
+					<td>12  %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

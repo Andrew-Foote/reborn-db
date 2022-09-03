@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Metapod
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/caterpie.html">
+<link rel="next" href="/pokemon/butterfree.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/caterpie.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/butterfree.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/caterpie.html">&leftarrow; 010 Caterpie</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/butterfree.html">012 Butterfree &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Metapod</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>011</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Cocoon Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>4080
+				<th>Base EXP yield</th>
+				<td>72
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/bug.html">Bug</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/011_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/metapod/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	Bug
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon flying-type-color"
+	href="/types/flying.html"
+>
+	FLYING
+</a>
+  
+<a
+	class="type-icon rock-type-color"
+	href="/types/rock.html"
+>
+	ROCK
+</a>
+  
+<a
+	class="type-icon fire-type-color"
+	href="/types/fire.html"
+>
+	FIRE
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon ground-type-color"
+	href="/types/ground.html"
+>
+	GROUND
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td  rowspan="2" ><a href="../ability/shed-skin.html">Shed Skin</a></td>
+					<td  rowspan="2" >May heal its own status conditions each turn.</td>
+				</tr>
+				<tr>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">Its shell is as hard as an iron slab. A Metapod does not move very much because it is preparing its soft innards for evolution inside the shell.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>2&prime;4&Prime; / 0.7 m</td>
+				<th>Weight</th>
+				<td>218 lb / 9.9 kg</td>
+				<th>Catch Rate</th>
+				<td>120
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>50</td>
+					<td>20</td>
+					<td>55</td>
+					<td>30</td>
+					<td>25</td>
+					<td>25</td>
+					<td>205</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>0</td>
+					<td>0</td>
+					<td>2</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>2</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+
+<a href="/pokemon/caterpie.html#">
+	Caterpie
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 7
+				
+			
+			</small>
+		</div>
+		
+<b>
+<a href="/pokemon/metapod.html#">
+	Metapod
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 10
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/butterfree.html#">
+	Butterfree
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				<section>
+					<h4>Learnt on evolution</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				
+				<section>
+				  <h4>Learnt from a pre-evolution</h4>
+				  
+				  <table>
+				    <tr>
+				      <th>Pre-evolution</th>
+				      <th>Move</th>
+				      <th>Method</th>
+				    </tr>
+				    
+				    <tr>
+				      <td><a href="/pokemon/caterpie.html#">Caterpie</a></td>
+				      <td><a href="/move/tackle.html">Tackle</a></td>
+				      <td>
+				        
+				          
+  				          Level 1
+				          
+				        
+				      </td>
+				    </tr>
+				    
+				    <tr>
+				      <td><a href="/pokemon/caterpie.html#">Caterpie</a></td>
+				      <td><a href="/move/snore.html">Snore</a></td>
+				      <td>
+				        
+				          Move Tutor
+				        
+				      </td>
+				    </tr>
+				    
+				  </table>
+				</section>
+				
+				
+				</div>
+				
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/electroweb.html">Electroweb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/iron-defense.html">Iron Defense</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/string-shot.html">String Shot</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<p>There are no regular wild encounters for this Pokémon.</p>
+			
+		</section>
+
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

@@ -1,0 +1,518 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Kakuna
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/weedle.html">
+<link rel="next" href="/pokemon/beedrill.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/weedle.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/beedrill.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/weedle.html">&leftarrow; 013 Weedle</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/beedrill.html">015 Beedrill &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Kakuna</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>014</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Cocoon Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>4080
+				<th>Base EXP yield</th>
+				<td>72
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/bug.html">Bug</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/014_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/kakuna/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	Bug
+</a>
+
+						
+							
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	Poison
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon flying-type-color"
+	href="/types/flying.html"
+>
+	FLYING
+</a>
+  
+<a
+	class="type-icon rock-type-color"
+	href="/types/rock.html"
+>
+	ROCK
+</a>
+  
+<a
+	class="type-icon fire-type-color"
+	href="/types/fire.html"
+>
+	FIRE
+</a>
+  
+<a
+	class="type-icon psychic-type-color"
+	href="/types/psychic.html"
+>
+	PSYCHIC
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon poison-type-color"
+	href="/types/poison.html"
+>
+	POISON
+</a>
+  
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	BUG
+</a>
+  
+<a
+	class="type-icon fairy-type-color"
+	href="/types/fairy.html"
+>
+	FAIRY
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Double resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+ </td>
+				</tr>
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td  rowspan="2" ><a href="../ability/shed-skin.html">Shed Skin</a></td>
+					<td  rowspan="2" >May heal its own status conditions each turn.</td>
+				</tr>
+				<tr>
+				
+				</tr>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">It remains virtually immobile while it clings to a tree. However, on the inside, it busily prepares for evolution. This is evident from how hot its shell becomes.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>2&prime;12&Prime; / 0.6 m</td>
+				<th>Weight</th>
+				<td>220 lb / 10.0 kg</td>
+				<th>Catch Rate</th>
+				<td>120
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>45</td>
+					<td>25</td>
+					<td>50</td>
+					<td>35</td>
+					<td>25</td>
+					<td>25</td>
+					<td>205</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>0</td>
+					<td>0</td>
+					<td>2</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>2</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+
+<a href="/pokemon/weedle.html#">
+	Weedle
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 7
+				
+			
+			</small>
+		</div>
+		
+<b>
+<a href="/pokemon/kakuna.html#">
+	Kakuna
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 10
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/beedrill.html#">
+	Beedrill
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				<section>
+					<h4>Learnt on evolution</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/harden.html">Harden</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				
+				<section>
+				  <h4>Learnt from a pre-evolution</h4>
+				  
+				  <table>
+				    <tr>
+				      <th>Pre-evolution</th>
+				      <th>Move</th>
+				      <th>Method</th>
+				    </tr>
+				    
+				    <tr>
+				      <td><a href="/pokemon/weedle.html#">Weedle</a></td>
+				      <td><a href="/move/poison-sting.html">Poison Sting</a></td>
+				      <td>
+				        
+				          
+  				          Level 1
+				          
+				        
+				      </td>
+				    </tr>
+				    
+				  </table>
+				</section>
+				
+				
+				</div>
+				
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/electroweb.html">Electroweb</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/iron-defense.html">Iron Defense</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/string-shot.html">String Shot</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<p>There are no regular wild encounters for this Pokémon.</p>
+			
+		</section>
+
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

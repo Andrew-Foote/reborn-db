@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+	Home
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+		
+		<style>
+			
+			
+		</style>
+		
+<script src="/js/thirdparty/sql-wasm.js"></script>
+<script type="module">
+	import {setupDb} from '/js/db.js';
+
+	function slugify(s) {
+		return s.toLowerCase();
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		document.forms['global-search'].addEventListener('submit', async (event) => {
+			event.preventDefault();
+			await setupDb();
+			const query = event.target.elements['global-search-input'].value;
+			console.log(query);
+			
+			const sql = `
+select '/ability/$.html' as "url", "name" as "param"
+from "ability" where "name" = :query
+union
+select '/egg_group/$.html' as "url", "name" as "param"
+from "egg_group" where "name" = :query
+union
+select '/item/$.html' as "url", "name" as "param"
+from "item" where "name" = :query
+union
+select '/area/$.html' as "url", "id" as "param"
+from "map" where "id" = :query or "name" = :query
+union
+select '/move/$.html' as "url", "name" as "param"
+from "move" where "name" = :query
+union
+select '/pokemon/$.html' as "url", "name" as "param"
+from "pokemon" where "name" = :query or "category" = :query
+union
+select
+	'/trainer/$.html' as "url",
+	case
+		when "party_number" is null then "type" || ' ' || "name"
+		else "type" || ' ' || "name" || ' ' || "party_number"
+	end as "param"
+from (
+	select "type"."name" as "type", "trainer"."name",
+	case
+	    when count(*) over (partition by "type"."name", "trainer"."name") > 1
+	    then row_number() over (partition by "type"."name", "trainer"."name") else null
+	end as "party_number"
+	from "trainer" join "trainer_type" as "type" on "type"."id" = "trainer"."type"
+)
+where (
+	"type" = :query or "name" = :query
+	or "type" || ' ' || "name" = :query
+	or "name" || ' ' || "party_number" = :query
+	or "type" || ' ' || "name" || ' ' || "party_number" = :query
+)
+union
+select '/type/$.html' as "url", "name" as "param"
+from "type" where "name" = :query
+			`;
+
+			const stmt = db.prepare(sql);
+			stmt.bind({':query': query});
+
+			const rows = [];
+
+			while (stmt.step()) {
+				const row = stmt.getAsObject();
+				rows.push(row);
+			}
+
+			if (rows.length == 1) {
+				// need to replace the $ with the slugified param
+				const param = rows[0].param;
+				const url = rows[0].url.replace('$', slugify(param));
+				window.location = rows[0].url;
+			}
+			
+			const srdiv = document.querySelector('#search-results');
+
+			if (rows.length == 0) {
+				srdiv.innerHTML = '<p>No results found.</p>'
+			} else {
+				alert(rows);
+				ul = document.createElement('ul');
+
+				for (const row of rows) {
+					li = document.createElement('li');
+					li.innerHTML = `<a href="${row.url}`;
+					// bleh---need to implement slugify2 in js
+				}
+			}
+		});
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+
+<section>
+
+<h1>What's this website for?</h1>
+
+<p>Basically, this website is <a href="https://pokemondb.net/">pokemondb</a>, but for <a href="https://www.rebornevo.com/pr/index.html/">Pokémon Reborn</a>. It's a place where you can get information on Pokémon, moves, items, etc., where the information will be valid for Pokémon Reborn, where Reborn differs from the official Pokémon games. It also contains Reborn-specific information on encounters, trainers, etc.</p>
+
+<p>To get started, try searching for something, or select one of the lists below.</p>
+
+</section>
+
+<section>
+
+<h1>Search</h1>
+
+<form name="global-search">
+<p><input type="text" name="global-search-input"><input type="submit" value="Search"></p>
+</form>
+
+<div id="search-results"></div>
+
+</section>
+
+<section>
+<h1>Lists</h1>
+
+<ul>
+	<li><a href="pokemon.html">Pokémon</a></li>
+	<li><a href="moves.html">Moves</a></li>
+	<li><a href="abilities.html">Abilities</a></li>
+	<li><a href="items.html">Items</a></li>
+	<li><a href="areas.html">Areas</a></li>
+	<li><a href="trainers.html">Trainers</a></li>
+</ul>
+
+</section>
+
+<section>
+<h1>Tools</h1>
+
+<ul>
+	<li><a href="statcalc.html">Stat Calculator</a></li>
+	<li><a href="admin.html">Custom Query Runner</a></li>
+</ul>
+
+</section>
+
+
+	</body>
+</html>

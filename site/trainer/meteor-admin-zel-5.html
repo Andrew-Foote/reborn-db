@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Meteor Admin ZEL 5
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+		
+		<style>
+			
+			
+		</style>
+		
+		
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<section>
+
+<div class="backlinks">
+	<a href="/trainers.html">Trainer List</a>
+</div>
+
+<h1>Meteor Admin ZEL 5</h1>
+
+<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+	<figure style="margin-left: 0.4em">
+		<img src="data:image/png;base64,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" alt="">
+	</figure>
+
+	
+
+	<table class="data-table">
+		<tr>
+			<th>Base prize money</th>
+			<td>21</td>			
+			<th>Skill level</th>
+			<td>100</td>
+		</tr>
+		<tr>
+			<th>Items</th>
+			<td colspan="3">
+			
+			
+				Ultra Potion x 2
+			
+			
+		</tr>
+	</table>
+</div>
+
+<section>
+	<h2>Team</h2>
+
+	<div class="trainer-team">
+				
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+				<a href="/pokemon/aurorus.html">
+					
+					
+					<img
+						src="/img/pokemon/699_0.png"
+						alt="Aurorus (female)"
+					>
+				</a>
+				<figcaption><b>Aurorus</b></figcaption>
+			</figure>
+
+			<div style="display: flex; flex-direction: column">
+				<table class="data-table" style="margin-bottom: 0.5em">
+					<tr>
+						<th>Species</th>
+						<td><a href="/pokemon/aurorus.html#">Aurorus</a></td>
+						<th>Level</th>
+						<td>74</td>
+						<th>Gender</th>
+						<td>
+							
+								Female
+							</td>
+						<th>Friendship</th>
+						<td>70</td>
+					</tr>
+					<tr>
+						<th>
+							
+								Ability
+							
+						</th>
+						<td colspan="3">
+						
+							<a href="/ability/snow-warning.html">Snow Warning</a>
+							
+						
+						
+						</td>
+						<th>Item</th>
+						<td>
+						
+							<a href="/item/focus-sash.html">Focus Sash</a>
+						
+						</td>
+						<th>Nature</th>
+						<td>Modest</td>
+					</tr>
+				</table>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Stats</b>
+					<table class="data-table">
+						<tr>
+							<th></th>
+						
+							<th>HP</th>
+						
+							<th>Attack</th>
+						
+							<th>Defense</th>
+						
+							<th>Speed</th>
+						
+							<th>Special Attack</th>
+						
+							<th>Special Defense</th>
+						
+						</tr>
+						<tr>
+							<th>Values</th>
+						
+							<td>335</td>
+						
+							<td>126</td>
+						
+							<td>135</td>
+						
+							<td>113</td>
+						
+							<td>243</td>
+						
+							<td>164</td>
+						
+						</tr>
+						<tr>
+							<th>EVs</th>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+							<td>4</td>
+						
+							<td>0</td>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+						</tr>
+						<tr>
+							<th>IVs</th>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+						</tr>
+					</table>
+				</div>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Moves</b>
+					<table>
+						<tr>
+						
+							<td><a href="/move/flash-cannon.html">Flash Cannon</a></td>
+						
+							<td><a href="/move/stealth-rock.html">Stealth Rock</a></td>
+						
+							<td><a href="/move/ice-beam.html">Ice Beam</a></td>
+						
+							<td><a href="/move/thunderbolt.html">Thunderbolt</a></td>
+						
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+				
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+				<a href="/pokemon/glaceon.html">
+					
+					
+					<img
+						src="/img/pokemon/471_0.png"
+						alt="Glaceon (female)"
+					>
+				</a>
+				<figcaption><b>Glaceon</b></figcaption>
+			</figure>
+
+			<div style="display: flex; flex-direction: column">
+				<table class="data-table" style="margin-bottom: 0.5em">
+					<tr>
+						<th>Species</th>
+						<td><a href="/pokemon/glaceon.html#">Glaceon</a></td>
+						<th>Level</th>
+						<td>77</td>
+						<th>Gender</th>
+						<td>
+							
+								Female
+							</td>
+						<th>Friendship</th>
+						<td>70</td>
+					</tr>
+					<tr>
+						<th>
+							
+								Ability
+							
+						</th>
+						<td colspan="3">
+						
+							<a href="/ability/snow-cloak.html">Snow Cloak</a>
+							
+						
+						
+						</td>
+						<th>Item</th>
+						<td>
+						
+							<a href="/item/synthetic-seed.html">Synthetic Seed</a>
+						
+						</td>
+						<th>Nature</th>
+						<td>Modest</td>
+					</tr>
+				</table>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Stats</b>
+					<table class="data-table">
+						<tr>
+							<th></th>
+						
+							<th>HP</th>
+						
+							<th>Attack</th>
+						
+							<th>Defense</th>
+						
+							<th>Speed</th>
+						
+							<th>Special Attack</th>
+						
+							<th>Special Defense</th>
+						
+						</tr>
+						<tr>
+							<th>Values</th>
+						
+							<td>259</td>
+						
+							<td>108</td>
+						
+							<td>199</td>
+						
+							<td>128</td>
+						
+							<td>304</td>
+						
+							<td>175</td>
+						
+						</tr>
+						<tr>
+							<th>EVs</th>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+							<td>4</td>
+						
+							<td>0</td>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+						</tr>
+						<tr>
+							<th>IVs</th>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+						</tr>
+					</table>
+				</div>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Moves</b>
+					<table>
+						<tr>
+						
+							<td><a href="/move/blizzard.html">Blizzard</a></td>
+						
+							<td><a href="/move/shadow-ball.html">Shadow Ball</a></td>
+						
+							<td><a href="/move/yawn.html">Yawn</a></td>
+						
+							<td><a href="/move/wish.html">Wish</a></td>
+						
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+				
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+				<a href="/pokemon/alakazam.html">
+					
+					
+					<img
+						src="/img/pokemon/065_0.png"
+						alt="Alakazam (female)"
+					>
+				</a>
+				<figcaption><b>Alakazam</b></figcaption>
+			</figure>
+
+			<div style="display: flex; flex-direction: column">
+				<table class="data-table" style="margin-bottom: 0.5em">
+					<tr>
+						<th>Species</th>
+						<td><a href="/pokemon/alakazam.html#">Alakazam</a></td>
+						<th>Level</th>
+						<td>74</td>
+						<th>Gender</th>
+						<td>
+							
+								Female
+							</td>
+						<th>Friendship</th>
+						<td>70</td>
+					</tr>
+					<tr>
+						<th>
+							
+								Ability
+							
+						</th>
+						<td colspan="3">
+						
+							<a href="/ability/magic-guard.html">Magic Guard</a>
+							
+						
+						
+						</td>
+						<th>Item</th>
+						<td>
+						
+							<a href="/item/twisted-spoon.html">Twisted Spoon</a>
+						
+						</td>
+						<th>Nature</th>
+						<td>Timid</td>
+					</tr>
+				</table>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Stats</b>
+					<table class="data-table">
+						<tr>
+							<th></th>
+						
+							<th>HP</th>
+						
+							<th>Attack</th>
+						
+							<th>Defense</th>
+						
+							<th>Speed</th>
+						
+							<th>Special Attack</th>
+						
+							<th>Special Defense</th>
+						
+						</tr>
+						<tr>
+							<th>Values</th>
+						
+							<td>189</td>
+						
+							<td>90</td>
+						
+							<td>94</td>
+						
+							<td>277</td>
+						
+							<td>274</td>
+						
+							<td>168</td>
+						
+						</tr>
+						<tr>
+							<th>EVs</th>
+						
+							<td>4</td>
+						
+							<td>0</td>
+						
+							<td>0</td>
+						
+							<td>252</td>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+						</tr>
+						<tr>
+							<th>IVs</th>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+						</tr>
+					</table>
+				</div>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Moves</b>
+					<table>
+						<tr>
+						
+							<td><a href="/move/psyshock.html">Psyshock</a></td>
+						
+							<td><a href="/move/recover.html">Recover</a></td>
+						
+							<td><a href="/move/shadow-ball.html">Shadow Ball</a></td>
+						
+							<td><a href="/move/charge-beam.html">Charge Beam</a></td>
+						
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+				
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+				<a href="/pokemon/espeon.html">
+					
+					
+					<img
+						src="/img/pokemon/196_0.png"
+						alt="Espeon (female)"
+					>
+				</a>
+				<figcaption><b>Espeon</b></figcaption>
+			</figure>
+
+			<div style="display: flex; flex-direction: column">
+				<table class="data-table" style="margin-bottom: 0.5em">
+					<tr>
+						<th>Species</th>
+						<td><a href="/pokemon/espeon.html#">Espeon</a></td>
+						<th>Level</th>
+						<td>77</td>
+						<th>Gender</th>
+						<td>
+							
+								Female
+							</td>
+						<th>Friendship</th>
+						<td>70</td>
+					</tr>
+					<tr>
+						<th>
+							
+								Ability
+							
+						</th>
+						<td colspan="3">
+						
+							<a href="/ability/magic-bounce.html">Magic Bounce</a>
+							
+						
+						
+						</td>
+						<th>Item</th>
+						<td>
+						
+							<a href="/item/synthetic-seed.html">Synthetic Seed</a>
+						
+						</td>
+						<th>Nature</th>
+						<td>Modest</td>
+					</tr>
+				</table>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Stats</b>
+					<table class="data-table">
+						<tr>
+							<th></th>
+						
+							<th>HP</th>
+						
+							<th>Attack</th>
+						
+							<th>Defense</th>
+						
+							<th>Speed</th>
+						
+							<th>Special Attack</th>
+						
+							<th>Special Defense</th>
+						
+						</tr>
+						<tr>
+							<th>Values</th>
+						
+							<td>259</td>
+						
+							<td>116</td>
+						
+							<td>121</td>
+						
+							<td>246</td>
+						
+							<td>251</td>
+						
+							<td>175</td>
+						
+						</tr>
+						<tr>
+							<th>EVs</th>
+						
+							<td>252</td>
+						
+							<td>4</td>
+						
+							<td>0</td>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+							<td>0</td>
+						
+						</tr>
+						<tr>
+							<th>IVs</th>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+						</tr>
+					</table>
+				</div>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Moves</b>
+					<table>
+						<tr>
+						
+							<td><a href="/move/dazzling-gleam.html">Dazzling Gleam</a></td>
+						
+							<td><a href="/move/light-screen.html">Light Screen</a></td>
+						
+							<td><a href="/move/reflect.html">Reflect</a></td>
+						
+							<td><a href="/move/psyshock.html">Psyshock</a></td>
+						
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+				
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+				<a href="/pokemon/umbreon.html">
+					
+					
+					<img
+						src="/img/pokemon/197_0.png"
+						alt="Umbreon (male)"
+					>
+				</a>
+				<figcaption><b>Umbreon</b></figcaption>
+			</figure>
+
+			<div style="display: flex; flex-direction: column">
+				<table class="data-table" style="margin-bottom: 0.5em">
+					<tr>
+						<th>Species</th>
+						<td><a href="/pokemon/umbreon.html#">Umbreon</a></td>
+						<th>Level</th>
+						<td>77</td>
+						<th>Gender</th>
+						<td>
+							
+								Male
+							</td>
+						<th>Friendship</th>
+						<td>70</td>
+					</tr>
+					<tr>
+						<th>
+							
+								Ability
+							
+						</th>
+						<td colspan="3">
+						
+							<a href="/ability/synchronize.html">Synchronize</a>
+							
+						
+						
+						</td>
+						<th>Item</th>
+						<td>
+						
+							<a href="/item/leftovers.html">Leftovers</a>
+						
+						</td>
+						<th>Nature</th>
+						<td>Calm</td>
+					</tr>
+				</table>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Stats</b>
+					<table class="data-table">
+						<tr>
+							<th></th>
+						
+							<th>HP</th>
+						
+							<th>Attack</th>
+						
+							<th>Defense</th>
+						
+							<th>Speed</th>
+						
+							<th>Special Attack</th>
+						
+							<th>Special Defense</th>
+						
+						</tr>
+						<tr>
+							<th>Values</th>
+						
+							<td>305</td>
+						
+							<td>115</td>
+						
+							<td>246</td>
+						
+							<td>128</td>
+						
+							<td>121</td>
+						
+							<td>251</td>
+						
+						</tr>
+						<tr>
+							<th>EVs</th>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+							<td>0</td>
+						
+							<td>4</td>
+						
+						</tr>
+						<tr>
+							<th>IVs</th>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+						</tr>
+					</table>
+				</div>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Moves</b>
+					<table>
+						<tr>
+						
+							<td><a href="/move/double-team.html">Double Team</a></td>
+						
+							<td><a href="/move/wish.html">Wish</a></td>
+						
+							<td><a href="/move/foul-play.html">Foul Play</a></td>
+						
+							<td><a href="/move/toxic.html">Toxic</a></td>
+						
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+				
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+				<a href="/pokemon/magnezone.html">
+					
+					
+					<img
+						src="/img/pokemon/462_1.png"
+						alt="Magnezone (genderless)"
+					>
+				</a>
+				<figcaption><b>Magnezone</b></figcaption>
+			</figure>
+
+			<div style="display: flex; flex-direction: column">
+				<table class="data-table" style="margin-bottom: 0.5em">
+					<tr>
+						<th>Species</th>
+						<td><a href="/pokemon/magnezone.html#PULSE">Magnezone</a> (PULSE)</td>
+						<th>Level</th>
+						<td>83</td>
+						<th>Gender</th>
+						<td>
+							
+								Genderless
+							</td>
+						<th>Friendship</th>
+						<td>0</td>
+					</tr>
+					<tr>
+						<th>
+							
+								Ability
+							
+						</th>
+						<td colspan="3">
+						
+							<a href="/ability/levitate.html">Levitate</a>
+							
+						
+						
+						</td>
+						<th>Item</th>
+						<td>
+						
+							<a href="/item/wiki-berry.html">Wiki Berry</a>
+						
+						</td>
+						<th>Nature</th>
+						<td>Timid</td>
+					</tr>
+				</table>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Stats</b>
+					<table class="data-table">
+						<tr>
+							<th></th>
+						
+							<th>HP</th>
+						
+							<th>Attack</th>
+						
+							<th>Defense</th>
+						
+							<th>Speed</th>
+						
+							<th>Special Attack</th>
+						
+							<th>Special Defense</th>
+						
+						</tr>
+						<tr>
+							<th>Values</th>
+						
+							<td>287</td>
+						
+							<td>131</td>
+						
+							<td>296</td>
+						
+							<td>160</td>
+						
+							<td>464</td>
+						
+							<td>263</td>
+						
+						</tr>
+						<tr>
+							<th>EVs</th>
+						
+							<td>252</td>
+						
+							<td>0</td>
+						
+							<td>0</td>
+						
+							<td>0</td>
+						
+							<td>252</td>
+						
+							<td>4</td>
+						
+						</tr>
+						<tr>
+							<th>IVs</th>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+							<td>31</td>
+						
+						</tr>
+					</table>
+				</div>
+
+				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
+					<b>Moves</b>
+					<table>
+						<tr>
+						
+							<td><a href="/move/magnet-bomb.html">Magnet Bomb</a></td>
+						
+							<td><a href="/move/discharge.html">Discharge</a></td>
+						
+							<td><a href="/move/autotomize.html">Autotomize</a></td>
+						
+							<td><a href="/move/hidden-power.html">Hidden Power</a></td>
+						
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	
+	</div>
+</section>
+
+</section>
+
+	</body>
+</html>

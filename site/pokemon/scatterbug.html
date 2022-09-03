@@ -1,0 +1,663 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+Scatterbug
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+<link rel="next" href="/pokemon/talonflame.html">
+<link rel="next" href="/pokemon/spewpa.html">
+
+		<style>
+			
+			
+		</style>
+		
+<script>
+	function selectTab(tabs, selectedIndex) {
+		for (let [i, tab] of tabs.entries()) {
+			let target = document.getElementById(tab.dataset.tabTarget);
+			if (!target) console.log(`can't find target for tab with id ${target}`);
+			
+			if (i === selectedIndex) {
+				tab.parentElement.classList.add('selected');
+				target.style.display = 'block';
+			} else {
+				tab.parentElement.classList.remove('selected');
+				target.style.display = 'none';
+			}
+		}
+	}
+
+	function selectTabFromHash(tabs) {
+		let indexToSelect = 0;
+
+		for (let [i, tab] of tabs.entries()) {
+			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+				indexToSelect = i;
+			}
+		}
+
+		selectTab(tabs, indexToSelect);
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		let tabLists = Array.from(document.querySelectorAll('.tabs'));
+
+		for (let tabList of tabLists) {
+			let tabs = Array.from(tabList.querySelectorAll('.tab'));
+
+			for (let [i, tab] of tabs.entries()) {
+				tab.addEventListener('click', () => selectTab(tabs, i));
+			}
+
+			let hashTabs = tabList.id == 'hash-tabs';
+
+			if (hashTabs) {
+				selectTabFromHash(tabs);
+				window.addEventListener('hashchange', () => { selectTabFromHash(tabs); })
+			} else {
+				selectTab(tabs, 0);
+			}
+		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		
+		if (event.shiftKey && event.code === 'ArrowLeft') {
+			window.location.assign('/pokemon/talonflame.html')
+		}
+		
+
+		
+		if (event.shiftKey && event.code === 'ArrowRight') {
+			window.location.assign('/pokemon/spewpa.html')
+		}
+		
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+<div class="backlinks">
+	
+	<a href="/pokemon/talonflame.html">&leftarrow; 663 Talonflame</a>
+	
+	<a href="/pokemon.html">Pokémon List</a>
+	
+	<a href="/pokemon/spewpa.html">665 Spewpa &rightarrow;</a>
+	
+</div>
+
+<section>
+	<h1>Scatterbug</h1>
+
+	<div style="display: flex">
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex number</th>
+				<td>664</td>
+				<th>Gender Ratio</th>
+				<td style="white-space: nowrap">50% male, 50% female</td>
+				<th>Growth rate</th>
+				<td><a href="/growth_rate/medium-fast.html">Medium Fast</a></td>
+			</tr>
+			<tr>
+				<th>Category</th>
+				<td>Scatterdust Pokémon</td>
+				<th>Steps to hatch</th>
+				<td>3840
+				<th>Base EXP yield</th>
+				<td>40
+			</tr>
+			<tr>
+				<th>Base friendship</th>
+				<td>70
+				<th>Egg groups</th>
+				<td colspan="3">
+					
+						<a href="/egg_group/bug.html">Bug</a>
+					
+				</td>
+			</tr>
+		</table>
+
+	</div>
+
+	<hr>
+
+	
+
+	
+
+		
+
+		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+			  
+			  <img src="data:image/png;base64,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" alt="" width="192" height="192">
+			  
+				<!--<img src="/img/pokemon/664_0.png">-->
+				<figcaption>
+				  <a href="/pokemon_sprites/scatterbug/.html">More sprites</a>
+				</figcaption>
+			</figure>
+
+			<table class="data-table" style="width: 40%; margin-right: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 4em">Type</th>
+					<td style="flex: 1">
+						
+							
+<a
+	class="type-icon bug-type-color"
+	href="/types/bug.html"
+>
+	Bug
+</a>
+
+						
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<th>Weaknesses</th>
+					<td> 
+<a
+	class="type-icon flying-type-color"
+	href="/types/flying.html"
+>
+	FLYING
+</a>
+  
+<a
+	class="type-icon rock-type-color"
+	href="/types/rock.html"
+>
+	ROCK
+</a>
+  
+<a
+	class="type-icon fire-type-color"
+	href="/types/fire.html"
+>
+	FIRE
+</a>
+ </td>
+				</tr>
+				
+				
+				<tr>
+					<th>Resistances</th>
+					<td> 
+<a
+	class="type-icon fighting-type-color"
+	href="/types/fighting.html"
+>
+	FIGHTING
+</a>
+  
+<a
+	class="type-icon ground-type-color"
+	href="/types/ground.html"
+>
+	GROUND
+</a>
+  
+<a
+	class="type-icon grass-type-color"
+	href="/types/grass.html"
+>
+	GRASS
+</a>
+ </td>
+				</tr>
+				
+				
+				
+			</table>
+
+			<table class="data-table" style="width: 55%; margin-left: 0.5em; table-layout: fixed">
+				<tr>
+					<th style="width: 5em">Abilities</th>
+					<th style="width: 3em">Name</th>
+					<th>Description</th>
+				</tr>
+				<tr>
+					<th rowspan="2">Regular Abilities</th>
+					<td ><a href="../ability/shield-dust.html">Shield Dust</a></td>
+					<td >This Pokémon is immune to additional effects.</td>
+				</tr>
+				<tr>
+				
+					<td><a href="/ability/compound-eyes.html">Compound Eyes</a></td>
+					<td>This Pokémon has notably increased Accuracy.</td>
+				
+				</tr>
+				
+				<tr>
+					<th>Hidden Ability</th>
+					<td><a href="/ability/friend-guard.html">Friend Guard</a></td>
+					<td>Reduces damage to allies while in battle.
+				</td>
+				
+			</table>
+		</div>
+
+		<table class="data-table" style="width: 100%">
+			<tr>
+				<th>Pokédex entry</th>
+				<td colspan="5">The powder that covers its body regulates its temperature, so it can live in any region or climate.
+			</td>
+			<tr>
+				<th>Height</th>
+				<td>1&prime;12&Prime; / 0.3 m</td>
+				<th>Weight</th>
+				<td>55 lb / 2.5 kg</td>
+				<th>Catch Rate</th>
+				<td>255
+			</tr>
+			<tr>
+				<th>Wild held items</th>
+				<td colspan="5">
+				
+					None
+				
+				</td>
+			</tr>
+		</table>
+
+		<section>
+			<h3>Stats</h3>
+
+			<table class="data-table" style="width: 100%">
+				<tr>
+					<th></th>
+					<th>HP</th>
+					<th>Attack</th>
+					<th>Defense</th>
+					<th>Speed</th>
+					<th>Special Attack</th>
+					<th>Special Defense</th>
+					<th>Total</th>
+				</tr>
+				<tr>
+					<th>Base stats</th>
+					<td>38</td>
+					<td>35</td>
+					<td>40</td>
+					<td>35</td>
+					<td>27</td>
+					<td>25</td>
+					<td>200</td>
+				</tr>
+				<tr>
+					<th>EV yields</th>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+					<td>0</td>
+					<td>0</td>
+					<td>0</td>
+					<td>1</td>
+				</tr>
+			</table>
+		</section>
+
+		
+		<section>
+			<h3>Evolution</h3>
+
+			<div class="evo-line">
+								
+				
+<b>
+<a href="/pokemon/scatterbug.html#">
+	Scatterbug
+	
+</a>
+</b>
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 9
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/spewpa.html#">
+	Spewpa
+	
+</a>
+
+<div class="evo-col">
+	
+	<div class="evo-line">
+		<div class="evo-arrow">
+			&rarr;
+			<small>
+			
+				Level up to at least level 12
+				
+			
+			</small>
+		</div>
+		
+
+<a href="/pokemon/vivillon.html#">
+	Vivillon
+	
+</a>
+
+<div class="evo-col">
+	
+</div>
+
+	</div>
+	
+</div>
+
+	</div>
+	
+</div>
+
+				
+			</div>
+		</section>
+		
+
+		<section>
+			<h3>Moves</h3>
+
+			<div class="move-sections">
+				<div>
+				<section>
+					<h4>Learnt by levelling up</h4>
+
+					<table>
+						<tr>
+							<th>Level</th>
+							<th>Move</th>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/tackle.html">Tackle</a></td>
+						</tr>
+						
+						<tr>
+							<td>1</td>
+							<td><a href="/move/string-shot.html">String Shot</a></td>
+						</tr>
+						
+						<tr>
+							<td>6</td>
+							<td><a href="/move/stun-spore.html">Stun Spore</a></td>
+						</tr>
+						
+						<tr>
+							<td>15</td>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+					</table>
+
+				</section>
+				
+				
+				
+				
+				</div>
+				
+				<section>
+					<h4>Egg Moves</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/poison-powder.html">Poison Powder</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/rage-powder.html">Rage Powder</a></td>
+						</tr>
+						
+						<tr>
+							<td><a href="/move/stun-spore.html">Stun Spore</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+				
+				
+				<section>
+					<h4>Learnt from Move Tutors</h4>
+
+					<table>
+						
+						<tr>
+							<td><a href="/move/bug-bite.html">Bug Bite</a></td>
+						</tr>
+						
+					</table>
+				</section>
+				
+			</div>
+		</section>
+
+		<section>
+			<h3>Encounter rates</h3>
+
+			
+			<table style="width: 70%; margin: auto">
+				<tr>
+					<th>Area ID</th>
+					<th>Area name</th>
+					<th>Encounter method</th>
+					<th>Level range</th>
+					<th>Rate</th>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/130.html">130</a></td>
+					<td>Jasper Ward</td>
+					<td>Cave</td>
+					<td>17&ndash;20</td>
+					<td>22  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/132.html">132</a></td>
+					<td>Malchous Forest Park</td>
+					<td>Grass (morning)</td>
+					<td>19&ndash;21</td>
+					<td>16 1&frasl;2 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/132.html">132</a></td>
+					<td>Malchous Forest Park</td>
+					<td>Grass (morning)</td>
+					<td>22</td>
+					<td>3  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/132.html">132</a></td>
+					<td>Malchous Forest Park</td>
+					<td>Grass (morning)</td>
+					<td>18</td>
+					<td>2 1&frasl;2 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/132.html">132</a></td>
+					<td>Malchous Forest Park</td>
+					<td>Grass (day)</td>
+					<td>19&ndash;22</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/132.html">132</a></td>
+					<td>Malchous Forest Park</td>
+					<td>Grass (night)</td>
+					<td>20&ndash;22</td>
+					<td>20  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/134.html">134</a></td>
+					<td>Jasper Ward</td>
+					<td>Cave</td>
+					<td>17&ndash;20</td>
+					<td>22  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/135.html">135</a></td>
+					<td>Jasper Ward</td>
+					<td>Cave</td>
+					<td>17&ndash;20</td>
+					<td>22  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/137.html">137</a></td>
+					<td>Jasper Ward</td>
+					<td>Cave</td>
+					<td>17&ndash;20</td>
+					<td>22  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/138.html">138</a></td>
+					<td>Jasper Ward</td>
+					<td>Cave</td>
+					<td>17&ndash;20</td>
+					<td>22  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/149.html">149</a></td>
+					<td>Beryl Ward</td>
+					<td>Cave</td>
+					<td>18&ndash;21</td>
+					<td>12  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/150.html">150</a></td>
+					<td>Rhodochrine Jungle</td>
+					<td>Grass (morning)</td>
+					<td>22&ndash;24</td>
+					<td>12  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/150.html">150</a></td>
+					<td>Rhodochrine Jungle</td>
+					<td>Grass (day)</td>
+					<td>22&ndash;24</td>
+					<td>10  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/184.html">184</a></td>
+					<td>Beryl Cave 1F</td>
+					<td>Cave</td>
+					<td>30&ndash;33</td>
+					<td>22 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/184.html">184</a></td>
+					<td>Beryl Cave 1F</td>
+					<td>Cave</td>
+					<td>34</td>
+					<td>4  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/184.html">184</a></td>
+					<td>Beryl Cave 1F</td>
+					<td>Cave</td>
+					<td>28&ndash;29</td>
+					<td>3 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/185.html">185</a></td>
+					<td>Beryl Cave B1F</td>
+					<td>Cave</td>
+					<td>30&ndash;33</td>
+					<td>22 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/185.html">185</a></td>
+					<td>Beryl Cave B1F</td>
+					<td>Cave</td>
+					<td>34</td>
+					<td>4  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/185.html">185</a></td>
+					<td>Beryl Cave B1F</td>
+					<td>Cave</td>
+					<td>28&ndash;29</td>
+					<td>3 1&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/186.html">186</a></td>
+					<td>Beryl Cave B2F</td>
+					<td>Cave</td>
+					<td>30&ndash;33</td>
+					<td>22 2&frasl;3 %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/186.html">186</a></td>
+					<td>Beryl Cave B2F</td>
+					<td>Cave</td>
+					<td>34</td>
+					<td>4  %</td>
+				</tr>
+				
+				<tr>
+					<td><a href="/area/186.html">186</a></td>
+					<td>Beryl Cave B2F</td>
+					<td>Cave</td>
+					<td>28&ndash;29</td>
+					<td>3 1&frasl;3 %</td>
+				</tr>
+				
+			</table>
+			
+		</section>
+
+		
+
+		
+	
+	
+</section>
+
+	</body>
+</html>

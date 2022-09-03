@@ -1,0 +1,164 @@
+
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>
+	Admin View
+ - Pokémon Reborn Database</title>
+		<link rel="stylesheet" href="/style.css">
+		
+		
+		<style>
+			
+			
+		</style>
+		
+<script src="/js/thirdparty/sql-wasm.js"></script>
+<script type="module">
+	import {setupDb} from '/js/db.js';
+
+	function query1Col(sql) {
+		const stmt = window.db.prepare(sql);
+		stmt.bind();
+
+		const values = [];
+
+		while (stmt.step()) {
+			const [value] = stmt.get();
+			values.push(value);
+		}			
+
+		return values;
+	}
+	
+	const PNG_SIG = [137, 80, 78, 71, 13, 10, 26, 10];
+	
+	function dbValueToHTML(value) {
+	  if (value instanceof Uint8Array) {
+	    if (PNG_SIG.every((sigVal, index) => value[index] === sigVal)) {
+        // it's a PNG image
+        const base64 = btoa(Array.from(value).map(b => String.fromCharCode(b)).join(''));
+        console.log(base64);
+        return `<img src="data:image/png;base64,${base64}" alt="<PNG image>">`;
+	    }
+	  }
+	  
+	  return value;
+	}
+
+	document.addEventListener('DOMContentLoaded', async () => {
+		await setupDb();
+
+		const form = document.forms['query'];
+
+		form.addEventListener('submit', event => {
+			console.log('submitting');
+			event.preventDefault();
+			const sql = event.target.elements['query'].value;
+			const results = document.getElementById('results');
+			results.innerHTML = '';
+
+			let stmt;
+
+			try {
+				stmt = db.prepare(sql);
+			} catch (error) {
+				const msg = error.toString();
+				results.innerHTML = `<p>SQL error: ${msg}</p>`;
+				return;
+			}
+
+			//stmt.getAsObject();
+			stmt.bind(); // no parameters needed
+			const rows = [];
+
+			while (stmt.step()) {
+				const row = stmt.getAsObject();
+				rows.push(row);
+			}
+
+			if (rows.length === 0) {
+				results.innerHTML = '<p>The query did not return any results.</p>';
+			} else {
+				const table = document.createElement('table');
+				table.classList.add('data-table');
+				table.style.margin = 'auto';
+				const headerRow = document.createElement('tr');
+
+				for (const colName of Object.keys(rows[0])) {
+					const cell = document.createElement('th');
+					cell.innerHTML = colName;
+					headerRow.appendChild(cell);
+				}
+
+				table.appendChild(headerRow);
+
+				for (const row of rows) {
+					const tableRow = document.createElement('tr');
+
+					for (let value of Object.values(row)) {
+						const cell = document.createElement('td');
+						console.log(value);
+						value = dbValueToHTML(value); 
+						console.log(value);
+						cell.innerHTML = value;
+						tableRow.appendChild(cell);
+					}
+
+					table.appendChild(tableRow);
+				}
+
+				results.appendChild(table);
+			}
+		});
+
+		const tableList = document.getElementById('table-list');
+		const tables = query1Col(`select "name" from "sqlite_master" where "type" = 'table'`);
+		tableList.innerHTML = tables.join(', ');
+		const viewList = document.getElementById('view-list');
+		const views = query1Col(`select "name" from "sqlite_master" where "type" = 'view'`);
+		viewList.innerHTML = views.join(', ');
+	});
+</script>
+
+	</head>
+	<body>
+		<a id="title" href="/">Pokémon Reborn Database</a>
+		
+
+<section>
+
+<h1>Admin View</h1>
+
+<p>This section provides a direct view into the SQLite database that powers the website. You can run an SQL query from the input below, and the results will appear in a table below. There are some important caveats:</p>
+
+<ul>
+  <li>The queries run on a copy of the database which is generated when you load this page and is stored in your browser tab's memory. The database is about 1.3 GB in size, which is small for a database but still fairly large for a browser tab. You can edit data in the copy if you feel like it, but since it is only a copy, any edits will not persist after a reload, and will not be visible from other pages, so there's not much point. If you want to make persistent changes to your own copy of the database, you can download a copy <a href="/site/db.sqlite">here</a> and edit it using an SQLite client of your choice.</li>
+  <li>The page attempts to load all of the results of each query immediately and display them all on the page, and it will be unresponsive until it has finished. Even if it does finish, there is no pagination, and your browser may have trouble handling the display of a very large number of results. You need to limit the number of results within the query itself (e.g. by using SQL's <kbd>limit</kbd> keyword).</li>
+  <li>The website makes use of a number of custom functions, collations, etc., but I haven't added support for all of them on this page yet (though I do intend to do so at some point).</li>
+</ul>
+
+<form name="query">
+<p><textarea name="query" rows="10"></textarea></p>
+<p><input type="submit" value="Run Query"></p>
+</form>
+
+<section>
+<h2>Results</h2>
+<div id="results" style="overflow-x: scroll"></div>
+
+</div>
+</section>
+
+<section>
+<h2>Database information</h2>
+
+<p>Tables: <span id="table-list"></span></p>
+<p>Views: <span id="view-list"></span></p>
+</section>
+
+
+	</body>
+</html>
