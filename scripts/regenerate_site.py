@@ -1,6 +1,7 @@
 import importlib
 from pathlib import Path
 import shutil
+from reborndb import settings
 
 generator_names = (
 	'index', 'admin', 'statcalc',
@@ -16,14 +17,13 @@ generator_names = (
 
 generators = [importlib.import_module(f'.{name}', 'generators') for name in generator_names]
 
-SITE_PATH = Path('site')
-NONGENERATED_SUBPATHS = [Path('site') / sp for sp in ('db.sqlite', 'style.css', 'js', 'img')]
+NONGENERATED_SUBPATHS = [settings.SITE_PATH / sp for sp in ('.git', '.gitignore', 'db.sqlite', 'style.css', 'js', 'img')]
 
 def run():
 	# remove any files we don't need any more
-	assert SITE_PATH.is_dir()
+	assert settings.SITE_PATH.is_dir()
 
-	for subpath in SITE_PATH.iterdir():
+	for subpath in settings.SITE_PATH.iterdir():
 		if subpath not in NONGENERATED_SUBPATHS:
 			print(f'Deleting {subpath}')
 

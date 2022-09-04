@@ -98,10 +98,10 @@
 					<td>{{ encounter.method }}</td>
 					<td>
 						{% if encounter.form is none %}
-							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon }}.html">{{ encounter.pokemon }}</a>
+							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html">{{ encounter.pokemon }}</a>
 							<sup><a href="#form-note-{{ encounter.form_note }}">{{ encounter.form_note }}</a></sup>
 						{% else %}
-							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon }}.html{% if encounter.form %}#{% endif %}{{ encounter.form }}">
+							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html{% if encounter.form %}#{% endif %}{{ encounter.form }}">
 							{{ encounter.pokemon }}
 							{% if encounter.form %}
 								({{ encounter.form }} Form)
@@ -138,7 +138,7 @@
 			</tr>
 			{% for encounter in area.special_encounters %}
 			<tr>
-				<td><a href="{{ url_base }}/pokemon/{{ encounter.pokemon }}.html#{{ encounter.form }}">
+				<td><a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html#{{ encounter.form|slug }}">
 						{{ encounter.pokemon }}{% if encounter.form %}-{{ encounter.form }}{% endif %}
 				</a></td>
 				<td>{{ encounter.type }}</td>

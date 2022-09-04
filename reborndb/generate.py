@@ -6,6 +6,7 @@ import re
 import jinja2
 from slugify import slugify
 from reborndb import DB
+from reborndb import settings
 
 URL_BASE = '/reborn-db-site'
 
@@ -169,15 +170,15 @@ jinja_env.globals |= {
     'len': len,
     'pokemon_form_name': pokemon_form_name,
     'describe_evolution_scheme': describe_evolution_scheme,
-    'describe_evolution_scheme_mapless': describe_evolution_scheme_mapless
+    'describe_evolution_scheme_mapless': describe_evolution_scheme_mapless,
+    'url_base': URL_BASE
 }
 
 def render_template(path, template, **args):
-    path_obj = 'site' / Path(path)
+    path_obj = settings.SITE_PATH / Path(path)
     path_obj.parent.mkdir(parents=True, exist_ok=True)
     #print(str(path_obj))
     template_obj = jinja_env.get_template(template)
-    args['url_base'] = URL_BASE
     content = template_obj.render(**args)
 
     with path_obj.open('w', encoding='utf-8') as f:

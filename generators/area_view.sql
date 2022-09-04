@@ -99,7 +99,7 @@ left join (
     )) as "all" from (
         select
             "encounter"."map_id" as "map",
-            "pokemon"."name" as "pokemon", "encounter"."form",
+            "pokemon"."name" as "pokemon", "form"."name" as "form",
             "encounter"."type", "encounter"."level"
         from "event_encounter" as "encounter"
         join "pokemon" on "pokemon"."id" = "encounter"."pokemon"

@@ -107,6 +107,8 @@ def extract():
 			join "pokemon" on "pokemon"."number" = "sprite"."pokemon"
 			join "pokemon_form" as "form" on "form"."pokemon" = "pokemon"."id" and "form"."order" = "sprite"."form"
 		''')
+		
+		DB.H.exec('drop table "pokemon_sprite_raw"');
 
 		# update sprites with a female counterpart to be explicitly male
 		DB.H.exec('''

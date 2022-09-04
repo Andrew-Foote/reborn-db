@@ -34,3 +34,5 @@ def extract():
 			join "pokemon_form" as "form" on "form"."pokemon" = "pbs_tm"."pokemon"
 			where "pbs_tm"."class" = 'Move Tutors'
 		''')
+		
+		DB.H.exec('drop table "pbs_tm"');

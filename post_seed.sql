@@ -1,13 +1,18 @@
-create table "mega_evolution" (
-	"pokemon" text,
-	"form" text,
-	"item" text not null unique,
-	primary key ("pokemon", "form"),
-	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
-	foreign key ("item") references "item" ("id")
+---------------------------------------------------------------------------------------------------
+-- Mega Evolution
+---------------------------------------------------------------------------------------------------
+
+-- A Pokémon of species {pokemon} may Mega Evolve into its {form} form iff it is holding {item}.
+create table "mega_evolution_item" (
+	"pokemon" text
+	,"form" text
+	,"item" text not null unique
+	,primary key ("pokemon", "form")
+	,foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("item") references "item" ("id")
 ) without rowid;
 
-insert into "mega_evolution" ("pokemon", "form", "item")
+insert into "mega_evolution_item" ("pokemon", "form", "item")
 values
 ('VENUSAUR', 'Mega', 'VENUSAURITE'),
 ('CHARIZARD', 'Mega X', 'CHARIZARDITEX'),
@@ -57,20 +62,214 @@ values
 ('AUDINO', 'Mega', 'AUDINITE'),
 ('DIANCIE', 'Mega', 'DIANCITE');
 
-create table "primal_reversion" (
-	"pokemon" text,
-	"form" text,
-	"item" text not null unique,
-	primary key ("pokemon", "form"),
-	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
-	foreign key ("item") references "item" ("id")
+-- A Pokémon of species {pokemon} may Mega Evolve into its {form} form iff it knows {move}.
+create table "mega_evolution_move" (
+	"pokemon" text
+	,"form" text
+	,"move" text not null unique
+	,primary key ("pokemon", "form")
+	,foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("move") references "move" ("id")
 ) without rowid;
 
-insert into "primal_reversion" ("pokemon", "form", "item")
+insert into "mega_evolution_move" ("pokemon", "form", "move")
+values
+('RAYQUAZA', 'Mega', 'DRAGONASCENT');
+
+---------------------------------------------------------------------------------------------------
+-- Primal Reversion
+---------------------------------------------------------------------------------------------------
+
+-- A Pokémon of species {pokemon} will undergo Primal Reversion into its {form} form in battle iff
+-- it is holding {item}.
+create table "primal_reversion_item" (
+	"pokemon" text
+	,"form" text
+	,"item" text not null unique
+	,primary key ("pokemon", "form")
+	,foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("item") references "item" ("id")
+) without rowid;
+
+insert into "primal_reversion_item" ("pokemon", "form", "item")
 values
 ('KYOGRE', 'Primal', 'BLUEORB'),
 ('GROUDON', 'Primal', 'REDORB');
 
+---------------------------------------------------------------------------------------------------
+-- Ultra Burst
+---------------------------------------------------------------------------------------------------
+
+-- A Pokémon of species {pokemon} in its {from_form} form may use Ultra Burst in order to become
+-- {to_form} in battle iff it is holding {item}.
+create table "ultra_burst_item" (
+	"pokemon" text
+	,"from_form" text
+	,"to_form" text not null
+	,"item" text not null
+	,primary key ("pokemon", "from_form")
+	,foreign key ("pokemon", "from_form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("pokemon", "to_form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("item") references "item" ("id")
+) without rowid;
+
+insert into "ultra_burst_item" ("pokemon", "from_form", "to_form", "item")
+values
+('NECROZMA', 'Dusk Mane', 'Ultra', 'ULTRANECROZIUMZ'),
+('NECROZMA', 'Dawn Wings', 'Ultra', 'ULTRANECROZIUMZ');
+
+---------------------------------------------------------------------------------------------------
+-- Z-Moves
+---------------------------------------------------------------------------------------------------
+
+-- The Z-Crystal item {bag_item} can be used on a Pokémon to equip it with {held_item}, which may
+-- allow it to use the Z-Move named {name}.
+create table "z_move" (
+	"name" text primary key
+	,"bag_item" text not null unique
+	,"held_item" text not null unique
+	,foreign key ("bag_item") references "item" ("id")
+	,foreign key ("held_item") references "item" ("id")
+) without rowid;
+
+insert into "z_move" ("name", "bag_item", "held_item") values
+('Breakneck Blitz', 'NORMALIUMZ', 'NORMALIUMZ2'),
+('All-Out Pummeling', 'FIGHTINIUMZ', 'FIGHTINIUMZ2'),
+('Supersonic Skystrike', 'FLYINIUMZ', 'FLYINIUMZ2'),
+('Acid Downpour', 'POISONIUMZ', 'POISONIUMZ2'),
+('Tectonic Rage', 'GROUNDIUMZ', 'GROUNDIUMZ2'),
+('Continental Crush', 'ROCKIUMZ', 'ROCKIUMZ2'),
+('Savage Spin-Out', 'BUGINIUMZ', 'BUGINIUMZ2'),
+('Never-Ending Nightmare', 'GHOSTIUMZ', 'GHOSTIUMZ2'),
+('Corkscrew Crash', 'STEELIUMZ', 'STEELIUMZ2'),
+('Inferno Overdrive', 'FIRIUMZ', 'FIRIUMZ2'),
+('Hydro Vortex', 'WATERIUMZ', 'WATERIUMZ2'),
+('Bloom Doom', 'GRASSIUMZ', 'GRASSIUMZ2'),
+('Gigavolt Havoc', 'ELECTRIUMZ', 'ELECTRIUMZ2'),
+('Shattered Psyche', 'PSYCHIUMZ', 'PSYCHIUMZ2'),
+('Subzero Slammer', 'ICIUMZ', 'ICIUMZ2'),
+('Devastating Drake', 'DRAGONIUMZ', 'DRAGONIUMZ2'),
+('Black Hole Eclipse', 'DARKINIUMZ', 'DARKINIUMZ2'),
+('Twinkle Tackle', 'FAIRIUMZ', 'FAIRIUMZ2'),
+('Catastropika', 'PIKANIUMZ', 'PIKANIUMZ2'),
+-- Pikachu with a cap is not in the game
+-- ('10,000,000 Volt Thunderbolt', 'PIKASHUNIUMZ', 'PIKASHUNIUMZ2'),
+('Stoked Sparksurfer', 'ALORAICHIUMZ', 'ALORAICHIUMZ2'),
+('Extreme Evoboost', 'EEVIUMZ', 'EEVIUMZ2'),
+('Pulverizing Pancake', 'SNORLIUMZ', 'SNORLIUMZ2'),
+('Genesis Supernova', 'MEWNIUMZ', 'MEWNIUMZ2'),
+('Sinister Arrow Raid', 'DECIDIUMZ', 'DECIDIUMZ2'),
+('Malicious Moonsault', 'INCINIUMZ', 'INCINIUMZ2'),
+('Oceanic Operetta', 'PRIMARIUMZ', 'PRIMARIUMZ2'),
+('Splintered Stormshards', 'LYCANIUMZ', 'LYCANIUMZ2'),
+('Let''s Snuggle Forever', 'MIMIKIUMZ', 'MIMIKIUMZ2'),
+('Clangorous Soulblaze', 'KOMMONIUMZ', 'KOMMONIUMZ2'),
+('Guardian of Alola', 'TAPUNIUMZ', 'TAPUNIUMZ2'),
+('Searing Sunraze Smash', 'SOLGANIUMZ', 'SOLGANIUMZ2'),
+('Menacing Moonraze Maelstrom', 'LUNALIUMZ', 'LUNALIUMZ2'),
+('Light That Burns the Sky', 'ULTRANECROZIUMZ', 'ULTRANECROZIUMZ2'),
+('Soul-Stealing 7-Star Strike', 'MARSHADIUMZ', 'MARSHADIUMZ2');
+
+-- A move of type {type} can be upgraded into the Z-Move named {move}.
+create table "type_based_z_move" (
+	"type" text primary key
+	,"z_move" text not null unique
+	,foreign key ("type") references "type" ("id")
+	,foreign key ("z_move") references "z_move" ("name")
+) without rowid;
+
+insert into "type_based_z_move" ("type", "z_move")
+values
+('NORMAL', 'Breakneck Blitz'),
+('FIGHTING', 'All-Out Pummeling'),
+('FLYING', 'Supersonic Skystrike'),
+('POISON', 'Acid Downpour'),
+('GROUND', 'Tectonic Rage'),
+('ROCK', 'Continental Crush'),
+('BUG', 'Savage Spin-Out'),
+('GHOST', 'Never-Ending Nightmare'),
+('STEEL', 'Corkscrew Crash'),
+('FIRE', 'Inferno Overdrive'),
+('WATER', 'Hydro Vortex'),
+('GRASS', 'Bloom Doom'),
+('ELECTRIC', 'Gigavolt Havoc'),
+('PSYCHIC', 'Shattered Psyche'),
+('ICE', 'Subzero Slammer'),
+('DRAGON', 'Devastating Drake'),
+('DARK', 'Black Hole Eclipse'),
+('FAIRY', 'Twinkle Tackle');
+
+-- Only the move {move} can be upgraded into the Z-Move named {move}.
+create table "move_based_z_move" (
+	"move" text primary key
+	,"z_move" text not null unique
+	,foreign key ("move") references "move" ("id")
+	,foreign key ("z_move") references "z_move" ("name")
+) without rowid;
+
+insert into "move_based_z_move" ("move", "z_move")
+values
+('VOLTTACKLE', 'Catastropika'),
+('THUNDERBOLT', 'Stoked Sparksurfer'),
+('LASTRESORT', 'Extreme Evoboost'),
+('GIGAIMPACT', 'Pulverizing Pancake'),
+('PSYCHIC', 'Genesis Supernova'),
+('SPIRITSHACKLE', 'Sinister Arrow Raid'),
+('DARKESTLARIAT', 'Malicious Moonsault'),
+('SPARKLINGARIA', 'Oceanic Operetta'),
+('STONEEDGE', 'Splintered Stormshards'),
+('PLAYROUGH', 'Let''s Snuggle Forever'),
+('CLANGINGSCALES', 'Clangorous Soulblaze'),
+('NATURESMADNESS', 'Guardian of Alola'),
+('SUNSTEELSTRIKE', 'Searing Sunraze Smash'),
+('MOONGEISTBEAM', 'Menacing Moonraze Maelstrom'),
+('PHOTONGEYSER', 'Light That Burns the Sky'),
+('SPECTRALTHIEF', 'Soul-Stealing 7-Star Strike');
+
+-- Only {pokemon} in its {form} Form may use the Z-Move {move}.
+create table "pokemon_z_move" (
+	"pokemon" text
+	,"form" text
+	,"z_move" text not null
+	,primary key ("pokemon", "form")
+	,foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("z_move") references "z_move" ("name")
+) without rowid;
+
+insert into "pokemon_z_move" ("pokemon", "form", "z_move")
+values
+('PIKACHU', '', 'Catastropika'),
+('RAICHU', 'Alolan', 'Stoked Sparksurfer'),
+('EEVEE', '', 'Extreme Evoboost'),
+('SNORLAX', '', 'Pulverizing Pancake'),
+('MEW', '', 'Genesis Supernova'),
+('DECIDUEYE', '', 'Sinister Arrow Raid'),
+('INCINEROAR', '', 'Malicious Moonsault'),
+('PRIMARINA', '', 'Oceanic Operetta'),
+('LYCANROC', 'Midday', 'Splintered Stormshards'),
+('LYCANROC', 'Midnight', 'Splintered Stormshards'),
+('LYCANROC', 'Dusk', 'Splintered Stormshards'),
+('MIMIKYU', 'Disguised', 'Let''s Snuggle Forever'),
+('MIMIKYU', 'Broken', 'Let''s Snuggle Forever'),
+('KOMMOO', '', 'Clangorous Soulblaze'),
+('TAPUKOKO', '', 'Guardian of Alola'),
+('TAPULELE', '', 'Guardian of Alola'),
+('TAPUBULU', '', 'Guardian of Alola'),
+('TAPUFINI', '', 'Guardian of Alola'),
+('SOLGALEO', '', 'Searing Sunraze Smash'),
+('LUNALA', '', 'Menacing Moonraze Maelstrom'),
+('NECROZMA', 'Dusk Mane', 'Searing Sunraze Smash'),
+('NECROZMA', 'Dawn Wings', 'Menacing Moonraze Maelstrom'),
+('NECROZMA', 'Ultra', 'Light That Burns the Sky'),
+('MARSHADOW', '', 'Soul-Stealing 7-Star Strike');
+
+-- still need to include info about the actual effects of the moves
+
+---------------------------------------------------------------------------------------------------
+-- Type Items
+---------------------------------------------------------------------------------------------------
+
+-- Moves of type {type} are boosted by the plate item {item}.
 create table "type_plate" (
 	"type" text primary key,
 	"item" text not null unique,
@@ -97,34 +296,6 @@ values
 ('ROCK', 'STONEPLATE'),
 ('POISON', 'TOXICPLATE'),
 ('ELECTRIC', 'ZAPPLATE');
-
-create table "type_z_crystal" (
-	"type" text primary key,
-	"item" text not null unique,
-	foreign key ("type") references "type" ("id"),
-	foreign key ("item") references "item" ("id")
-) without rowid;
-
-insert into "type_z_crystal" ("type", "item")
-values
-('NORMAL', 'NORMALIUMZ2'),
-('FLYING', 'FLYINIUMZ2'),
-('GROUND', 'GROUNDIUMZ2'),
-('BUG', 'BUGINIUMZ2'),
-('STEEL', 'STEELIUMZ2'),
-('WATER', 'WATERIUMZ2'),
-('ELECTRIC', 'ELECTRIUMZ2'),
-('ICE', 'ICIUMZ2'),
-('DARK', 'DARKINIUMZ2'),
-('FIGHTING', 'FIGHTINIUMZ2'),
-('POISON', 'POISONIUMZ2'),
-('ROCK', 'ROCKIUMZ2'),
-('GHOST', 'GHOSTIUMZ2'),
-('FIRE', 'FIRIUMZ2'),
-('GRASS', 'GRASSIUMZ2'),
-('PSYCHIC', 'PSYCHIUMZ2'),
-('DRAGON', 'DRAGONIUMZ2'),
-('FAIRY', 'FAIRIUMZ2');
 
 create table "pokemon_form_change_desc" (
 	"pokemon" text,

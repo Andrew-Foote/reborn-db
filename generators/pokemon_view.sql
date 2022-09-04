@@ -282,7 +282,7 @@ with
             join "map" on "map"."id" = "encounter"."map_id"
             order by "map"."order"
         ) as "specialenc"
-        group by "specialenc"."pokemon", "specialenc"."form"
+        group by "specialenc"."pokemon", cast("specialenc"."form" as int) -- string vs. int diff cause sunnecesary splitting
     ) as "specialencs" on "specialencs"."pokemon" = "form"."pokemon" and "specialencs"."form" = "form"."order"
     left join (
         with recursive "evo_base" ("pokemon", "form", "base_pokemon", "base_form") as (
