@@ -12,7 +12,7 @@
 
 {% block script %}
 <script>
-	function selectTab(tabs, selectedIndex) {
+	function selectTab(tabs, selectedIndex) {	
 		for (let [i, tab] of tabs.entries()) {
 			let target = document.getElementById(tab.dataset.tabTarget);
 			if (!target) console.log(`can't find target for tab with id ${target}`);
@@ -28,10 +28,11 @@
 	}
 
 	function selectTabFromHash(tabs) {
+	  const hashVal = window.location.hash.substr(1);	
 		let indexToSelect = 0;
 
 		for (let [i, tab] of tabs.entries()) {
-			if (tab.dataset.tabTarget === `hash-tab-${window.location.hash.substr(1)}`) {
+			if (tab.dataset.tabTarget === `hash-tab-${hashVal}`) {
 				indexToSelect = i;
 			}
 		}
@@ -46,7 +47,7 @@
 			let tabs = Array.from(tabList.querySelectorAll('.tab'));
 
 			for (let [i, tab] of tabs.entries()) {
-				tab.addEventListener('click', () => selectTab(tabs, i));
+				tab.addEventListener('click', event => { event.preventDefault(); selectTab(tabs, i); });
 			}
 
 			let hashTabs = tabList.id == 'hash-tabs';
