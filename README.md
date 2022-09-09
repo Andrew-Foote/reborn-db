@@ -4,7 +4,7 @@ Basically, this website is [pokemondb](https://pokemondb.net/), but for [Pokémo
 
 # Architecture
 
-The website is based on an SQLite database, which is generated from files in the Pokémon Reborn installation using a bunch of Python scripts. A further bunch of Python scripts turn this SQLite database into a static website, which is then copied into my [GitHub Pages repository](https://github.com/Andrew-Foote/Andrew-Foote.github.io) and thus made available at [https://andrew-foote.github.io/reborn-db](https://andrew-foote.github.io/reborn-db).
+The website is based on an SQLite database, which is generated from files in the Pokémon Reborn installation using a bunch of Python scripts. A further bunch of Python scripts turn this SQLite database into a static website, which is stored in a separate [Git repository](https://github.com/Andrew-Foote/reborn-db-site) and served via [https://andrew-foote.github.io/reborn-db-site](GitHub Pages).
 
 # Build instructions
 
