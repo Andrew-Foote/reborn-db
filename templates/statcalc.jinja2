@@ -121,7 +121,7 @@ input:invalid { background-color: #ff8888; }
     <label for="nature">Nature</label>
     <select name="nature">
       {% for nature in natures %}
-        <option value="{{ nature.id }}">{{ nature.name }}</option>
+        <option value="{{ nature.id }}">{{ nature.name }} (+{{ nature.increasedStat }}, -{{ nature.decreasedStat }})</option>
       {% endfor %}
     </select>
   </p>
@@ -134,7 +134,27 @@ input:invalid { background-color: #ff8888; }
     <label for="individual-ev-limit">Require no more than 252 EVs in any particular stat</label>
     <input name="individual-ev-limit" type="checkbox" checked>
   </p>
+  
+  <table class="stat-table">
+    <tr>
+      <th></th>
+      <th>Base</th>
+      <th>EVs</th>
+      <th>IVs</th>
+      <th>Result</th>
+    </tr>
+    {% for stat in stats %}
+    <tr>
+      <th>{{ stat.name }}</th>
+      <td><input type="number" name="base-{{ stat.id }}" min="0" max="255"></td>
+      <td><input type="number" name="ev-{{ stat.id }}" min="0" value="0"></td>
+      <td><input type="number" name="iv-{{ stat.id }}" min="0" max="31" value="31"></td>
+      <td><input type="number" name="result-{{ stat.id }}" readonly></td>
+    </tr>
+    {% endfor %}
+  </table>
 
+  {#
   <table>
     <tr>
       <th></th>
@@ -167,6 +187,7 @@ input:invalid { background-color: #ff8888; }
     {% endfor %}
     </tr>
   </table>
+  #}
 </form>
 
 <section>
@@ -176,7 +197,7 @@ input:invalid { background-color: #ff8888; }
 
 \[ v = \left \lfloor n \left( 5 + 5h + \left \lfloor \ell \left( \frac b {50} + \frac i {100} + \frac e {400} \right) \right \rfloor \right) \right \rfloor \]
 
-<p>where \(v\) is the calculated value, \(n\) is 1.1, 0.9 or 1 depending on how the nature affects the stat, \(h\) is 1 if the stat is HP and 0 otherwise, (\ell\) is the level, \(b\) is the base stat value, \(i\) is the number of IVs and \(e\) is the number of EVs.</p>
+<p>where \(v\) is the calculated value, \(n\) is 1.1, 0.9 or 1 depending on how the nature affects the stat, \(h\) is 1 if the stat is HP and 0 otherwise, \(\ell\) is the level, \(b\) is the base stat value, \(i\) is the number of IVs and \(e\) is the number of EVs.</p>
 
 <p>There is one special case where this formula doesn't apply: if the base HP is 1, then the calculated HP is always 1, regardless of the Pokémon's nature, level, EVs and IVs.</p>
 
