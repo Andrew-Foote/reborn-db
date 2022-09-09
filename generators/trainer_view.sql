@@ -25,7 +25,7 @@ select json_object(
   		,'form', "pokemon"."form", 'form_order', "pokemon"."form_order"
   		,'nickname', "pokemon"."nickname", 'shiny', "pokemon"."shiny"
   		,'level', "pokemon"."level", 'gender', "pokemon"."gender",'nature', "pokemon"."nature"
-  		,'item', "pokemon"."item", 'friendship', "pokemon"."friendship"
+  		,'item', "pokemon"."item", 'friendship', "pokemon"."friendship", 'sprite', "pokemon"."sprite"
   	  ,'abilities', "pokemon"."abilities", 'moves', "pokemon"."moves"
   		,'evs', "pokemon"."evs", 'ivs', "pokemon"."ivs", 'stats', "pokemon"."stats"
   	))
@@ -36,6 +36,7 @@ select json_object(
   			,ifnull("trainer_pokemon"."nickname", "pokemon"."name") as "nickname"
   			,"trainer_pokemon"."shiny", "trainer_pokemon"."level", "trainer_pokemon"."gender"
   			,"nature"."name" as "nature","item"."name" as "item", "trainer_pokemon"."friendship"
+  			,base64("sprite"."sprite") as "sprite"
   			,(
 	      	select json_group_array("ability"."name")
 	      	from (
@@ -117,6 +118,16 @@ select json_object(
           and "form"."name" = "trainer_pokemon"."form"
       )
       join "pokemon" on "pokemon"."id" = "form"."pokemon"
+      left join "pokemon_sprite" as "sprite" on (
+      	"sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
+      	and "sprite"."type" = 'front' and "sprite"."shiny" = "trainer_pokemon"."shiny"
+      	and ((
+      		"trainer_pokemon"."gender" is null
+      		and ("sprite"."gender" is null or "sprite"."gender" = 'Male')
+      	) or (
+      		"sprite"."gender" is null or "trainer_pokemon"."gender" = "sprite"."gender"
+      	))
+      )
       join "nature" on "nature"."id" = "trainer_pokemon"."nature"
       left join "item" on "item"."id" = "trainer_pokemon"."item"
       where 

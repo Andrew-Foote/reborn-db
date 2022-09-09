@@ -53,11 +53,11 @@
 		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
 			<figure style="margin-right: 0.4em">
 				<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">
-					{# we need to show the shiny sprite if it's shiny #}
-					{# gender diffs too i guess #}
 					<img
-						src="{{ url_base }}/img/pokemon/{{ '{0:0>3}'.format(pokemon.number) }}_{{ pokemon.form_order }}.png"
+						src="data:image/png;base64,{{ pokemon.sprite }}"
 						alt="{{ pokemon.name }}{% if pokemon.gender is not none or pokemon.shiny == 1 %} ({% if pokemon.gender is not none %}{{ pokemon.gender|lower }}{% endif %}{% if pokemon.shiny == 1 %}{% if pokemon.gender is not none %}, {% endif %}shiny{% endif %}){% endif %}"
+						width="192"
+						height="192"
 					>
 				</a>
 				<figcaption><b>{{ pokemon.nickname }}</b></figcaption>
@@ -67,7 +67,7 @@
 				<table class="data-table" style="margin-bottom: 0.5em">
 					<tr>
 						<th>Species</th>
-						<td><a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html#{{ pokemon.form }}">{{ pokemon.name }}</a>{% if pokemon.form %} ({{ pokemon.form }}){% endif %}</td>
+						<td><a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html#{{ pokemon.form|slug }}">{{ pokemon.name }}</a>{% if pokemon.form %} ({{ pokemon.form }}){% endif %}</td>
 						<th>Level</th>
 						<td>{{ pokemon.level }}</td>
 						<th>Gender</th>
@@ -112,7 +112,7 @@
 
 				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
 					<b>Stats</b>
-					<table class="data-table">
+					<table class="data-table" style="margin-left: 1em">
 						<tr>
 							<th></th>
 						{% for ev in pokemon.evs %}
@@ -142,7 +142,7 @@
 
 				<div style="display: flex; align-items: center; justify-content: space-evenly; margin: 0.5em 0">
 					<b>Moves</b>
-					<table>
+					<table style="margin-left: 1em">
 						<tr>
 						{% for move in pokemon.moves %}
 							<td><a href="{{ url_base }}/move/{{ move|slug }}.html">{{ move }}</a></td>

@@ -22,11 +22,11 @@
 		</tr>
 		<tr>
 			<th>Power</th>
-			<td>{{ move.power or '---' }}</td>
+			<td>{% if move.power is none %}---{% else %}{{ move.power }}{% endif %}</td>
 			<th>Accuracy</th>
-			<td>{{ move.accuracy or '---' }}</td>
+			<td>{% if move.accuracy is none %}---{% else %}{{ move.accuracy }}{% endif %}</td>
 			<th>PP</th>
-			<td>{{ move.pp or '---' }}</td>
+			<td>{% if move.pp is none %}---{% else %}{{ move.pp }}{% endif %}</td>
 		</tr>
 		<tr>
 			<th>Priority</th>
@@ -44,6 +44,31 @@
 		<h2>In-game description</h2>
 
 		<p>{{ move.desc }}</p>
+	</section>
+	
+	<section>
+	  <h2>Pokémon that learn it</h2>
+	  
+	  <table class="data-table" style="margin: auto; width: 65%">
+	    <tr>
+	      <th>Pokémon</th>
+	      <th>Methods</th>
+	    </tr>
+	    {% for learner in move.learners %}
+	    <tr>
+	      <td><a href="{{ url_base }}/pokemon/{{ learner.name }}.html#{{ learner.form }}">{{ pokemon_form_name(learner.name, learner.form) }}</a></td>
+	      <td>
+	        <ul>
+	        {% for method in learner.learn_methods %}
+	        {% if method is not none %}
+	        <li>{{ method }}</li>
+	        {% endif %}
+	        {% endfor %}
+	        </ul>
+	      </td>
+	    </tr>
+	    {% endfor %}
+	  </table>
 	</section>
 
 </section>

@@ -1,0 +1,29 @@
+{% from 'macros.jinja2' import base64_image %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Egg Group List
+{% endblock %}
+
+{% block content %}
+<section>
+	<h1>Egg Group List</h1>
+
+	<table class="data=table" style="width: 90%; margin: auto">
+		<tr>
+			<th>Name</th>
+			<th style="width: 70%">Pokémon</th>
+		</tr> 
+		{% for egg_group in egg_groups %}
+		<tr>
+			<td><a href="{{ url_base }}/egg_group/{{ egg_group.id }}.html">{{ egg_group.name }}</a></td>
+			<td>
+			  {% for pokemon in egg_group.pokemon %}
+			    <a href="{{ url_base }}/pokemon/{{ pokemon.id }}.html" title="{{ pokemon.name }}">{{ base64_image(pokemon.icon, pokemon.name) }}</a>
+			  {% endfor %}
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</section>
+{% endblock %}

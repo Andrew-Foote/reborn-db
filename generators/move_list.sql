@@ -1,5 +1,6 @@
 select json_object(
-    'name', "move"."name"
+		'id', "move"."id"
+    ,'name', "move"."name"
     ,'damage_class', "move"."damage_class"
     ,'type', "move"."type"
     ,'power', "move"."power"

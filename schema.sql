@@ -253,13 +253,11 @@ create table `machine_item` (
 	"pocket" text check ("pocket" = 'TMs & HMs'),
 	"type" text not null check ("type" in ('tm', 'tmx')),
 	"number" integer not null,
-	"move" text not null,
+	"move" text not null unique,
 	unique ("type", "number"),
 	foreign key (`item`, `pocket`) references `item` (`id`, `pocket`),
 	foreign key (`move`) references `move` (`id`)
 ) without rowid;
-
-create index "machine_item_idx_move" on "machine_item" ("move");
 
 -- Pokémon forms.
 create table `pokemon_form` (
@@ -429,6 +427,8 @@ create table "level_move" (
 	foreign key ("move") references "move" ("id")
 ) without rowid;
 
+create index "level_move_idx_move" on "level_move" ("move");
+
 create view "preevo_move" ("pokemon", "form", "preevo", "preevo_form", "dist", "method", "level", "order", "move") as
 -- SQLite is too stupid to optimize away the union to egg_move if I were to just use the pokemon_move
 -- view here
@@ -456,36 +456,40 @@ left join "non_egg_move" as "evo_move" on (
 where "evo_move"."move" is null;
 
 -- Egg moves.
-create table `egg_move` (
-	`pokemon` text,
-	`form` text,
-	`move` text not null,
-	primary key (`pokemon`, `form`, `move`),
-	foreign key (`pokemon`, `form`) references `pokemon_form` (`pokemon`, `name`),
-	foreign key (`move`) references `move` (`id`)
+create table "egg_move" (
+	"pokemon" text,
+	"form" text,
+	"move" text not null,
+	primary key ("pokemon", "form", "move"),
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("move") references "move" ("id")
 ) without rowid;
+
+create index "egg_move_idx_move" on "egg_move" ("move");
 
 -- Moves learnable via TM(X)s.
-create table `machine_move` (
-	`pokemon` text,
-	`form` text,
-	`move` text,
-	primary key (`pokemon`, `form`, `move`),
-	foreign key (`pokemon`, `form`) references `pokemon_form` (`pokemon`, `name`),
-	foreign key (`move`) references `move` (`id`)
+create table "machine_move" (
+	"pokemon" text,
+	"form" text,
+	"move" text,
+	primary key ("pokemon", "form", "move"),
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("move") references "move" ("id")
 ) without rowid;
 
-create index "machine_move_idx_pokemon_form" on "machine_move" ("pokemon", "form");
+create index "machine_move_idx_move" on "machine_move" ("move");
 
 -- Moves learnable from Move Tutors.
-create table `tutor_move` (
-	`pokemon` text,
-	`form` text,
-	`move` text,
-	primary key (`pokemon`, `form`, `move`),
-	foreign key (`pokemon`, `form`) references `pokemon_form` (`pokemon`, `name`),
-	foreign key (`move`) references `move` (`id`)
+create table "tutor_move" (
+	"pokemon" text,
+	"form" text,
+	"move" text,
+	primary key ("pokemon", "form", "move"),
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("move") references "move" ("id")
 ) without rowid;
+
+create index "tutor_move_idx_move" on "tutor_move" ("move");
 
 create view "pokemon_move" ("pokemon", "form", "move", "method") as
 	select "pokemon", "form", "move", 'level' from "level_move"

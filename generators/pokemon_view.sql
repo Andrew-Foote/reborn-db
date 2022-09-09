@@ -7,7 +7,9 @@ with
         order by "attacking_type"."code"
     ),
     "level_move_o" as (
-        select "level_move"."pokemon", "level_move"."form", "level_move"."level", "move"."name"
+        select
+        	"level_move"."pokemon", "level_move"."form", "level_move"."level",
+        	"move"."id", "move"."name"
         from "level_move" join "move" on "move"."id" = "level_move"."move"
         order by "level_move"."pokemon", "level_move"."form", "level_move"."level", "level_move"."order"
     )
@@ -182,7 +184,7 @@ with
     ) as "ev_yields" on "ev_yields"."pokemon" = "form"."pokemon" and "ev_yields"."form" = "form"."name"
     join (
         select "level_move"."pokemon", "level_move"."form", json_group_array(json_object(
-            'level', "level_move"."level", 'name', "level_move"."name"
+            'level', "level_move"."level", 'id', "level_move"."id", 'name', "level_move"."name"
         )) as "all"
         from "level_move_o" as "level_move" where "level_move"."level" != 0
         group by "level_move"."pokemon", "level_move"."form"
@@ -191,7 +193,9 @@ with
         and "level_moves"."form" = "form"."name"
     )
     left join (
-        select "level_move"."pokemon", "level_move"."form", json_group_array("level_move"."name") as "all"
+        select "level_move"."pokemon", "level_move"."form", json_group_array(json_object(
+        	'id', "level_move"."id", 'name', "level_move"."name"
+        )) as "all"
         from "level_move_o" as "level_move" where "level_move"."level" = 0
         group by "level_move"."pokemon", "level_move"."form"
     ) as "evolution_moves" on (
@@ -200,10 +204,10 @@ with
     )
     left join (
         select "machine_move"."pokemon", "machine_move"."form", json_group_array(json_object(
-            'item', "machine_move"."item", 'name', "machine_move"."name"
+            'item', "machine_move"."item", 'id', "machine_move"."id", 'name', "machine_move"."name"
         )) as "all"
         from (
-            select "machine_move"."pokemon", "machine_move"."form", "move"."name", "item"."name" as "item"
+            select "machine_move"."pokemon", "machine_move"."form", "move"."id", "move"."name", "item"."name" as "item"
             from "machine_move"
             join "move" on "move"."id" = "machine_move"."move"
             join "machine_item" as "machine" on "machine"."move" = "move"."id"
@@ -213,9 +217,11 @@ with
         group by "machine_move"."pokemon", "machine_move"."form"
     ) as "machine_moves" on "machine_moves"."pokemon" = "form"."pokemon" and "machine_moves"."form" = "form"."name"
     left join (
-        select "tutor_move"."pokemon", "tutor_move"."form", json_group_array("tutor_move"."name") as "all"
+        select "tutor_move"."pokemon", "tutor_move"."form", json_group_array(json_object(
+        	'id', "tutor_move"."id", 'name', "tutor_move"."name"
+        )) as "all"
         from (
-            select "tutor_move"."pokemon", "tutor_move"."form", "move"."name"
+            select "tutor_move"."pokemon", "tutor_move"."form", "move"."id", "move"."name"
             from "tutor_move"
             join "move" on "move"."id" = "tutor_move"."move"
             order by "tutor_move"."pokemon", "tutor_move"."form", "move"."name"
@@ -225,12 +231,13 @@ with
     left join (
     	select "preevo_move"."pokemon", "preevo_move"."form", json_group_array(json_object(
     		'preevo', "preevo_move"."preevo", 'preevo_form', "preevo_move"."preevo_form",
+    		'id', "preevo_move"."id",
     		'name', "preevo_move"."name", 'method', "preevo_move"."method", 'level', "preevo_move"."level"
     	)) as "all"
     	from (
     		select
     			"preevo_move"."pokemon", "preevo_move"."form", "preevo"."name" as "preevo", "preevo_move"."preevo_form",
-    			"move"."name", "preevo_move"."method", "preevo_move"."level"
+    			"move"."id", "move"."name", "preevo_move"."method", "preevo_move"."level"
     		from "preevo_move"
     		join "move" on "move"."id" = "preevo_move"."move"
     		join "pokemon_form" as "preevo_form" on "preevo_form"."pokemon" = "preevo_move"."preevo" and "preevo_form"."name" = "preevo_move"."preevo_form"
@@ -303,9 +310,11 @@ with
         select * from "evo_base"
     ) as "evo_base" on "evo_base"."pokemon" = "form"."pokemon" and "evo_base"."form" = "form"."name"
     left join (
-        select "egg_move"."pokemon", "egg_move"."form", json_group_array("egg_move"."name") as "all"
+        select "egg_move"."pokemon", "egg_move"."form", json_group_array(json_object(
+        	'id', "egg_move"."id", 'name', "egg_move"."name"
+        )) as "all"
         from (
-            select "egg_move"."pokemon", "egg_move"."form", "move"."name"
+            select "egg_move"."pokemon", "egg_move"."form", "move"."id", "move"."name"
             from "egg_move"
             join "move" on "move"."id" = "egg_move"."move"
             order by "egg_move"."pokemon", "egg_move"."form", "move"."name"

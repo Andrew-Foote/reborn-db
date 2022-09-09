@@ -4,7 +4,8 @@ import shutil
 from reborndb import settings
 
 generator_names = (
-	'index', 'admin', 'statcalc',
+	'index', 'about', 'admin', 
+	'statcalc',
 	'pokemon_list', 'pokemon_view',
 	'pokemon_sprites',
 	'move_list', 'move_view',
@@ -12,6 +13,7 @@ generator_names = (
 	'item_list', 'item_view',
 	'area_list', 'area_view',
 	'trainer_list', 'trainer_view',
+	'egg_group_list',
 	'evolution_area'
 )
 

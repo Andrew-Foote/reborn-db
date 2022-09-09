@@ -21,14 +21,14 @@ Move List
 		</tr> 
 		{% for move in moves %}
 		<tr>
-			<td><a href="{{ url_base }}/move/{{ move.name|slug }}.html">{{ move.name }}</a></td>
+			<td><a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a></td>
 			<td>{{ move.damage_class }}</td>
-			<td><a href="{{ url_base }}/type/{{ move.type|slug }}.html">
+			<td><a href="{{ url_base }}/type/{{ move.type }}.html">
 				{{ type_icon(move.type) }}
 			</a></td>
-			<td>{{ move.power }}</td>
-			<td>{{ move.accuracy }}</td>
-			<td>{{ move.pp }}</td>
+			<td>{% if move.power is none %}---{% else %}{{ move.power }}{% endif %}</td>
+			<td>{% if move.accuracy is none %}---{% else %}{{ move.accuracy }}{% endif %}</td>
+			<td>{% if move.pp is none %}---{% else %}{{ move.pp }}{% endif %}</td>
 			<td>{{ move.desc }}</td>
 		</tr>
 		{% endfor %}
