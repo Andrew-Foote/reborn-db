@@ -57,9 +57,9 @@ select json_object(
 	      	) as "ability"
 	  		) as "abilities"
         ,(
-        	select json_group_array("move"."name")
+        	select json_group_array(json_object('id', "move"."id", 'name', "move"."name"))
         	from (
-        		select "move"."name"
+        		select "move"."name", "move"."id"
         		from "trainer_pokemon_move" as "pokemon_move"
         		join "move" on "move"."id" = "pokemon_move"."move"
         		where
