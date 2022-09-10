@@ -1,11 +1,29 @@
-insert into "growth_rate" ("name", "pbs_name", "order", "formula")
+insert into "growth_rate" ("name", "pbs_name", "order", "python_formula", "latex_formula")
 values
-('Erratic', 'Erratic', 1, 'math.floor(level ** 3 * ((level * 6 // 10) / 100))'),
-('Fast', 'Fast', 2, '4 * level ** 3 // 5'),
-('Medium Fast', 'Medium', 3, 'level ** 3'),
-('Medium Slow', 'Parabolic', 4, '6 * level ** 3 // 5 - 15 * level ** 2 + 100 * level - 140'),
-('Slow', 'Slow', 5, '5 * level ** 3 // 4'),
-('Fluctuating', 'Fluctuating', 6, 'math.floor(level ** 3 *((level * max(40, 82 - max(0, (level - 100)/2)) // 100) / 50))');
+('Erratic', 'Erratic', 1,
+	'math.floor(level ** 3 * ((level * 6 // 10) / 100))',
+	'\left \lfloor \frac {\ell^3 \lfloor 6\ell/10 \rfloor} {100} \right \rfloor'
+),
+('Fast', 'Fast', 2,
+	'4 * level ** 3 // 5',
+	'\left \lfloor \frac {4\ell^3} 5 \right \rfloor'
+),
+('Medium Fast', 'Medium', 3,
+	'level ** 3',
+	'\ell^3'
+),
+('Medium Slow', 'Parabolic', 4,
+	'6 * level ** 3 // 5 - 15 * level ** 2 + 100 * level - 140',
+	'\left \lfloor \frac {6\ell^3} 5 \right \rfloor - 15\ell^2 + 100\ell - 140'
+),
+('Slow', 'Slow', 5,
+	'5 * level ** 3 // 4',
+	'\left \lfloor \frac {5\ell^3} 4 \right \rfloor'
+),
+('Fluctuating', 'Fluctuating', 6,
+	'math.floor(level ** 3 *((level * max(40, 82 - max(0, (level - 100)/2)) // 100) / 50))',
+	'\left \lfloor \frac {\ell^3 \lfloor \max(40, 82 - \max(0, (\ell - 100)/2)) \ell \rfloor/100} {50} \right \rfloor'
+);
 
 insert into "level_exp" ("growth_rate", "level", "exp")
 values

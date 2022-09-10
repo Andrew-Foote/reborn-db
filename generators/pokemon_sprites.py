@@ -12,7 +12,7 @@ def run():
         egg_icon = json.loads(egg_icon)
                 
         generate.render_template(
-            f'pokemon_sprites/{slugify(pokemon)}/{slugify(form)}.html',
+            f'pokemon_sprites/{slugify(pokemon)}_{slugify(form)}.html',
             'pokemon_sprites.jinja2',
             pokemon=pokemon, form=form,
             genderdiff=genderdiff,

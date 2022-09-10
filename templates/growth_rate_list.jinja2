@@ -1,0 +1,73 @@
+{% from 'macros.jinja2' import base64_image %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Growth Rates
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="/js/thirdparty/sql-wasm.js"></script>
+<script>
+const growthRates = {{ growth_rates|tojson }};
+
+function updateExp(growthRate) {
+	const form = document.forms[`growth-rate-${growthRate.id}-calculator`];
+	const levelElem = form.elements[`growth-rate-${growthRate.id}-level`];
+	const expElem = form.elements[`growth-rate-${growthRate.id}-exp`];
+	const level = parseInt(levelElem.value);
+	expElem.value = growthRate.level_exp[level];
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+	console.log(growthRates);
+
+	for (const growthRate of growthRates) {
+		const form = document.forms[`growth-rate-${growthRate.id}-calculator`];
+		const levelElem = form.elements[`growth-rate-${growthRate.id}-level`];
+		levelElem.addEventListener('change', () => { updateExp(growthRate) })
+		updateExp(growthRate);
+	}
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<section>
+	<h1>Growth Rates</h1>
+
+	<section>
+		<h2>Comparative Graph</h2>
+
+		<p><img src="{{ url_base }}/growth_rate_graph.png" alt=""></p>
+	</section>
+
+	{% for growth_rate in growth_rates %}
+		<section>
+			<h2 id="{{ growth_rate.id }}">{{ growth_rate.name }}</h2>
+
+			<p>Formula: \[{{ growth_rate.latex_formula }}\]</p>
+
+			<form name="growth-rate-{{ growth_rate.id }}-calculator">
+				<fieldset>
+					<legend>Calculate EXP Required</legend>
+					<p>
+						<label for="growth-rate-{{ growth_rate.id }}-level">Level</label>
+						<input type="number" value="150" min="0" max="150" name="growth-rate-{{ growth_rate.id }}-level">
+						<label for="growth-rate-{{ growth_rate.id }}-exp">EXP Required</label>
+						<input type="number" readonly name="growth-rate-{{ growth_rate.id }}-exp">
+					</p>
+				</fieldset>
+			</form>
+
+			<section>
+				<h3>Pokémon</h3>
+
+				{% for pokemon in growth_rate.pokemon %}
+				    <a href="{{ url_base }}/pokemon/{{ pokemon.id }}.html" title="{{ pokemon.name }}">{{ base64_image(pokemon.icon, pokemon.name) }}</a>
+				  {% endfor %}
+			</section>
+		</section>
+	{% endfor %}
+</section>
+{% endblock %}

@@ -2,12 +2,12 @@
 {% extends 'base.jinja2' %}
 
 {% block title %}
-Egg Group List
+Egg Groups
 {% endblock %}
 
 {% block content %}
 <section>
-	<h1>Egg Group List</h1>
+	<h1>Egg Groups</h1>
 
 	<table class="data=table" style="width: 90%; margin: auto">
 		<tr>
@@ -15,7 +15,7 @@ Egg Group List
 			<th style="width: 70%">Pokémon</th>
 		</tr> 
 		{% for egg_group in egg_groups %}
-		<tr>
+		<tr id="{{ egg_group.id|slug }}">
 			<td><a href="{{ url_base }}/egg_group/{{ egg_group.id }}.html">{{ egg_group.name }}</a></td>
 			<td>
 			  {% for pokemon in egg_group.pokemon %}

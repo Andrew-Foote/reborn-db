@@ -38,7 +38,7 @@ select
 	,(
 		select json_patch(
 			json_group_object("sprite1"."key", base64("sprite1"."sprite")),
-			json_object('genderdiff', "sprite1"."genderdiff")
+			json_object('genderdiff', "sprite1"."genderdiff", 'exists', ("sprite1"."sprite" is not null))
 		) from "sprite1"
 		where "sprite1"."pokemon" = "form"."pokemon" and "sprite1"."form" = "form"."name" and "sprite1"."type" = 'egg'
 	) as "egg_sprite"
@@ -52,7 +52,7 @@ select
 	,(
 		select json_patch(
 			json_group_object("sprite1"."key", base64("sprite1"."sprite")),
-			json_object('genderdiff', "sprite1"."genderdiff")
+			json_object('genderdiff', "sprite1"."genderdiff", 'exists', ("sprite1"."sprite" is not null))
 		) from "sprite1"
 		where "sprite1"."pokemon" = "form"."pokemon" and "sprite1"."form" = "form"."name" and "sprite1"."type" = 'egg-icon1'
 	) as "egg_icon"

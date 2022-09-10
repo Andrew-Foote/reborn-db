@@ -1,5 +1,12 @@
 with
-"egg_group_o" as (select * from "pokemon_egg_group" order by "pokemon_egg_group"."egg_group"),
+"egg_group_o" as (
+    select
+        "pokemon_egg_group"."pokemon",
+        "egg_group"."pbs_name" as "id", "egg_group"."name"
+    from "pokemon_egg_group"
+    join "egg_group" on "egg_group"."name" = "pokemon_egg_group"."egg_group"
+    order by "pokemon_egg_group"."egg_group"
+),
 "form_o" as (
     with "type_effect_o" as (
         select "type_effect2".* from "type_effect2"
@@ -379,7 +386,10 @@ select "pokemon"."name", json_object(
     ,'male_frequency', "pokemon"."male_frequency"
     ,'hatch_steps', "pokemon"."hatch_steps"
     ,'base_exp', "pokemon"."base_exp"
-    ,'growth_rate', "growth_rate"."name"
+    ,'growth_rate', json_object(
+        'id', "growth_rate"."pbs_name",
+        'name', "growth_rate"."name"
+    )
     ,'egg_groups', json("egg_groups"."all")
     ,'forms', json("forms"."all")
 )
@@ -390,7 +400,9 @@ join "growth_rate" on "growth_rate"."name" = "pokemon"."growth_rate"
 join (
     select
         "egg_group"."pokemon",
-        json_group_array("egg_group"."egg_group") as "all"
+        json_group_array(json_object(
+            'id', "egg_group"."id", 'name', "egg_group"."name"
+        )) as "all"
     from "egg_group_o" as "egg_group"
     group by "egg_group"."pokemon"
 ) as "egg_groups" on "egg_groups"."pokemon" = "pokemon"."id"

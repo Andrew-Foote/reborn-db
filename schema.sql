@@ -15,8 +15,10 @@ create table "growth_rate" (
 	"name" text primary key
 	,"pbs_name" text not null unique
 	,"order" integer not null unique
-	,"formula" text not null -- Used for calculating the total EXP required to attain each level,
-	                         -- but only for levels greater than 100.
+	-- The formula is used for calculating the total EXP required to attain each level,
+	-- but only for levels greater than 100.
+	,"python_formula" text not null 
+	,"latex_formula" text not null
 ) without rowid;
 
 -- The total EXP required to attain each level from 0--100, for each growth rate. Note that for
