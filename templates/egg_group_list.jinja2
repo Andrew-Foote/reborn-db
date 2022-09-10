@@ -9,21 +9,17 @@ Egg Groups
 <section>
 	<h1>Egg Groups</h1>
 
-	<table class="data=table" style="width: 90%; margin: auto">
-		<tr>
-			<th>Name</th>
-			<th style="width: 70%">Pokémon</th>
-		</tr> 
-		{% for egg_group in egg_groups %}
-		<tr id="{{ egg_group.id|slug }}">
-			<td><a href="{{ url_base }}/egg_group/{{ egg_group.id }}.html">{{ egg_group.name }}</a></td>
-			<td>
-			  {% for pokemon in egg_group.pokemon %}
-			    <a href="{{ url_base }}/pokemon/{{ pokemon.id }}.html" title="{{ pokemon.name }}">{{ base64_image(pokemon.icon, pokemon.name) }}</a>
-			  {% endfor %}
-			</td>
-		</tr>
-		{% endfor %}
-	</table>
+	{% for egg_group in egg_groups %}
+	<section>
+		<h2>{{ egg_group.name }}</h2>
+
+	  	{% for pokemon in egg_group.pokemon %}
+	  	<figure class="inline">
+		    <a href="{{ url_base }}/pokemon/{{ pokemon.id|slug }}.html">{{ base64_image(pokemon.icon) }}</a>
+		    <figcaption><a href="{{ url_base }}/pokemon/{{ pokemon.id|slug }}.html">{{ pokemon.name }}</a></figcaption>
+	    </figure>
+	  	{% endfor %}
+	</section>
+	{% endfor %}	 
 </section>
 {% endblock %}

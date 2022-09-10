@@ -24,7 +24,7 @@ select "move"."id", json_object(
 	  			case
 	  				when "level_move"."move" is null then null
 	  				when "level_move"."level" = 0 then 'Evolution'
-	  				else 'Level up to level ' || "level_move"."level"
+	  				else 'Level ' || "level_move"."level"
 	  			end,
 	  			case when "egg_move"."move" is null then null else 'Egg move' end,
 	  			case when "machine_move"."move" is null then null else "machine"."name" end,
@@ -37,7 +37,7 @@ select "move"."id", json_object(
 	  		and "level_move"."move" = "move"."id"
 	  	)
 	  	left join "egg_move" on (
-	  		"egg_move"."pokemon" = "pokemon"."id" and "level_move"."form" = "form"."name"
+	  		"egg_move"."pokemon" = "pokemon"."id" and "egg_move"."form" = "form"."name"
 	  		and "egg_move"."move" = "move"."id"
 	  	)
 	  	left join "machine_move" on (

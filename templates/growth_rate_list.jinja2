@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		<section>
 			<h2 id="{{ growth_rate.id }}">{{ growth_rate.name }}</h2>
 
-			<p>Formula: \[{{ growth_rate.latex_formula }}\]</p>
+			<p>Formula: \({{ growth_rate.latex_formula }}\)</p>
 
 			<form name="growth-rate-{{ growth_rate.id }}-calculator">
 				<fieldset>
@@ -64,8 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
 				<h3>Pokémon</h3>
 
 				{% for pokemon in growth_rate.pokemon %}
-				    <a href="{{ url_base }}/pokemon/{{ pokemon.id }}.html" title="{{ pokemon.name }}">{{ base64_image(pokemon.icon, pokemon.name) }}</a>
-				  {% endfor %}
+				<figure class="inline">
+				    <a href="{{ url_base }}/pokemon/{{ pokemon.id|slug }}.html">{{ base64_image(pokemon.icon) }}</a>
+				    <figcaption><a href="{{ url_base }}/pokemon/{{ pokemon.id|slug }}.html">{{ pokemon.name }}</a></figcaption>
+				</figure>
+				{% endfor %}
 			</section>
 		</section>
 	{% endfor %}

@@ -30,6 +30,7 @@ def run():
             )
         )
         from "egg_group"
+        order by "egg_group"."order"
     ''')]
     
     generate.render_template('egg_groups.html', 'egg_group_list.jinja2', egg_groups=egg_groups)
