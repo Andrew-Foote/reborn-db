@@ -1,4 +1,74 @@
 ---------------------------------------------------------------------------------------------------
+-- Breeding
+---------------------------------------------------------------------------------------------------
+
+-- The Pokémon {male} and {female} are gender counterparts of each other, in that an egg laid by
+-- a member of either's evolutionary family may hatch into either one, with a 50% chance for each
+create table "gender_counterpart" (
+	"male" text primary key,
+	"female" text not null unique,
+	foreign key ("male") references "pokemon" ("id"),
+	foreign key ("female") references "pokemon" ("id")
+) without rowid;
+
+insert into "gender_counterpart" ("male", "female")
+values
+('NIDORANmA', 'NIDORANfE'),
+('VOLBEAT', 'ILLUMISE');
+
+-- Eggs produced by {pokemon} hatch into the (assumed unique) Stage 1 evolution in the evolutionary
+-- family, rather than the basic form, unless either parent holds {item}
+create table "incense" (
+	"item" text primary key,
+	"pokemon" text not null unique,
+	foreign key ("item") references "item" ("id"),
+	foreign key ("pokemon") references "pokemon" ("id")
+) without rowid;
+
+insert into "incense" ("item", "pokemon")
+values
+('SEAINCENSE', 'AZURILL'),
+('LAXINCENSE', 'WYNAUT'),
+('ROSEINCENSE', 'BUDEW'),
+('PUREINCENSE', 'CHIMECHO'),
+('ROCKINCENSE', 'BONSLY'),
+('ODDINCENSE', 'MIMEJR'),
+('LUCKINCENSE', 'HAPPINY'),
+('WAVEINCENSE', 'MANTYKE'),
+('FULLINCENSE', 'MUNCHLAX');
+
+create table "anomalous_baby" (
+	"pokemon" text primary key,
+	"baby" text not null unique,
+	foreign key ("pokemon") references "pokemon" ("id"),
+	foreign key ("baby") references "pokemon" ("id")
+) without rowid;
+
+insert into "anomalous_baby"
+values
+('MANAPHY', 'PHIONE');
+
+-- An egg produced by a Pokémon of species {pokemon} in its {form} form holding the item {item}
+-- will hatch into a Pokémon of species {baby_pokemon} in its {baby_form} form with probability
+-- {probability}.
+create view "baby" (
+	
+)
+
+create table "adult_baby" (
+	"adult" text,
+	"adult_form" text,
+	"item" text,
+	"baby" text,
+	"baby_form" text,
+	"probability" real,
+	primary key ("adult", "adult_form", "item", "baby", "baby_form"),
+	foreign key ("adult", "adult_form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("baby", "baby_form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("item") references "item" ("id"),
+) without rowid;
+
+---------------------------------------------------------------------------------------------------
 -- Mega Evolution
 ---------------------------------------------------------------------------------------------------
 

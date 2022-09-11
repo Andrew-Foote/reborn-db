@@ -56,6 +56,15 @@ with
         ,"specialencs"."all" as "specialencs"
         ,"evo_tree"."branches" as "evo_tree"
         ,"sprite"."sprite" as "sprite"
+        ,json_object(
+            'method', case
+                when "megev_item"."id" is not null then 'item'
+                when "megev_move"."id" is not null then 'move'
+                else null
+            end
+            ,'item', json_object('id', "megev_item"."id", 'name', "megev_item"."name")
+            ,'move', json_object('id', "megev_move"."id", 'name', "megev_move"."name")
+        ) as "mega_evolution"
     from "pokemon_form" as "form"
     left join "pokemon_sprite" as "sprite" on (
      	"sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
@@ -373,6 +382,14 @@ with
         "evo_tree"."root" = "evo_base"."base_pokemon"
         and "evo_tree"."root_form" = "evo_base"."base_form"
     )
+    left join "mega_evolution_item" as "megevi" on (
+        "megevi"."pokemon" = "form"."pokemon" and "megevi"."form" = "form"."name"
+    )
+    left join "item" as "megev_item" on "megev_item"."id" = "megevi"."item"
+    left join "mega_evolution_move" as "megevm" on (
+        "megevm"."pokemon" = "form"."pokemon" and "megevm"."form" = "form"."name"
+    )
+    left join "move" as "megev_move" on "megev_move"."id" = "megevm"."move"
     order by "form"."order"
 )
 select "pokemon"."name", json_object(
@@ -441,6 +458,7 @@ join (
             ,'encounters', json(ifnull("form"."encounters", '[]'))
             ,'special_encounters', json(ifnull("form"."specialencs", '[]'))
             ,'evo_tree', json("form"."evo_tree")
+            ,'mega_evolution', json("form"."mega_evolution")
         )) as "all"
     from "form_o" as "form"
     group by "form"."pokemon"

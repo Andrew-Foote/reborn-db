@@ -6,15 +6,18 @@ from reborndb import generate
 def run():
     items = (json.loads(item) for item, in DB.H.exec('''
         select json_object(
-            'name', "name",
-            'pocket', "pocket",
-            'buy_price', "buy_price",
-            'sell_price', "buy_price" / 2,
-            'desc', "desc"
+            'name', "item"."name",
+            'pocket', "item"."pocket",
+            'buy_price', "item"."buy_price",
+            'sell_price', "item"."buy_price" / 2,
+            'desc', "item"."desc",
+            'move', json_object('id', "move"."id", 'name', "move"."name")
         )
         from "item" 
-        where "code" != 0
-        order by "code"
+        left join "machine_item" as "machine" on "machine"."item" = "item"."id"
+        left join "move" on "move"."id" = "machine"."move"
+        where "item"."code" != 0
+        order by "item"."code"
     '''))
 
     for item in items:

@@ -228,6 +228,18 @@
 		</div>
 
 		<table class="data-table" style="width: 100%">
+			{% if form.mega_evolution.method is not none %}
+			<tr>
+				<th>Mega Evolution method</th>
+				<td colspan="5">
+					{% if form.mega_evolution.method == 'item' %}
+						Hold the item <a href="{{ url_base }}/move/{{ form.mega_evolution.item.name|slug }}.html">{{ form.mega_evolution.item.name }}</a>
+					{% elif form.mega_evolution.method == 'move' %}
+						Know the move <a href="{{ url_base }}/move/{{ form.mega_evolution.move.id }}.html">{{ form.mega_evolution.move.name }}</a>
+					{% endif %}
+				</td>
+			</tr>
+			{% endif %}
 			<tr>
 				<th>Pokédex entry</th>
 				<td colspan="5">{{ form.pokedex_entry }}
