@@ -38,35 +38,95 @@ values
 ('FULLINCENSE', 'MUNCHLAX');
 
 create table "anomalous_baby" (
-	"pokemon" text primary key,
-	"baby" text not null unique,
-	foreign key ("pokemon") references "pokemon" ("id"),
-	foreign key ("baby") references "pokemon" ("id")
+	"adult" text
+	,"adult_form" text
+	,"baby" text
+	,"baby_form" text
+	,primary key ("adult", "adult_form")
+	,foreign key ("adult", "adult_form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("baby", "baby_form") references "pokemon_form" ("pokemon", "name")
 ) without rowid;
 
 insert into "anomalous_baby"
-values
-('MANAPHY', 'PHIONE');
+select 'MANAPHY', '', 'PHIONE', ''
+union
+select 'ROTOM', "form"."name", 'ROTOM', 'Normal'
+from "pokemon_form" as "form"
+where "form"."pokemon" = 'ROTOM' and "form"."name" != 'Normal';
 
--- An egg produced by a Pokémon of species {pokemon} in its {form} form holding the item {item}
--- will hatch into a Pokémon of species {baby_pokemon} in its {baby_form} form with probability
--- {probability}.
-create view "baby" (
-	
-)
-
-create table "adult_baby" (
-	"adult" text,
-	"adult_form" text,
-	"item" text,
-	"baby" text,
-	"baby_form" text,
-	"probability" real,
-	primary key ("adult", "adult_form", "item", "baby", "baby_form"),
-	foreign key ("adult", "adult_form") references "pokemon_form" ("pokemon", "name"),
-	foreign key ("baby", "baby_form") references "pokemon_form" ("pokemon", "name"),
-	foreign key ("item") references "item" ("id"),
+-- An egg produced by a Pokémon of species {pokemon} in its {form} form which is holding/not
+-- holding (as per {incense}) its associated incense will hatch into a Pokémon of specie
+-- {baby_pokemon} in its {baby_form} form with probability {probability}.
+create table "baby" (
+	"adult" text
+	,"adult_form" text
+	,"incense" text check ("incense" in ('holding', 'not-holding', 'na'))
+	,"baby" text
+	,"baby_form" text
+	,"probability" real check ("probability" > 0.0 and "probability" <= 1.0)
+	,primary key ("adult", "adult_form", "incense", "baby", "baby_form")
+	,foreign key ("adult", "adult_form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("baby", "baby_form") references "pokemon_form" ("pokemon", "name")
 ) without rowid;
+
+-- this is a materialized view basically
+insert into "baby"
+select
+	"from_baby"."to", "from_baby"."to_form", 'na',
+	"from_baby"."from", "from_baby"."from_form", 1.0
+from "evolution_trcl" as "from_baby"
+left join "evolution" as "to_baby" on (
+	"to_baby"."to" = "from_baby"."from" and "to_baby"."to_form" = "from_baby"."from_form"
+)
+left join "pokemon_egg_group" on (
+	"pokemon_egg_group"."pokemon" = "from_baby"."to"
+	and "pokemon_egg_group"."egg_group" in ('No Eggs Discovered', 'Ditto')
+)
+where "to_baby"."from" is null and "pokemon_egg_group"."egg_group" is null;
+
+update "baby" set "probability" = 0.5
+where "baby"."baby" in (
+	select "male" from "gender_counterpart" union select "female" from "gender_counterpart"
+);
+
+-- this assumes Pokémon with gender counterparts don't have multiple forms
+insert into "baby" ("adult", "adult_form", "incense", "baby", "baby_form", "probability")
+select "adult", '', 'na', "counterpart"."second", '', 0.5
+from "baby"
+join (
+	select "male" as "first", "female" as "second" from "gender_counterpart"
+	union
+	select "female" as "first", "male" as "second" from "gender_counterpart"
+) as "counterpart" on "counterpart"."first" = "baby"."baby";
+
+update "baby" set "incense" = 'holding'
+where exists (select 1 from "incense" where "incense"."pokemon" = "baby"."baby");
+
+insert into "baby" ("adult", "adult_form", "incense", "baby", "baby_form", "probability")
+select
+	"baby"."adult", "baby"."adult_form", 'not-holding',
+	"evolution"."to", "evolution"."to_form", "baby"."probability"
+from "baby"
+join "incense" on "incense"."pokemon" = "baby"."baby"
+join "evolution" on (
+	"evolution"."from" = "baby"."baby" and "evolution"."from_form" = "baby"."baby_form"
+);
+
+
+/*update "baby" set ("baby", "baby_form") = (
+	select "anomaly"."baby", "anomaly"."baby_form" from "anomalous_baby" as "anomaly"
+	where "anomaly"."adult" = "baby"."adult" and "anomaly"."adult_form" = "baby"."adult_form"
+)
+where exists (
+	select 1 from "anomalous_baby" as "anomaly"
+	where "anomaly"."adult" = "baby"."adult" and "anomaly"."adult_form" = "baby"."adult_form"
+);*/
+
+
+update "baby"
+set "baby" = "anomaly"."baby", "baby_form" = "anomaly"."baby_form"
+from "anomalous_baby" as "anomaly"
+where "anomaly"."adult" = "baby"."adult" and "anomaly"."adult_form" = "baby"."adult_form";
 
 ---------------------------------------------------------------------------------------------------
 -- Mega Evolution

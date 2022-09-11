@@ -139,7 +139,7 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
         elif kind == 'stat_cmp':
             assert len(vs) == 1
             stat1, stat2, op = vs.pop()
-            op = {'<': 'less than', '>': 'greater than', '=': 'equal to'}
+            op = {'<': 'less than', '>': 'greater than', '=': 'equal to'}[op]
             sentence += f' with {stat1} {op} {stat2}'
         elif kind == 'map':
             scheme_id = '_'.join((*map(slugify, (from_name, from_form, to_name, to_form)), str(scheme_index)))

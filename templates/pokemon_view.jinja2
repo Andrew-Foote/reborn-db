@@ -122,6 +122,11 @@
 					{% for egg_group in pokemon.egg_groups %}
 						<a href="{{ url_base }}/egg_groups.html#{{ egg_group.id }}">{{ egg_group.name }}</a>{% if not loop.last %},{% endif %}
 					{% endfor %}
+					{% if pokemon.breedability == 'none' %}
+						(can't breed)
+					{% elif pokemon.breedability == 'ditto-only' %}
+						(can only breed with <a href="{{ url_base }}/pokemon/ditto.html">Ditto</a>)
+					{% endif %}
 				</td>
 			</tr>
 		</table>
@@ -253,7 +258,7 @@
 				<td>{{ form.catch_rate }}</td>
 			</tr>
 			<tr>
-				<th>Wild held items</th>
+				<th scope="row">Wild held items</th>
 				<td colspan="5">
 				{% if form.wild_held_items %}
 					{% for item in form.wild_held_items %}
@@ -264,6 +269,21 @@
 				{% endif %}
 				</td>
 			</tr>
+			{% if form.babies %}
+			<tr>
+				<th scope="row">Eggs hatch into</th>
+				<td colspan="5">
+				{% for baby in form.babies %}
+					<a href="{{ url_base }}/pokemon/{{ baby.name|slug }}.html#{{ baby.form|slug }}">{{ pokemon_form_name(baby.name, baby.form) }}</a>
+					{% if baby.incense.relation != 'na' %}
+						{% if baby.incense.relation == 'holding' %}
+						(if a parent holds <a href="{{ url_base }}/item/{{ baby.incense.name|slug }}.html">{{ baby.incense.name }}</a>){% else %}
+						(otherwise){% endif %}{% endif %}{% if baby.probability < 1 %}
+							({{ '{0:g}'.format(baby.probability * 100) }}% chance){% endif %}{% if not loop.last %},{% endif %}
+				{% endfor %}
+				</td>
+			</tr>
+			{% endif %}
 		</table>
 
 		<section>

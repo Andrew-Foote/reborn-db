@@ -873,7 +873,10 @@ with recursive "evolution_trcl" ("from", "from_form", "to", "to_form", "dist") a
 		"evolution"."from" = "trcl"."to" and "evolution"."from_form" = "trcl"."to_form"
 	)
 )
-select * from "evolution_trcl";
+select * from "evolution_trcl"
+union
+select "form"."pokemon", "form"."name", "form"."pokemon", "form"."name", 0
+from "pokemon_form" as "form";
 
 create view "pokemon_evolution_schemes" ("from", "from_form", "to", "to_form", "schemes") as
 	select

@@ -64,7 +64,28 @@ with
             end
             ,'item', json_object('id', "megev_item"."id", 'name', "megev_item"."name")
             ,'move', json_object('id', "megev_move"."id", 'name', "megev_move"."name")
-        ) as "mega_evolution"
+        ) as "mega_evolution",
+        (
+            select json_group_array(json_object(
+                'name', "baby"."name", 'form', "baby"."form",
+                'incense', json("baby"."incense"), 'probability', "baby"."probability"
+            ))
+            from (
+                select
+                    "baby_pokemon"."name", "baby"."baby_form" as "form",
+                    json_object(
+                        'id', "item"."id", 'name', "item"."name",
+                        'relation', "baby"."incense"
+                    ) as "incense",
+                    "baby"."probability"
+                from "baby"
+                join "pokemon" as "baby_pokemon" on "baby_pokemon"."id" = "baby"."baby"
+                left join "incense" on "incense"."pokemon" = "baby"."baby"
+                left join "item" on "item"."id" = "incense"."item"
+                where "baby"."adult" = "form"."pokemon" and "baby"."adult_form" = "form"."name"
+                order by "baby"."incense", "baby_pokemon"."number"
+            ) as "baby"
+        ) as "babies"
     from "pokemon_form" as "form"
     left join "pokemon_sprite" as "sprite" on (
      	"sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
@@ -408,6 +429,15 @@ select "pokemon"."name", json_object(
         'name', "growth_rate"."name"
     )
     ,'egg_groups', json("egg_groups"."all")
+    ,'breedability', case
+        when "pokemon"."id" = 'DITTO' then 'ditto'
+        when exists (
+            select 1 from json_each(json("egg_groups"."all")) as "egg_group"
+            where json_extract("egg_group"."value", '$.id') = 'Undiscovered'
+        ) then 'none'
+        when "pokemon"."male_frequency" is null then 'ditto-only'
+        else 'full'
+    end
     ,'forms', json("forms"."all")
 )
 from "pokemon"
@@ -459,6 +489,7 @@ join (
             ,'special_encounters', json(ifnull("form"."specialencs", '[]'))
             ,'evo_tree', json("form"."evo_tree")
             ,'mega_evolution', json("form"."mega_evolution")
+            ,'babies', json("form"."babies")
         )) as "all"
     from "form_o" as "form"
     group by "form"."pokemon"
