@@ -1,10 +1,20 @@
 # Purpose
 
-Basically, this website is [pokemondb](https://pokemondb.net/), but for [Pokémon Reborn](https://www.rebornevo.com/pr/index.html/). It's a place where you can get information on Pokémon, moves, items, etc., where the information will be valid for Pokémon Reborn, where Reborn differs from the official Pokémon games. It also contains Reborn-specific information on encounters, trainers, etc.
+Basically, this website is [pokemondb](https://pokemondb.net/), but for [Pokémon Reborn](https://www.rebornevo.com/pr/index.html/). It's a place where you can get information on Pokémon, moves, items, etc., where the information will be valid for Pokémon Reborn, even where Reborn differs from the official Pokémon games. It also contains Reborn-specific information on encounters, trainers, etc.
 
 # Architecture
 
-The website is based on an SQLite database, which is generated from files in the Pokémon Reborn installation using a bunch of Python scripts. A further bunch of Python scripts turn this SQLite database into a static website, which is stored in a separate [Git repository](https://github.com/Andrew-Foote/reborn-db-site) and served via [https://andrew-foote.github.io/reborn-db-site](GitHub Pages).
+The website is based on an SQLite database, which is generated from files in the Pokémon Reborn installation using a bunch of Python scripts. A further bunch of Python scripts turn this SQLite database into a static website, which is stored in a separate [Git repository](https://github.com/Andrew-Foote/reborn-db-site) and served via [GitHub Pages](https://andrew-foote.github.io/reborn-db-site).
+
+# Data download instructions
+
+The SQLite database itself is not stored in this Git repository as largeish binary files make Git slow. However I've uploaded a recent copy (as of 2022-09-18) to Google Drive at [https://drive.google.com/file/d/18po9y19qKWbhLYRJQaLWtLl1hnvCeahJ/view?usp=sharing](https://drive.google.com/file/d/18po9y19qKWbhLYRJQaLWtLl1hnvCeahJ/view?usp=sharing), and hopefully I'll remember to update this copy as I update the database in future.
+
+I use [DB Browser for SQLite](https://sqlitebrowser.org/) to browse the data, but there are some tables (e.g. `pokemon_encounter_rate`) which make use of a custom collation, and there are also custom functions that I've found useful for generating the website views. The custom collations and functions aren't stored with the database, so if you view it using DB Browser for SQLite, you can't use them. If you do want to use them, you can set up a virtual environment for the project according to the instructions below, then open up the Python shell within the virtual environment and do
+
+    from reborndb import DB
+    
+Then you will be able to access a database connection object via the expression `DB.H`, which you can use to run SQL queries. See `reborndb\connection.py` for the interface of this connection object.
 
 # Build instructions
 
