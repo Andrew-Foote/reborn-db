@@ -1,865 +1,1356 @@
-# https://docs.ruby-lang.org/en/master/marshal_rdoc.html
-
-import ctypes
-from collections import defaultdict
+from abc import ABC
+import base64
 from dataclasses import dataclass, make_dataclass
-from frozendict import frozendict
-import itertools as it
+from enum import Enum
+import locale
+import math
+import re
 import struct
-from typing import Any, Iterable, Iterator, Optional, TextIO, Type
-import dcformat
+from typing import Any, ClassVar, get_args, Iterable, Iterator, Optional, Sequence
 
-class frozendefaultdict(frozendict):
-    def __init__(self, default_factory=None, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
-        self.default_factory = default_factory
+# handy little ruby script for testing:
+#
+# data = <INSERTDATAHERE>
+# marshalled = Marshal.dump(data)
+# ords = marshalled.chars.map { |c| c.ord }
+# hexs = ords.map { |o| o.to_s(16) }
+# print marshalled, "\n"
+# print ords, "\n"
+# print hexs
 
-    def __missing__(self, key):
-        return self.default_factory()
+DEBUG = True
+DEBUGLOG = None
 
-DEBUG = False
-DEBUG_LOGFILE = 'marshal-log.txt'
+if DEBUG:
+    DEBUGLOG = open('marshal-log.txt', 'w')
 
-class MarshalObject: pass
+def debug(message: str) -> None:
+    if DEBUG: print(message, file=DEBUGLOG)
 
-def make_marshal_object_subclass(name: str, *fields: Iterable[tuple[str, Type]], **kwargs) -> Type:
-    if not 'frozen' in kwargs: kwargs['frozen'] = True
-    return make_dataclass(name, fields, bases=(MarshalObject,), **kwargs)
+###################################################################################################
+# References
+###################################################################################################
 
-def make_marshal_object_singleton(name: str) -> Type:
-    cls = make_marshal_object_subclass(name)
-    return cls, cls()
-    
-MarshalTrue, MARSHAL_TRUE = make_marshal_object_singleton('MarshalTrue')
-MarshalFalse, MARSHAL_FALSE = make_marshal_object_singleton('MarshalFalse')
-MarshalNil, MARSHAL_NIL = make_marshal_object_singleton('MarshalNil')
-MarshalFixnum = make_marshal_object_subclass('MarshalFixnum', ('val', int))
-MarshalBignum = make_marshal_object_subclass('MarshalBignum', ('val', int))
-MarshalFloat = make_marshal_object_subclass('MarshalFloat', ('val', float))
-MarshalSymbol = make_marshal_object_subclass('MarshalSymbol', ('name', bytes))
-MarshalClassRef = make_marshal_object_subclass('MarshalClassRef', ('name', bytes))
-MarshalModuleRef = make_marshal_object_subclass('MarshalModuleRef', ('name', bytes))
-MarshalClassOrModuleRef = make_marshal_object_subclass('MarshalClassOrModuleRef', ('name', bytes))
-MarshalRegex = make_marshal_object_subclass('MarshalRegex', ('src', bytes), ('opts', int))
-MarshalString = make_marshal_object_subclass('MarshalString', ('content', bytes))
-MarshalArray = make_marshal_object_subclass('MarshalArray', ('items', tuple[MarshalObject, ...]))
+# In the Marshal format, symbols and most objects (other than true, false, nil and fixnums)
+# appear in full only once in a file. Subsequent occurrences just reference the earlier
+# occurrence via an index. There are separate sets of indices for symbols and objects, and the
+# indices for symbols start at 0, but the indices for objects start at 1.
+# (Actually, 0 is used as the index for the whole object. And since cycles are possible, there
+# could be an object reference to 0.)
+#
+# To encode a Marshal object as a graph, we need a way to refer to vertices in the graph. It is
+# convenient for debugging purposes to make these references match up with those used in the
+# Marshal data (where possible; of course, for true, false, nil and fixnums the vertices are not
+# referenced within the Marshal data). But it's also convenient to be able to encode a reference
+# as a single value which will unambiguously refer to a given vertex, without us needing to
+# separately pass around information about which type of object it refers to. The following union
+# of dataclasses is intended to provide both of these conveniences at once.
 
-MarshalHash = make_marshal_object_subclass('MarshalHash',
-    ('mapping', frozendict[MarshalObject, MarshalObject]), ('default', MarshalObject),
-    namespace={'default': None}
-)
+class MarshalRefType(Enum):
+    VALUE = 'V'
+    SYMBOL = 'S'
+    OBJECT = 'O'
 
-MarshalWithInstVars = make_marshal_object_subclass('MarshalWithInstVars',
-    ('obj', MarshalObject), ('vars', frozendict[MarshalSymbol, MarshalObject])
-)
-
-MarshalModuleExtended = make_marshal_object_subclass('MarshalModuleExtended',
-    ('obj', MarshalObject), ('module', MarshalSymbol)
-)
-
-MarshalExtensionObject = make_marshal_object_subclass('MarshalExtensionObject',
-    ('cls', MarshalSymbol), ('state', MarshalObject)
-)
-
-MarshalClassInst = make_marshal_object_subclass('MarshalClassInst',
-    ('cls', MarshalSymbol), ('vars', frozendict[MarshalSymbol, MarshalObject])
-)
-
-MarshalStruct = make_marshal_object_subclass('MarshalStruct',
-    ('name', MarshalSymbol), ('vars', frozendict[MarshalSymbol, MarshalObject])
-)
-
-MarshalSubclassedBuiltin = make_marshal_object_subclass('MarshalSubclassedBuiltin',
-    ('cls', MarshalSymbol), ('obj', MarshalObject)
-)
-
-MarshalUserBytes = make_marshal_object_subclass('MarshalUserBytes',
-    ('cls', MarshalSymbol), ('bytes', bytes)
-)
-
-MarshalUserObject = make_marshal_object_subclass('MarshalUserObject',
-    ('cls', MarshalSymbol), ('obj', MarshalObject)
-)
-
-def parse_uint_le(s: Iterable[int]) -> int:
-    """Parse an iterable of bytes as an unsigned little-endian integer."""
-    val = 0
-
-    for i, digit in enumerate(s):
-        val += digit * 0x100 ** i
-
-    return val
-
-class MarshalParseError(Exception):
-    def __init__(self, offset, message):
-        super().__init__(f'offset {hex(offset)}: {message}')
-
-class MarshalParser:
-    FIXNUM_SPECIAL_HEADERS: dict[tuple[int, int]] = {
-        0: (0, 0),
-        1: (1, 1),
-        2: (2, 1),
-        3: (3, 1),
-        4: (4, 1),
-        0xfc: (4, -1),
-        0xfd: (3, -1),
-        0xfe: (2, -1),
-        0xff: (1, -1),
-    }
-
-    BIGNUM_SIGNS: dict[int, int] = {ord('+'): 1, ord('-'): -1}
-    SPECIAL_FLOATS: tuple[str, ...] = ('inf', '-inf', 'nan')
-
-    byte_length: int
+@dataclass(frozen=True)
+class MarshalRef:
+    type_: MarshalRefType
     index: int
-    major_version: int
-    minor_version: int
-    iterator: Iterator[int]
-    symbols: list[MarshalSymbol]
-    objects: list[MarshalObject]
-    debug_log: Optional[TextIO]
 
-    def __init__(self, bytes_: bytes):
-        if len(bytes_) < 2:
-            raise MarshalParseError(0, 
-                f'expected a 2-byte version info header but there are only {len(bytes)} in the '
-                'data'
-            )
+    def __str__(self):
+        return f'{self.type_.value}{self.index}'
+
+    def __repr__(self):
+        return f'ref({repr(str(self))})'
+
+def ref(s: str) -> MarshalRef:
+    return MarshalRef(MarshalRefType(s[0]), int(s[1:]))
+
+###################################################################################################
+# Vertices
+###################################################################################################
+
+class MarshalVertex(ABC): pass
+
+# Vertices of the following types are simple values, which cannot have references to them within
+# the Marshal format, and are referenced in our parsed format by references of type
+# MarshalRefType.VALUE. Comparison of these vertices is based on their component values, rather
+# than object identity. None of them can have instance variables or be extended by a module.
+# 
+# (In Ruby, attempting to load Marshal data where any of these values are augmented by instance
+# variables results in a "can't modify frozen class" erorr. If they are augmented by a module
+# extension, then for fixnums it also fails with "can't define singleton", while for true, false
+# and nil it works but the extension is not preserved on dumping.)
+
+@dataclass(frozen=True)
+class RubyTrue(MarshalVertex): pass
+RUBY_TRUE = RubyTrue()
+
+@dataclass(frozen=True)
+class RubyFalse(MarshalVertex): pass
+RUBY_FALSE = RubyFalse()
+
+@dataclass(frozen=True)
+class RubyNil(MarshalVertex): pass
+RUBY_NIL = RubyNil()
+
+@dataclass(frozen=True)
+class RubyFixnum(MarshalVertex):
+    value: int
+
+MarshalLacksRef = RubyTrue | RubyFalse | RubyNil | RubyFixnum
+
+# Vertices of the following types have comparison based on their component values, like those of
+# the previous types, but can also be referenced within the Marshal format. This means that values
+# like [1.2, 1.2] or [:a, :a] will be serialized with an object link in the second item, even
+# the two items have the appearance of being constructed separately. Also like the previous vertex
+# types, they can't have instance variables or be extended by a module.
+# 
+# (Extending a float with instance variables gives "can't modify frozen class". For symbols and
+# class/module refs it gives no error but isn't preserved on dumping. Extending a float or symbol
+# with a module gives "can't define singleton", while for clas/module refs it gives no error but
+# isn't preserved on dumping.)
+
+# Floats, symbols, class/module refs
+
+@dataclass(frozen=True)
+class RubyFloat(MarshalVertex):
+    value: float
+
+# I was unable to find clear information about how the names of Ruby symbols and class/module
+# references are supposed to be encoded, so for the lack of a better option, the names are stored
+# as bytes and a `decoded_name` method is provided which will decode the name to UTF-8 (with
+# invalid bytes escaped via surrogates).
+
+@dataclass(frozen=True)
+class RubySymbol(MarshalVertex):
+    name: bytes
+    def decoded_name(self) -> str: return self.name.decode('utf-8', 'surrogateescape')
+
+@dataclass(frozen=True)
+class RubyClassRef(MarshalVertex):
+    name: bytes
+    def decoded_name(self) -> str: return self.name.decode('utf-8', 'surrogateescape')
+
+@dataclass(frozen=True)
+class RubyModuleRef(MarshalVertex):
+    name: bytes
+    def decoded_name(self) -> str: return self.name.decode('utf-8', 'surrogateescape')
+
+@dataclass(frozen=True)
+class RubyClassOrModuleRef(MarshalVertex):
+    name: bytes
+    def decoded_name(self) -> str: return self.name.decode('utf-8', 'surrogateescape')
+
+# For all subsequently-defined vertex types, comparison is based on object identity. 
+
+# Bignums are unique in that although their comparison is based on object identity, they can't have
+# instance variables or be extended by a module. (Attempting to do so gives a "can't modify frozen
+# class" or "can't define singleton" error, respectively.)
+@dataclass(frozen=True, eq=False)
+class RubyBignum(MarshalVertex):
+    value: int
+
+# For all subsequently-defined vertex types, extension by instance variables or modules is
+# possible. Note that even if the "e" comes before the "I" in the loaded data, it will be
+# normalized to have "I" before "e" in the output.
+
+# It seems safer to use a list of key-value pairs rather than a dictionary here, since the keys are
+# really references to keys (not the keys themselves) and we don't know how exactly how Ruby is
+# going to hash the values. 
+MarshalPairSeq = list[tuple[MarshalRef, MarshalRef]]
+
+@dataclass(frozen=True, eq=False)
+class MarshalExtensibleVertex(MarshalVertex, ABC):
+    # The instance variables of the Ruby object
+    inst_vars: MarshalPairSeq # keys should have type_=MarshalRefType.SYMBOL
+
+    # A list of modules which the Ruby object is extended by ("innermost" first, in terms of how
+    # the Marshal format is structured).
+    module_ext: list[MarshalRef] # should have type_=MarshalRefType.SYMBOL
+    
+    # turns out we don't need these methods right now, though maybe we will in future
+    #def deref_inst_vars(self, graph: 'MarshalGraph') -> Iterator[tuple[RubySymbol, Optional[MarshalVertex]]]:
+        #for key_ref, value_ref in self.inst_vars:
+            #key = graph[key_ref]
+            #assert isinstance(key, RubySymbol) # for mypy
+            #yield key, graph[value_ref]
+            #
+    #def deref_module_ext(self, graph: 'MarshalGraph') -> Iterator[RubySymbol]:
+        #for module_ref in self.module_ext:
+            #module = graph[module_ref]
+            #assert isinstance(module, RubySymbol) # for mypy
+            #yield module    
+
+@dataclass(frozen=True, eq=False)
+class RubyString(MarshalExtensibleVertex):
+    value: bytes
+
+@dataclass(frozen=True, eq=False)
+class RubyRegex(MarshalExtensibleVertex):
+    source: bytes
+    options: set[re.RegexFlag]
+                
+# All the following vertex types are non-atomic: their content is just references to other
+# vertices. (As such they can't really be said to be representations of Ruby objects, taken on
+# their own; they only make sense in the context of the Marshal object graph, and so their names
+# are in the format MarshalX rather than RubyX.)
+
+@dataclass(frozen=True, eq=False)
+class MarshalArray(MarshalExtensibleVertex):
+    items: list[MarshalRef]
+
+@dataclass(frozen=True, eq=False)
+class MarshalHash(MarshalExtensibleVertex):
+    items: MarshalPairSeq
+    default: Optional[MarshalRef]
+
+# Regular objects have the same instance variables as other objects; they just have a special
+# syntax for the instance variables. Variables from both "I" and "o" will be merged.
+@dataclass(frozen=True, eq=False)
+class MarshalRegObj(MarshalExtensibleVertex):
+    cls: MarshalRef # should have type_ == MarshalRefType.SYMBOL
+
+# Members are distinct from ordinary instance variables.
+@dataclass(frozen=True, eq=False)
+class MarshalStruct(MarshalExtensibleVertex):
+    name: MarshalRef # should have type_ == MarshalRefType.SYMBOL
+    members: MarshalPairSeq # keys should have type_ == MarshalRefType.SYMBOL
+
+@dataclass(frozen=True, eq=False)
+class MarshalWrappedExtPtr(MarshalExtensibleVertex):
+    cls: MarshalRef # should have type_ == MarshalRefType.SYMBOL
+    obj: MarshalRef
+
+@dataclass(frozen=True, eq=False)
+class MarshalUserBuiltin(MarshalExtensibleVertex):
+    cls: MarshalRef # should have type_ == MarshalRefType.SYMBOL
+    obj: MarshalRef
+
+@dataclass(frozen=True, eq=False)
+class MarshalUserObject(MarshalExtensibleVertex):
+    cls: MarshalRef # should have type_ == MarshalRefType.SYMBOL
+    obj: MarshalRef
+
+@dataclass(frozen=True, eq=False)
+class MarshalUserData(MarshalExtensibleVertex):
+    cls: MarshalRef # should have type_ == MarshalRefType.SYMBOL
+    data: bytes
+
+def vertex_ref_type(vertex: MarshalVertex) -> MarshalRefType:
+    if isinstance(vertex, RubySymbol):
+        return MarshalRefType.SYMBOL
+    elif isinstance(vertex, get_args(MarshalLacksRef)):
+        return MarshalRefType.VALUE
+    else:
+        return MarshalRefType.OBJECT
+
+@dataclass
+class MarshalGraph:
+    """A Marshal object, represented as a graph.
+
+    Instances of this class can also represent a graph under construction."""
+
+    # These three lists are used for mapping references to vertices. For graphs under construction,
+    # a reference may map to None (if we know that a vertex with a certain reference will be in the
+    # graph, but we don't know the exact contents of the vertex yet).
+    vertices: dict[MarshalRefType, list[Optional[MarshalVertex]]]
+
+    @property
+    def values(self): return self.vertices[MarshalRefType.VALUE]
+
+    @property
+    def symbols(self): return self.vertices[MarshalRefType.SYMBOL]
+
+    @property
+    def objects(self): return self.vertices[MarshalRefType.OBJECT]
+
+    # This dictionary is used for mapping vertices to references.
+    refs: dict[MarshalVertex, MarshalRef]
+
+    def __init__(self):
+        self.vertices = {ref_type: [] for ref_type in MarshalRefType}
+        self.refs = {}
+
+    def __getitem__(self, ref: MarshalRef) -> Optional[MarshalVertex]:
+        return self.vertices[ref.type_][ref.index]
+
+    def __setitem__(self, ref: MarshalRef, vertex: MarshalVertex) -> None:
+        """Replace the vertex at the given reference with a new one."""
+        ref_type = ref.type_
+        new_ref_type = vertex_ref_type(vertex)
+        if new_ref_type != ref_type: raise ValueError(f'vertex has wrong type for the given ref')
+        array = self.vertices[ref_type]
+        index = ref.index
+        old_vertex = array[index]
+        array[index] = vertex
+        if old_vertex is not None: del self.refs[old_vertex]
+        self.refs[vertex] = ref
+
+    def add(self, vertex: Optional[MarshalVertex]) -> MarshalRef:
+        """Add a vertex to the graph.
+
+        The vertex may be None, in which case None is added as a placeholder under the next
+        available reference of MarshalObjectRef type (it can be replaced with the actual vertex
+        later on via a call to __setitem__)."""
+        ref_type = MarshalRefType.OBJECT if vertex is None else vertex_ref_type(vertex)    
+
+        if vertex is None or vertex not in self.refs:
+            array = self.vertices[ref_type]
+            index = len(array)
+            ref = MarshalRef(ref_type, index)
+            array.append(vertex)
+
+            if vertex is not None:
+                self.refs[vertex] = ref
+
+            return ref
         
-        self.byte_length = len(bytes_)
-        self.index = 2
-        self.major_version, self.minor_version = bytes_[:self.index]
-        self.iterator = iter(bytes_[self.index:])
-        self.symbols = []
-        self.objects = []
-        self.debug_log = open(DEBUG_LOGFILE, 'w') if DEBUG else None
-        self.indent = 0
+        if ref_type != MarshalRefType.VALUE:
+             raise ValueError(
+                 "add() shouldn't need to be called on a vertex which is not of "
+                 "MarshalLacksRef type more than once"
+             )
+        
+        return self.refs[vertex]
+        
+    def root_ref(self) -> MarshalRef:
+        # Since any vertex of type MarshalSymbol or MarshalLacksRef lacks children, the only way
+        # one of them can be the root is if it is the only vertex in the graph. Otherwise, we
+        # assume that the root is the first vertex in `self.objects`.
+        if self.objects: return ref('O0')
+        
+        if len(self.symbols) + len(self.values) > 1:
+            raise ValueError('graph under construction, root cannot be determined')
+        
+        if self.symbols: return ref('S0')
+        if self.values: return ref('V0')
 
-    def __next__(self) -> int:
-        res = next(self.iterator)
-        self.index += 1
+        raise ValueError('graph under construction, has no vertices in it yet')
+
+    def root(self) -> MarshalVertex:
+        res = self[self.root_ref()]
+
+        if res is None:
+            raise ValueError('root not yet fully constructed')
+
         return res
 
-    def __iter__(self) -> 'MarshalParser':
-        return self
+@dataclass
+class MarshalFile:
+    """The parsed result of a call to Ruby's `Marshal.dump` function.
 
-    def rem_len(self) -> int:
-        return self.byte_length - self.index
+    The result of such a call is a byte-string where the first two bytes encode the major and minor
+    version of Marshal that was used (major first, minor seond), and the remaining bytes encode a
+    single Ruby object. After parsing, the major and minor version are stored in the
+    `major_version` and `minor_version` attributes of the resulting `MarshalFile` object, while the
+    Ruby object is encoded as a rooted graph whose vertices are stored in the `vertices` attribute,
+    with the root vertex being the first vertex in this list.
+
+    The vertices are encoded as `MarshalVertex` objects. These come in various types. The following
+    are leaf types:
+
+       `RubyTrue`, `RubyFalse`, `RubyNil`, `RubyFixnum`, `RubyBignum`, `RubyFloat`, `RubyString`,
+       `RubyRegex`, `RubySymbol`, `RubyClassRef`, `RubyModuleRef`, `RubyClassOrModuleRef`
+
+    The others have one or more children.
+
+    Attributes:
+      - `major_version`, `minor_version`: the Marshal version information.
+      - `vertices`: the vertices in the 
+      - `tree`: the structure of the Ruby object, with all 
+      - `table`: the lookup table for mapping from the IDs in `tree` to their corresponding
+        `RubyObject` objects.
+
+    vertices should be keyed by MarshalRefs
+    """
+    major_version: int
+    minor_version: int
+    graph: MarshalGraph
+
+    # def dump(self) -> Iterator[int]:
+    #     yield from Dumper(self)
+
+###################################################################################################
+# Load
+###################################################################################################
+
+class ParseError(Exception):
+    def __init__(self, offset: int, message: str) -> None:
+        super().__init__(f'offset {hex(offset)}: {message}')
+
+class Loader:
+    data: Sequence[int]
+    offset: int
+    graph: MarshalGraph
+
+    def __init__(self, data: Sequence[int]) -> None:
+        self.data = data
+        self.offset = 0
+        self.graph = MarshalGraph()
+
+    @property
+    def done(self):
+        return self.offset >= len(self.data)
 
     def error(self, message: str) -> None:
-        raise MarshalParseError(self.index, message)
+        raise ParseError(self.offset, message) from None
+        
+    def warning(self, message: str) -> None:
+        print(f'WARNING: {hex(self.offset)}: {message}')
 
     def debug(self, message: str) -> None:
         if DEBUG:
-            print((' ' * self.indent) + f'offset {hex(self.index)}: {message}', file=self.debug_log)
+            segment = ' '.join(
+                hex(byte)[2:].zfill(2)
+                for byte in self.data[max(0, self.offset - 5):self.offset + 5]
+            )
 
-    # "Each object in the stream is described by a byte indicating its type followed by one or more
-    # bytes describing the object."
-    # --- seems it should say "zero or more"
-    def parse_true(self) -> MarshalTrue:
-        self.debug('parsing true')
-        return MARSHAL_TRUE
+            if self.offset > 5: segment = '...' + segment
+            if self.offset < len(self.data) - 5: segment += '...' 
+            print(f'{hex(self.offset)} [{segment}]: {message}', file=DEBUGLOG)
 
-    def parse_false(self) -> MarshalFalse:
-        self.debug('parsing false')
-        return MARSHAL_FALSE
+    def load(self) -> MarshalFile:
+        self.debug('begin load')
+        major_version, minor_version = self.read_bytes(2)
+        self.load_object()
+        self.debug('end load')
 
-    def parse_nil(self) -> MarshalNil:
-        self.debug('parsing nil')
-        return MARSHAL_NIL
+        if self.done:
+            return MarshalFile(major_version, minor_version, self.graph)
 
-    def parse_fixnum(self) -> MarshalFixnum:
-        self.debug('parsing fixnum')
-        header = next(self)
+        self.error('parsing has finished but not all of the input was consumed')
+        assert False
 
-        if header in MarshalParser.FIXNUM_SPECIAL_HEADERS:
-            length, sign = MarshalParser.FIXNUM_SPECIAL_HEADERS[header]
-
-            if self.rem_len() < length:
-                self.error(
-                    f'remaining data length in bytes is {self.rem_len()}, but having encountered a'
-                    f' fixnum with header {header} this should be at least {length}'
-                )
-
-            res = parse_uint_le(it.islice(self, length))
+    def read_byte(self) -> int:
+        try:
+            byte = self.data[self.offset]
+        except IndexError:
+            self.error('incomplete input')
+            assert False
         else:
-            # "Otherwise the first byte is a sign-extended eight-bit value with an offset. If the value
-            # is positive the value is determined by subtracting 5 from the value. If the value is
-            # negative the value is determined by adding 5 to the value."
-            # --- bit unsure what this means
-            neg = header & 0x80 # first bit
-            res = header + (5 if neg else -5)
+            self.offset += 1
+            return byte
 
-        self.debug(f'parsed fixnum: {res}')
-        return MarshalFixnum(res)
+    def read_bytes(self, length: int) -> Iterator[int]:
+        for _ in range(length):
+            yield self.read_byte()
 
-    def parse_byte_seq(self) -> bytes:
-        self.debug('parsing byte sequence')
-        length = self.parse_fixnum().val
+    def read_long(self) -> int:
+        """"
+        >>> Loader([0]).read_long()
+        0
+        >>> Loader([1]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([1, 0]).read_long()
+        0
+        >>> Loader([1, 255]).read_long()
+        255
+        >>> Loader([2]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([2, 0]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x2: incomplete input
+        >>> Loader([2, 0, 255]).read_long()
+        65280
+        >>> Loader([3]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([3, 0, 0]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x3: incomplete input
+        >>> Loader([3, 0, 0, 255]).read_long()
+        16711680
+        >>> Loader([4]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([4, 0, 0, 0]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x4: incomplete input
+        >>> Loader([4, 0, 0, 0, 255]).read_long()
+        4278190080
+        >>> Loader([5]).read_long()
+        0
+        >>> Loader([6]).read_long()
+        1
+        >>> Loader([127]).read_long()
+        122
+        >>> Loader([128]).read_long()
+        -123
+        >>> Loader([250]).read_long()
+        -1
+        >>> Loader([251]).read_long()
+        0
+        >>> Loader([252]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([252, 255, 255, 255]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x4: incomplete input
+        >>> Loader([252, 255, 255, 255, 0]).read_long()
+        -4278190081
+        >>> Loader([253]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([253, 255, 255]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x3: incomplete input
+        >>> Loader([253, 255, 255, 0]).read_long()
+        -16711681
+        >>> Loader([254]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([254, 255]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x2: incomplete input
+        >>> Loader([254, 255, 0]).read_long()
+        -65281
+        >>> Loader([255]).read_long()
+        Traceback (most recent call last):
+            ...
+        ParseError: offset 0x1: incomplete input
+        >>> Loader([255, 0]).read_long()
+        -256
+        >>> Loader([255, 255]).read_long()
+        -1
+        """
+        header = int.from_bytes([self.read_byte()], 'little', signed=True)
+        if header == 0: return 0
+        header_mag = abs(header)
+        header_sign = header // header_mag
+        if header_mag >= 5: return header_sign * (header_mag - 5)
+        value = int.from_bytes(self.read_bytes(header_mag), 'little')
+        return value if header_sign == 1 else -(2**(8*header_mag) - value)
+        
+    def read_byte_seq(self) -> bytes:
+        length = self.read_long()
+        return bytes(self.read_bytes(length))
 
-        if self.rem_len() < length:
-            self.error(
-                f'remaining data length in bytes is {self.rem_len()}, but a byte sequence of '
-                'length {length} is expected'
-            )
+    def read_float(self) -> float:
+        """
+        >>> Loader([8, 105, 110, 102]).read_float() # b'inf'
+        inf
+        >>> Loader([9, 45, 105, 110, 102]).read_float() # b'-inf'
+        -inf
+        >>> Loader([8, 110, 97, 110]).read_float() # b'nan'
+        nan
+        >>> Loader([8, 73, 78, 70]).read_float() # b'INF'
+        0.0
+        >>> Loader([9, 45, 73, 78, 70]).read_float() # b'-INF'
+        0.0
+        >>> Loader([8, 78, 65, 78]).read_float() # b'NAN'
+        0.0
+        >>> Loader([0]).read_float() # b''
+        0.0
+        >>> Loader([6, 48]).read_float() # b'0'
+        0.0
+        >>> Loader([8, 49, 46, 49]).read_float() # b'1.1'
+        1.1
+        >>> Loader([10, 49, 46, 49, 101, 50]).read_float() # b'1.1e2'
+        110.0
+        >>> Loader([10, 49, 46, 49, 69, 50]).read_float() # b'1.1E2'
+        110.0
+        >>> Loader([10, 48, 120, 49, 46, 49]).read_float() # b'0x1.1'
+        1.0625
+        >>> Loader([12, 48, 120, 49, 46, 49, 112, 50]).read_float() # b'0x1.1p2'
+        4.25
+        >>> Loader([12, 48, 120, 49, 46, 49, 80, 50]).read_float() # b'0x1.1P2'
+        4.25
+        """
+        bytes_ = self.read_byte_seq()
 
-        res = bytes(it.islice(self, length))
-        self.debug(f'parsed bytes: {res}')
+        try:
+            return {b'inf': math.inf, b'-inf': -math.inf, b'nan': math.nan}[bytes_]
+        except KeyError:
+            # The format here is not very precisely defined. All we know is that "the byte sequence
+            # contains a C double (loadable by strtod(3))". However, the behaviour of strtod
+            # depends on the locale. I'd imagine it also may not be implemented exactly in
+            # accordance with the C standard. Perhaps Ruby defines its own version of strtod, but
+            # I can't be bothered trying to find out if that is the case. Testing reveals some
+            # apparent divergence from the standard: non-lowercase variants of 'inf', '-inf' and
+            # 'nan' aren't understood, so they are loaded as 0.0, rather than as inf, -inf and nan.
+            # But otherwise it seems to work as described at
+            # https://man7.org/linux/man-pages/man3/strtod.3.html.
+            #
+            # Python has the locale.atof() function, which does locale-aware interpretation of
+            # strings and floats. Unlike Ruby's Marshal.load, it raises an error if there are
+            # are trailing characters after parsing, it can't handle hexadecimal notation, and it
+            # parses inf, -inf and nan without case-sensitivity. But we can work around that by
+            # doing some preprocessing of the string ourselves.
+            #
+            # So for now, I'm just going to use locale.atof(), though I'm not really sure how
+            # robust this approach is.
+
+            s = bytes_.decode('us-ascii')
+            if not s or s.lower() in ('inf', '-inf', 'nan'): return 0.0
+            point = locale.localeconv()['decimal_point']
+            assert isinstance(point, str) # for mypy
+            point = '\\' + point
+            decimal_exp_pat = r'[Ee][+\-]?\d+'
+            decimal_pat = fr'\d+(?:{point}\d*)?(?:{decimal_exp_pat})?'
+            bin_exp_pat = r'[Pp][+\-]?\d+'
+            hex_pat = fr'(0[xX])[\da-fA-f]+(?:{point}[\da-fA-f]*)?(?:{bin_exp_pat})?'
+            m = re.match(fr'^\s*[+\-]?(?:{hex_pat}|{decimal_pat})', s)
+
+            if m is None:
+                self.error(f'invalid byte sequence for float: {bytes_!r}')
+                assert False
+
+            s, is_hex = m.group(0, 1)
+
+            if is_hex:
+                s = locale.delocalize(s)
+                return float.fromhex(s)
+
+            return locale.atof(s)
+
+    REGEX_OPTIONS_TABLE: ClassVar[list[re.RegexFlag]] = [re.I, re.X, re.M]
+
+    def read_regex_options(self) -> set[re.RegexFlag]:
+        bits = self.read_byte()
+        res = set()
+        
+        for i in range(8):
+            bits, is_set = divmod(bits, 2)
+            
+            if is_set:
+                try:
+                    flag = self.REGEX_OPTIONS_TABLE[i]
+                except IndexError:
+                    self.warning(
+                        f'{i}th bit in regex options byte is set, but this does not correspond to '
+                        'a recognized flag and will be ignored'
+                    )
+                else:
+                    res.add(flag)
+        
         return res
 
-    def parse_symbol(self) -> MarshalSymbol:
-        self.debug('parsing symbol')
-        # OK, the documentation was a bit confusing for me here
-        # but it makes sense now: the length is encoded as a fixnum (so if it's one byte, you have to
-        # add/subtract five---so 0xa corresponds to 5, the length of "hello")
-        name = self.parse_byte_seq()
-        res = MarshalSymbol(name)
-        self.symbols.append(res)
-        return res
+    def load_object(self) -> MarshalRef:
+        """
+        It can handle cyclic references:
+        >>> loader = Loader([91, 6, 64, 0])
+        >>> loader.load_object()
+        ref('O0')
+        >>> loader.graph.values
+        []
+        >>> loader.graph.symbols
+        []
+        >>> loader.graph.objects
+        [MarshalArray(inst_vars=[], module_ext=[], items=[ref('O0')])]
 
-    def parse_symbol_ref(self) -> MarshalSymbol:
-        self.debug('parsing symbol reference')
-        index = self.parse_fixnum().val
+        Arrays loaded separately are treated as distinct, and assigned separate indexes:
+        >>> loader = Loader([91, 7, 91, 0, 91, 0])
+        >>> loader.load_object()
+        ref('O0')
+        >>> loader.graph.values
+        []
+        >>> loader.graph.symbols
+        []
+        >>> loader.graph.objects
+        [MarshalArray(inst_vars=[], module_ext=[], items=[ref('O1'), ref('O2')]), MarshalArray(inst_vars=[], module_ext=[], items=[]), MarshalArray(inst_vars=[], module_ext=[], items=[])]
+        >>> loader.graph.refs[loader.graph.objects[1]]
+        ref('O1')
+        >>> loader.graph.refs[loader.graph.objects[2]]
+        ref('O2')
 
-        try:
-            return self.symbols[index]
-        except IndexError:
-            self.error(
-                f'reference to symbol at index {index}, but only {len(self.symbols)} have been '
-                'encountered so far'
-            )
+        But arrays linked by references are identical:
+        >>> loader = Loader([91, 7, 91, 0, 64, 6])
+        >>> loader.load_object()
+        ref('O0')
+        >>> loader.graph.values
+        []
+        >>> loader.graph.symbols
+        []
+        >>> loader.graph.objects
+        [MarshalArray(inst_vars=[], module_ext=[], items=[ref('O1'), ref('O1')]), MarshalArray(inst_vars=[], module_ext=[], items=[])]
+        """
+        type_code = chr(self.read_byte())
+        return self.load_object_without_type_code(type_code)
 
-    def parse_object_ref(self) -> MarshalObject:
-        self.debug('parsing object reference')
-        index = self.parse_fixnum().val - 2 # 1-indexed... not sure why we have to minus by 2... but it works
+    def load_symbol(self) -> MarshalRef: # return value should have type_ == MarshalRefType.SYMBOL
+        type_code = chr(self.read_byte())
 
-        try:
-            return self.objects[index]
-        except IndexError:
-            self.error(
-                f'reference to object at index {index}, but only {len(self.objects)} have been '
-                'encountered so far'
-            )
+        if type_code not in (';', ':'):
+            self.error(f'expected to be loading a symbol, but the type code is "{type_code}"')
 
-    def add_object(self, obj: MarshalObject) -> MarshalObject:
-        self.objects.append(obj)
-        return obj
+        return self.load_object_without_type_code(type_code)
 
-    def parse_symbol_with_header(self) -> MarshalSymbol:
-        try:
-            header = next(self)
-        except StopIteration:
-            self.error('expected a symbol, but there are no bytes left in the data')
-
-        if header == ord(':'):
-            return self.parse_symbol() 
-        elif header == ord(';'):
-            return self.parse_symbol_ref()
-
-        self.error('expected a symbol or symbol reference')
-
-    def parse_vars(self) -> frozendict[MarshalSymbol, MarshalObject]:
-        length = self.parse_fixnum().val
-        res = {}
+    def load_hash_items(self, *, symbol_keys=False) -> list[tuple[MarshalRef, MarshalRef]]:
+        length = self.read_long()
+        self.debug(f'list of pairs of length {length}')
+        items = []
 
         for _ in range(length):
-            # documentation doesn't make it clear but the leading : is included with the symbol
-            name = self.parse_symbol_with_header()
-            val = self.parse_object()
-            res[name] = val
+            key_ref = self.load_symbol() if symbol_keys else self.load_object()
+            value_ref = self.load_object()
+            items.append((key_ref, value_ref))
 
-        return frozendict(res)
+        return items
 
-    def parse_inst_vars(self) -> MarshalWithInstVars:
-        self.debug('parsing object with instance variables')
-        self.indent += 1
-        obj = self.parse_object()
-        inst_vars = self.parse_vars()
-        self.indent -= 1
-        return self.add_object(MarshalWithInstVars(obj, inst_vars))
+    # keys of return value should have type_ == MarshalRefType.SYMBOL
+    def load_vars(self) -> list[tuple[MarshalRef, MarshalRef]]:
+        return self.load_hash_items(symbol_keys=True)
 
-    def parse_mod_ext(self) -> MarshalModuleExtended:
-        self.debug('parsing object extended by module')
-        self.indent += 1
-        obj = self.parse_object()
-        mod = self.parse_symbol_with_header()
-        self.indent -= 1
-        return self.add_object(ruby.MarshalModuleExtended(obj, mod))
+    def load_object_without_type_code(self, type_code: str) -> MarshalRef:
+        if type_code == ';':
+            index = self.read_long()
+            ref = MarshalRef(MarshalRefType.SYMBOL, index)
+            self.debug(f'-> {ref}: {self.graph[ref]}')
+            return ref
+        
+        if type_code == '@':
+            index = self.read_long()
+            ref = MarshalRef(MarshalRefType.OBJECT, index)
+            self.debug(f'-> {ref}: {self.graph[ref]}')
+            return ref
 
-    def parse_array(self) -> MarshalArray:
-        self.debug('parsing array')
-        self.indent += 1
-        length = self.parse_fixnum().val
-        items = tuple(self.parse_object() for _ in range(length))
-        self.indent -= 1
-        return self.add_object(MarshalArray(items))
-
-    def parse_bignum(self) -> MarshalBignum:
-        self.debug('parsing bignum')
-
-        try:
-            sign = MarshalParser.BIGNUM_SIGNS[next(self)]
-        except StopIteration:
-            self.error('expected sign byte for bignum, but there are no bytes left in the data')
-        except KeyError:
-            self.error('expected sign byte for bignum')
-
-        length = self.parse_fixnum().val * 2
-
-        if self.rem_len() < length:
-            self.error(
-                f'remaining data length in bytes is {self.rem_len()}, but a bignum of length '
-                f'{length} is expected'
-            )
-
-        res = MarshalBignum(parse_uint_le(it.islice(self, length)))
-        return self.add_object(res)
-
-    def parse_class(self) -> MarshalClassRef:
-        self.debug('parsing class ref')
-        return self.add_object(MarshalClassRef(self.parse_byte_seq()))
-    
-    def parse_mod(self) -> MarshalModuleRef:
-        self.debug('parsing module ref')
-        return self.add_object(MarshalModuleRef(self.parse_byte_seq()))
-    
-    def parse_class_or_mod(self) -> MarshalClassOrModuleRef:
-        self.debug('parsing class or module ref')
-        return self.add_object(MarshalClassOrModuleRef(self.parse_byte_seq()))
-
-    def parse_data(self) -> MarshalExtensionObject:
-        self.debug('parsing data')
-        self.indent += 1
-        class_ = self.parse_symbol_with_header()
-        state = self.parse_object()
-        self.indent -= 1
-        return self.add_object(MarshalExtensionObject(class_, state))
-
-    def parse_float(self) -> MarshalFloat:
-        self.debug('parsing float')
-        bytes_ = self.parse_byte_seq()
-
-        for val in MarshalParser.SPECIAL_FLOATS:
-            if bytes_ == val.encode('ascii'):
-                res = float(val)
-                break
+        try: vertex = {'T': RUBY_TRUE, 'F': RUBY_FALSE, '0': RUBY_NIL}[type_code]
+        except KeyError: pass
         else:
-            # length = ctypes.sizeof(ctypes.c_double)
-            # print('FLOAT LENGTH:', length)
+            ref = self.graph.add(vertex)
+            self.debug(f'{ref}: {self.graph[ref]}')
+            return ref
 
-            # if self.rem_len() < length:
-            #   self.error(
-            #       f'remaining data length in bytes is {self.rem_len()}, but a float of length '
-            #       f'{length} is expected'
-            #   )
+        if type_code == 'i':
+            ref = self.graph.add(RubyFixnum(self.read_long()))
+            self.debug(f'{ref}: {self.graph[ref]}')
+            return ref
 
-            res, = struct.unpack('d', bytes_) # bytes(it.islice(self, length)))
-            print(res)
+        if type_code == 'l':
+            sign = {'+': 1, '-': -1}[chr(self.read_byte())]
+            word_length = self.read_long()
+            
+            ref = self.graph.add(RubyBignum(int.from_bytes(
+                self.read_bytes(word_length * 2), 'little', signed=True
+            )))
 
-        return self.add_object(MarshalFloat(res))
+            self.debug(f'{ref}: {self.graph[ref]}')
+            return ref
 
-    def parse_hash(self, *, has_default: bool=False) -> MarshalHash:
-        self.debug(f'parsing hash (has_default={has_default})')
-        self.indent += 1
-        length = self.parse_fixnum().val * 2
-        # I assume it's key-val-key-val rather than key-key-val-val but the docs don't specify
-        pairs = []
+        if type_code == 'f':
+            ref = self.graph.add(RubyFloat(self.read_float()))
+            self.debug(f'{ref}: {self.graph[ref]}')
+            return ref
 
-        for i in range(length):
-            if i % 2:
-                pairs[-1] = (pairs[-1][0], self.parse_object())
-            else:
-                pairs.append((self.parse_object(),))
+        if type_code == '"':
+            bytes_ = self.read_byte_seq()
+            ref = self.graph.add(RubyString([], [], bytes_))
+            self.debug(f'{ref}: {self.graph[ref]}')
+            return ref
 
-        mapping = frozendict(pairs)
-        default = self.parse_object() if has_default else None # I assume it's just another object
-        res = MarshalHash(mapping, default)
-        self.indent -= 1
-        return self.add_object(res)
-
-    def parse_default_hash(self) -> MarshalHash:
-        return self.parse_hash(has_default=True)
-
-    # There's a section for "Module and Old Module" but it's blank...?
-
-    def parse_other_object(self) -> MarshalClassInst:
-        self.debug('parsing normal object')
-        self.indent += 1
-        class_ = self.parse_symbol_with_header()
-        inst_vars = self.parse_vars()
-        self.indent -= 1
-        return self.add_object(MarshalClassInst(class_, inst_vars))
-
-    def parse_regex(self) -> MarshalRegex:
-        self.debug('parsing regex')
-
-        # "Following the type byte is a byte sequence containing the regular expression source.
-        # Following the type byte is a byte containing the regular expression options (case-
-        # insensitive, etc.) as a signed 8-bit value."
-        # --- ??? I'm going to assume the options follow the source, that'd make sense.
-        src = self.parse_byte_seq()
+        if type_code == '/':
+            source = self.read_byte_seq()
+            options = self.read_regex_options()
+            ref = self.graph.add(RubyRegex([], [], source, options))
+            self.debug(f'{ref}: {self.graph[ref]}')
+            return ref
 
         try:
-            opts = next(self)
-        except StopIteration:
-            self.error('expected a regex options byte, but there are no bytes left in the data')
-
-        return self.add_object(MarshalRegex(src, opts))
-
-    def parse_string(self) -> MarshalString:
-        self.debug('parsing string')
-        return self.add_object(MarshalString(self.parse_byte_seq()))
-
-    def parse_struct(self) -> MarshalStruct:
-        self.debug('parsing struct')
-        self.indent += 1
-        name = self.parse_symbol_with_header()
-        struct_vars = self.parse_vars()
-        self.indent -= 1
-        return self.add_object(MarshalStruct(name, struct_vars))
-
-    def parse_user_class(self) -> MarshalSubclassedBuiltin:
-        self.debug('parsing user class')
-        self.indent += 1
-        subclass = self.parse_symbol_with_header()
-        obj = self.parse_object()
-        self.indent -= 1
-        return self.add_object(MarshalSubclassedBuiltin(subclass, obj))
-
-    def parse_user_bytes(self) -> MarshalUserBytes:
-        self.debug('parsing user bytes')
-        self.indent += 1
-        class_ = self.parse_symbol_with_header()
-        bytes_ = self.parse_byte_seq()
-        self.indent -= 1
-        return self.add_object(MarshalUserBytes(class_, bytes_))
-
-    def parse_user_obj(self) -> MarshalUserObject:
-        self.debug('parsing user object')
-        self.indent += 1
-        class_ = self.parse_symbol_with_header()
-        obj = self.parse_object()
-        self.indent -= 1
-        return self.add_object(MarshalUserObject(class_, obj))
-
-    TYPES = {
-        ord('T'): 'true',
-        ord('F'): 'false',
-        ord('0'): 'nil',
-        ord('i'): 'fixnum',
-        ord(':'): 'symbol',
-        ord(';'): 'symbol_ref',
-        ord('@'): 'object_ref',
-        ord('I'): 'inst_vars',
-        ord('e'): 'mod_ext',
-        ord('['): 'array',
-        # 'I' (for inst vars) and 'l' (for bignum) look totally identical in the font Ruby is using for
-        # its docs...
-        ord('l'): 'bignum', 
-        ord('c'): 'class',
-        ord('m'): 'mod',
-        ord('M'): 'class_or_mod',
-        ord('d'): 'data',
-        ord('f'): 'float',
-        ord('{'): 'hash',
-        ord('}'): 'default_hash',
-        ord('o'): 'other_object',
-        ord('/'): 'regex',
-        ord('"'): 'string', # the docs have autocorrected it to “ --- but presumably they mean "
-        ord('S'): 'struct',
-        ord('C'): 'user_class',
-        ord('u'): 'user_bytes',
-        ord('U'): 'user_obj'
-    }
-
-    def parse_object(self):
-        self.debug('parsing object')
-
-        try:
-            header = next(self)
-        except StopIteration:
-            self.error('expected an object, but there are no bytes left in the data')
-
-        try:
-            type_ = MarshalParser.TYPES[header]
+            vertex_type = {
+                ':': RubySymbol, 'c': RubyClassRef, 'm': RubyModuleRef, 'M': RubyClassOrModuleRef
+            }[type_code]
         except KeyError:
-            self.error(f'unrecognized type header: {hex(header)} (as char: {chr(header)})')
-
-        return getattr(self, f'parse_{type_}')()
-
-    def parse(self):
-        res = self.parse_object()
-
-        if self.index != self.byte_length:
-            print(f'warning - unparsed data - only got to {hex(self.index)}')
-            #raise MarshalParseError(self.index, 'unparsed data')
-
-        # res = []
-
-        # while self.index < self.byte_length:
-        #   res.append(self.parse_object())
-
-        self.debug('finished parsing')
-        return res
-
-
-# No idea where to find this info in the docs, but
-# http://jakegoulding.com/blog/2013/01/16/another-dip-into-rubys-marshal-format/
-# says that true is UTF-8, false is US-ASCII, any other encoding is given as a raw string
-
-RUBY_ENCODING_TO_PYTHON = {
-    MARSHAL_TRUE: 'utf-8',
-    MARSHAL_FALSE: 'us-ascii'
-    # will have to fill in others later, as needed.
-}
-
-MarshalDecodedSymbol = make_marshal_object_subclass('MarshalDecodedSymbol', ('name', str))
-MarshalDecodedClassRef = make_marshal_object_subclass('MarshalDecodedClassRef', ('name', str))
-MarshalDecodedModuleRef = make_marshal_object_subclass('MarshalDecodedModuleRef', ('name', str))
-MarshalDecodedClassOrModuleRef = make_marshal_object_subclass('MarshalDecodedClassOrModuleRef', ('name', str))
-
-MarshalDecodedString = make_marshal_object_subclass('MarshalDecodedString', ('content', str))
-
-MarshalDecodedRegex = make_marshal_object_subclass('MarshalDecodedRegex',
-    ('src', str), ('opts', int)
-)
-
-SYMBOL_SUBCLASS_TO_DECODED = {
-    MarshalSymbol: MarshalDecodedSymbol,
-    MarshalClassRef: MarshalDecodedClassRef,
-    MarshalModuleRef: MarshalDecodedModuleRef,
-    MarshalClassOrModuleRef: MarshalDecodedClassOrModuleRef
-}
-
-STRING_CLASS_TO_DECODED = {MarshalString: MarshalDecodedString, MarshalRegex: MarshalDecodedRegex}
-
-ASSUMING_UTF8 = True # can't be bothered doing this properly
-
-ATOMIC_MARSHAL_CLASSES = {
-    MarshalTrue, MarshalFalse, MarshalNil, MarshalFixnum, MarshalBignum, MarshalFloat,
-    MarshalSymbol, MarshalClassRef, MarshalModuleRef, MarshalClassOrModuleRef,
-    MarshalRegex, MarshalString, MarshalUserBytes
-}
-
-MarshalCyclicRef = make_marshal_object_subclass('MarshalCyclicRef', ('id', int))
-
-def decode(obj: MarshalObject, encoding: Optional[str]=None, seen=None) -> MarshalObject:
-    if obj in (MARSHAL_TRUE, MARSHAL_FALSE, MARSHAL_NIL):
-        return obj
-
-    if isinstance(obj, (MarshalFixnum, MarshalBignum, MarshalFloat)):
-        return obj
-
-    if isinstance(obj,
-        (MarshalSymbol, MarshalClassRef, MarshalModuleRef, MarshalClassOrModuleRef)
-    ):
-        # The docs don't say anything about the encoding of symbols, but according to this blogpost:
-        # http://jakegoulding.com/blog/2013/01/15/a-little-dip-into-rubys-marshal-format/
-        # they are encoded as UTF-8. I assume classes and modules work the same way.
-        return SYMBOL_SUBCLASS_TO_DECODED[type(obj)](obj.name.decode('utf-8'))
-
-    if isinstance(obj, MarshalRegex):
-        if encoding is None and ASSUMING_UTF8: encoding = 'utf-8'
-        if encoding is None: return MarshalRegex(obj.src, obj.opts)
-        return MarshalDecodedRegex(obj.src.decode(encoding), obj.opts)
-        
-    if isinstance(obj, MarshalString):
-        if encoding is None and ASSUMING_UTF8: encoding = 'utf-8'
-        if encoding is None: return MarshalString(obj.content)
-        return MarshalDecodedString(obj.content.decode(encoding))
-        
-    if isinstance(obj, MarshalUserBytes):
-        return MarshalUserBytes(decode(obj.cls), obj.bytes)
-        
-    if seen is None:
-        seen = set()
-
-#    obj_id = id(obj)
-#        
-#    if obj_id in seen:
-#         unfortunately it's not much use giving the obj id here because we'll be replacing it
-#         with a new object
-#         really the easiest way to deal with this is to make the tree mutable and decode it in-place
-#        return MarshalCyclicRef(obj_id)
-#    else:
-#        seen.add(obj_id)
+            pass
+        else:
+            name = self.read_byte_seq()
+            ref = self.graph.add(vertex_type(name))
+            self.debug(f'{ref}: {self.graph[ref]}')
+            return ref
             
-    res: MarshalObject = None
-
-    match obj:
-        case MarshalArray(items):
-            res = MarshalArray(tuple(decode(item, seen=seen) for item in items))
-        case MarshalHash(mapping, default):
-            res = MarshalHash(
-                frozendict((decode(key, seen=seen), decode(val, seen=seen)) for key, val in mapping.items()),
-                (None if default is None else decode(default, seen=seen))
-            )
-        case MarshalWithInstVars(obj, vars_):
-            vars_ = {decode(name): decode(val, seen=seen) for name, val in vars_.items()}
-            ruby_encoding = vars_.pop(MarshalDecodedSymbol('E'), None)
-            vars_ = frozendict(vars_)
-
-            if ruby_encoding is not None:
-                encoding = RUBY_ENCODING_TO_PYTHON[ruby_encoding]
+        if type_code == 'I':
+            self.debug('object with inst vars')
+            ref = self.load_object()
+            obj = self.graph[ref]
+            inst_vars = self.load_vars()
+            
+            if isinstance(obj, MarshalExtensibleVertex):
+                obj.inst_vars.extend(inst_vars)
             else:
-                encoding = None
+                self.warning(f'found instance variables attached to an object of type {type(obj)}; these will be ignored')
+                            
+            return ref            
 
-            obj = decode(obj, encoding, seen=seen)          
-            res = MarshalWithInstVars(obj, vars_) if vars_ else obj
-        case MarshalModuleExtended(obj, module):
-            res = MarshalModuleExtended(decode(obj), decode(module))
-        case MarshalExtensionObject(class_, state):
-            res = MarshalExtensionObject(decode(class_), decode(state))
-        case MarshalClassInst(class_, vars_):
-            res = MarshalClassInst(
-                decode(class_),
-                frozendict((decode(key), decode(val, seen=seen)) for key, val in vars_.items())
-            )
-        case MarshalStruct(name, vars_):
-            res = MarshalStruct(
-                decode(name),
-                frozendict((decode(key), decode(val, seen=seen)) for key, val in vars_.items())
-            )
-        case MarshalSubclassedBuiltin(class_, obj):
-            res = MarshalSubclassedBuiltin(decode(class_), decode(obj, seen=seen))
-        case MarshalUserObject(class_, obj):
-            res = MarshalUserObject(decode(class_), decode(obj, seen=seen))
+        if type_code == 'e':
+            # so it turns out that the documentation at
+            # https://ruby-doc.org/core-3.1.2/doc/marshal_rdoc.html
+            # has the parts in the wrong order? it says the symbol containing the name of the
+            # module comes after the object, but it actually comes before -_-
+
+            self.debug('object extended by module')
+            module_ref = self.load_symbol()
+            ref = self.load_object()
+            obj = self.graph[ref]
             
-    if res is None:     
-        raise ValueError(f'unrecognized marshal object type: {type(obj)}')
+            if isinstance(obj, MarshalExtensibleVertex):
+                obj.module_ext.append(module_ref)
+            else:
+                self.warning(f'found object of type {type(obj)}) extended by a module; this will be ignored')
+                
+            return ref
+
+        ref = self.graph.add(None)
+        self.debug(f'{ref} begin')
+
+        if type_code == '[':
+            length = self.read_long()
+            self.debug(f'array of length {length}')
+            items = [self.load_object() for _ in range(length)]
+            self.graph[ref] = MarshalArray([], [], items)
+            self.debug(f'{ref} end')
+            return ref
+
+        if type_code == '{':
+            self.debug('hash without default')
+            pairs = self.load_hash_items()
+            self.graph[ref] = MarshalHash([], [], pairs, None)
+            self.debug(f'{ref} end')
+            return ref
+
+        if type_code == '}':
+            self.debug('hash with default')
+            pairs = self.load_hash_items()
+            self.debug(f'default for {ref}')
+            default = self.load_object()
+            self.graph[ref] = MarshalHash([], [], pairs, default)
+            self.debug(f'{ref} end')
+            return ref
         
-    return res
-
-SINGLETON_TO_PYTHON = {MARSHAL_TRUE: True, MARSHAL_FALSE: False, MARSHAL_NIL: None}
-
-class PythonifiedMarshalObject: pass
-
-@dataclass
-class PythonifiedMarshalObjectWrapper(PythonifiedMarshalObject):
-    wrapped: Any
-
-def setattrs(obj: Any, vars_: dict[str, Any]) -> None:
-    for name, val in vars_.items():
-        setattr(obj, name, val)
-
-def force_setattrs(obj: Any, vars_: dict[str, Any]) -> Any:
-    try:
-        setattrs(obj, vars_)
-    except AttributeError:
-        obj = PythonifiedMarshalObjectWrapper(obj)
-        setattrs(obj, vars_)
-
-    return obj
-
-def pythonify(obj: MarshalObject) -> Any:
-    try:
-        if obj in SINGLETON_TO_PYTHON:
-            return SINGLETON_TO_PYTHON[obj]
-    except TypeError:
-        breakpoint()
+        if type_code == 'o':
+            self.debug('regular object')
+            cls_ref = self.load_symbol()
+            inst_vars = self.load_vars()
+            self.graph[ref] = MarshalRegObj(inst_vars, [], cls_ref)
+            self.debug(f'{ref} end')
+            return ref
         
-    if isinstance(obj, MarshalCyclicRef):
-        return obj
-
-    if isinstance(obj, (
-        MarshalClassRef, MarshalModuleRef, MarshalClassOrModuleRef,
-        MarshalDecodedClassRef, MarshalDecodedModuleRef, MarshalDecodedClassOrModuleRef
-    )):
-        return obj
-
-    extension_object_classes = {}
-    classes = {}
-    builtin_subclasses = {}
-    user_bytes_classes = {}
-    user_object_classes = {}
-
-    match obj:
-        case (
-            MarshalFixnum(val) | MarshalBignum(val) | MarshalFloat(val)
-            | MarshalSymbol(val) | MarshalString(val)
-            | MarshalDecodedSymbol(val) | MarshalDecodedString(val) 
-        ):
-            return val
-        case MarshalRegex(src, opts):
-            return obj
-        case MarshalArray(items):
-            return tuple(map(pythonify, items))
-        case MarshalHash(mapping, default):
-            pairs = tuple((pythonify(key), pythonify(val)) for key, val in mapping.items())
+        if type_code == 'S':
+            self.debug('struct')
+            name_ref = self.load_symbol()
+            members = self.load_vars()
+            self.graph[ref] = MarshalStruct([], [], name_ref, members)
+            self.debug(f'{ref} end')
+            return ref
             
-            return (
-                frozendict(pairs) if default is None
-                else defaultdict(pairs, lambda: default)
-            )
-        case MarshalWithInstVars(obj, vars_):
-            obj = pythonify(obj)
-            vars_ = frozendict((pythonify(name), pythonify(val)) for name, val in vars_.items())
-
-            # if None in vars_: # idk
-            #   d = dict(vars_)
-            #   d['<None>'] = d[None]
-            #   del d[None]
-            #   vars_ = frozendict(d)
-
-            return force_setattrs(obj, vars_)
-        case MarshalModuleExtended(obj, module):
-            module = pythonify(module)
-            obj = pythonify(obj)
+        try:
+            vertex_type2 = {
+                'C': MarshalUserBuiltin, 'd': MarshalWrappedExtPtr, 'U': MarshalUserObject
+            }[type_code]
+        except KeyError:
+            pass
+        else:
+            self.debug(f'{vertex_type2} wrapper')
+            cls_ref = self.load_symbol()
+            obj_ref = self.load_object()
+            self.graph[ref] = vertex_type2([], [], cls_ref, obj_ref)
+            self.debug(f'{ref} end')
+            return ref
             
-            return force_setattrs(obj,
-                {'marshal_extends': getattr(obj, 'marshal_extends', []) + [module]}
-            )
-        case MarshalExtensionObject(class_, state):
-            class_ = pythonify(class_)
+        if type_code == 'u':
+            self.debug('user data')
+            cls_ref = self.load_symbol()
+            data = self.read_byte_seq()
+            self.graph[ref] = MarshalUserData([], [], cls_ref, data)
+            self.debug(f'{ref} end')
+            return ref
 
-            if class_ not in extension_object_classes:
-                classes[class_] = make_dataclass(
-                    class_, [('state', Any)],
-                    bases=(PythonifiedMarshalObject,)
-                )
+        self.error(f'invalid type code "{type_code}"')
+        assert False
 
-            class_obj = classes[class_]
-            return class_obj(pythonify(state))
-        case MarshalClassInst(class_, vars_):
-            class_ = pythonify(class_)
+###################################################################################################
+# Dump
+###################################################################################################
 
-            if class_ not in classes:
-                classes[class_] = type(class_, (PythonifiedMarshalObject,), {})
+# def dump_long(value: int) -> Iterator[int]:
+#     # https://docs.ruby-lang.org/en/master/marshal_rdoc.html
+#     # "There are multiple representations for many values. CRuby always outputs the
+#     # shortest representation possible."
+#     # 
+#     # This doesn't say anything about other implementations, and other implementations
+#     # exist. So doing a load and dump may in theory not preserve the exact representation for
+#     # other implementations.
+#     if value == 0:
+#         yield 0
+#     elif 0 < value < 123:
+#         yield value + 5
+#     elif -123 <= value < 0:
+#         yield 251 + value
+#     else:
+#         byte_length = (value.bit_length() + 7) // 8
+#         assert byte_length <= 4
+#         yield 256 - byte_length if value < 0 else byte_length
+#         yield from value.to_bytes(byte_length, 'little', signed=True)
 
-            class_obj = classes[class_]
-            res = class_obj()
-            res.__dict__.update({pythonify(key): pythonify(val) for key, val in vars_.items()})
-            return res
-        case MarshalStruct(name, vars_):
-            class_ = pythonify(name)
+# def dump_byte_seq(seq: bytes) -> Iterator[int]:
+#     yield from dump_long(len(seq))
+#     yield from seq
 
-            if class_ not in classes:
-                classes[class_] = type(class_, (PythonifiedMarshalObject,), {})
+# class Dumper:
+#     file: MarshalFile
+#     visited: set[int]
 
-            class_obj = classes[class_]
-            res = class_obj()
-            res.__dict__.update({pythonify(key): pythonify(val) for key, val in vars_.items})
-            return res
-        case MarshalSubclassedBuiltin(class_, obj):
-            class_ = pythonify(class_)
-            obj = pythonify(obj) # will either be a string, regex, array or hash
+#     # these only exist for testing --- we want to make sure the reference numbers are preserved
+#     symbol_ids: list[int]
+#     object_ids: list[int]
 
-            if class_ not in builtin_subclasses:
-                builtin_subclasses[class_] = type(class_, (type(obj),), {})
+#     def __init__(self, file: MarshalFile) -> None:
+#         self.file = file
+#         self.visited = set()
+#         self.symbol_ids = []
+#         self.object_ids = []
 
-            class_obj = builtin_subclasses[class_]
+#     def __iter__(self):
+#         yield self.file.major_version
+#         yield self.file.minor_version
+#         yield from self.visit(0)
 
-            return (
-                class_obj(obj.src, obj.opts) if isinstance(obj, MarshalRegex)
-                else class_obj(obj)
-            )
-        case MarshalUserBytes(class_, bytes_):
-            class_old = class_
-            class_ = pythonify(class_)
+#     def visit(self, vertex_id: MarshalRef, *, assert_is_symbol=False) -> Iterator[int]:
+#         vertex = self.file.graph[vertex_id]
 
-            # if isinstance(class_, bytes):
-            #   print(class_old)
+#         try: yield ord({RubyTrue: 'T', RubyFalse: 'F', RubyNil: '0'}[vertex])
+#         except KeyError: pass
+#         else: return
 
-            # if class_ is None: # this can happen apparently
-            #   return pythonify(bytes_)
+#         if isinstance(vertex, RubyFixnum):
+#             yield ord('i')
+#             yield from dump_long(vertex.value)
+#             return
 
-            if class_ not in user_bytes_classes:
-                user_bytes_classes[class_] = make_dataclass(
-                    class_, [('data', bytes)],
-                    bases=(PythonifiedMarshalObject,)
-                )
+#         is_symbol = isinstance(vertex, RubySymbol)
+#         if assert_is_symbol: assert is_symbol
 
-            class_obj = user_bytes_classes[class_]
-            return class_obj(bytes_)
-        case MarshalUserObject(class_, obj):
-            class_ = pythonify(class_)
+#         if vertex_id in self.visited:
+#             yield ord(';') if is_symbol else ord('@')
+#             yield from dump_long(vertex.marshal_ref)
+#             return
 
-            if class_ not in user_object_classes:
-                user_object_classes[class_] = make_dataclass(
-                    class_, [('data', Any)],
-                    bases=(PythonifiedMarshalObject,)
-                )
+#         self.visited.add(vertex_id)
+#         assert vertex.marshal_ref == (len(self.symbol_ids) if is_symbol else len(self.object_ids) + 1)
 
-            class_obj = user_object_classes[class_]
-            return class_obj(pythonify(obj))
+#         if isinstance(vertex, RubyBignum):
+#             yield ord('l')
+#             value = vertex.value
+#             yield ord('+' if value >= 0 else '-')
+#             word_length = (value.bit_length() + 15) // 16
+#             yield from dump_long(word_length)
+#             yield from value.to_bytes(word_length * 2, 'little', signed=True)
+#             return
+
+#         if isinstance(vertex, RubyFloat):
+#             yield ord('f')
+#             value = vertex.value
+#             ba = bytearray()
+
+#             if math.isnan(value):
+#                 ba += b'nan'
+#             elif math.isinf(value):
+#                 if value < 0: ba += ord('-')
+#                 ba += b'inf'
+#             else:
+#                 # this could also not be preserved by load/dump
+#                 ba += struct.pack('d', value)
+
+#             yield from dump_byte_seq(ba)
+#             return
+
+#         if isinstance(vertex, RubyString):
+#             yield ord('"')
+#             yield from dump_byte_seq(vertex.value)
+#             return
+
+#         if isinstance(vertex, RubyRegex):
+#             yield ord('/')
+#             yield from dump_byte_seq(vertex.source)
+#             yield vertex.options
+#             return
+
+#         if isinstance(vertex, RubySymbol):
+#             yield ord(':')
+#             yield from dump_byte_seq(vertex.name)
+#             return
+
+#         if isinstance(vertex, RubyClassRef):
+#             yield ord('c')
+#             yield from dump_byte_seq(vertex.name)
+#             return
+
+#         if isinstance(vertex, RubyModuleRef):
+#             yield ord('m')
+#             yield from dump_byte_seq(vertex.name)
+#             return
+
+#         if isinstance(vertex, RubyClassOrModuleRef):
+#             yield ord('M')
+#             yield from dump_byte_seq(vertex.name)
+#             return
+
+#         if isinstance(vertex, MarshalArray):
+#             yield ord('[')
+#             items = vertex.items
+#             yield from dump_long(len(items))
+#             for item in vertex: yield from self.visit(item)
+#             return
+
+#         if isinstance(vertex, MarshalHash):
+#             yield ord('{')
+#             items = vertex.items
+#             yield from dump_long(len(items))
+
+#             for key, value in vertex.items:
+#                 yield from self.visit(key)
+#                 yield from self.visit(value)
+
+#             default = vertex.default
+
+#             if default is not None:
+#                 yield from self.visit(default)
+
+#             return
+
+#         if isinstance(vertex, MarshalRegObj):
+#             yield ord('o')
+#             yield from self.visit(vertex.cls, assert_is_symbol=True)
+#             yield from dump_long(len(vertex.inst_vars))
+
+#             for name, value in vertex.inst_vars:
+#                 yield from self.visit_symbol(name)
+#                 yield from self.visit(value)
+
+#             return
+
+#         if isinstance(vertex, MarshalStruct):
+#             yield ord('S')
+#             yield from self.visit(vertex.cls, assert_is_symbol=True)
+#             yield from dump_long(len(vertex.inst_vars))
+
+#             for name, value in vertex.inst_vars:
+#                 yield from self.visit(name, assert_is_symbol=True)
+#                 yield from self.visit(value)
+
+#             return
+
+#         if isinstance(vertex, MarshalUserBuiltin):
+#             yield ord('C')
+#             yield from self.visit(vertex.cls, assert_is_symbol=True)
+#             yield from self.visit(vertex.obj)
+#             return
+
+#         if isinstance(vertex, MarshalWrappedExtPtr):
+#             yield ord('d')
+#             yield from self.visit(vertex.cls, assert_is_symbol=True)
+#             yield from self.visit(vertex.obj)
+#             return
+
+#         if isinstance(vertex, MarshalInstVars):
+#             yield ord('I')
+#             yield from self.visit(vertex.obj)
+#             yield from dump_long(len(vertex.inst_vars))
+
+#             for name, value in vertex.inst_vars:
+#                 yield from self.visit(name, assert_is_symbol=True)
+#                 yield from self.visit(value)
+
+#             return
+
+#         if isinstance(vertex, MarshalModuleExt):
+#             yield ord('e')
+#             yield from self.visit(vertex.obj)
+#             yield from self.visit(vertex.module, assert_is_symbol=True)
+#             return
+
+#         if isinstance(vertex, MarshalUserData):
+#             yield ord('u')
+#             yield from self.visit(vertex.cls, assert_is_symbol=True)
+#             yield from self.visit_byte_seq(vertex.data)
+#             return
+
+#         if isinstance(vertex, MarshalUserObject):
+#             yield ord('U')
+#             yield from self.visit(vertex.cls, assert_is_symbol=True)
+#             yield from self.visit(vertex.obj)
+#             return
+
+###################################################################################################
+
+def read_encoding_from(graph: MarshalGraph, ref: MarshalRef) -> str:
+    vertex = graph[ref]
     
-    raise ValueError(f'unrecognized marshal object type: {type(obj)}')
+    if vertex == RUBY_TRUE: return 'utf-8'
+    if vertex == RUBY_FALSE: return 'us-ascii'
+    
+    if not isinstance(vertex, RubyString):
+        raise ValueError('cannot read non-boolean, non-string vertex as encoding')
+        
+    if vertex.inst_vars or vertex.module_ext:
+        raise ValueError(
+            'this Ruby string which I think is an encoding name string has instance variables '
+            'and/or is extended by modules, which probably means it\'s not actually an encoding '
+            'name and the loaded Marshal data was corrupt'
+        )
+        
+    try:           
+        name = vertex.value.decode('us-ascii')
+    except UnicodeDecodeError:
+        raise ValueError(
+            'this Ruby string which I think is an encoding name is not ASCII-decodable, which '
+            'probably means it\'s not actually an encoding name and the loaded Marshal data was '
+            'corrupt'
+        )
+        
+    # that's right, we simply assume that Python will understand the name in the same way as Ruby
+    return name
+        
+Jsonish = bool | None | int | float | str | list['Jsonish'] | dict[str, 'Jsonish']
 
-def postpythonify(obj):
-    if hasattr(obj, '__class__'):
-        if obj.__class__.__name__ in (
-            'RPG::Map',
-            'RPG::AudioFile',
-            'RPG::Event',
-            'RPG::Event::Page',
-            'RPG::Event::Page::Condition',
-            'RPG::Event::Page::Graphic',
-            'RPG::MoveRoute',
-            'RPG::EventCommand',
-            'RPG::MoveCommand',
-            'RPG::Tileset',
-            'RPG::MapInfo',
-            'RPG::CommonEvent',
-            'PBFieldNote',
-            'RPG::Item',
-            'RPG::System',
-            'RPG::System::Words',
-            'RPG::System::TestBattler',
-            'PokeBattle_Trainer',
-            'PokeBattle_Pokemon',
-            'PBMove'
-        ):
-            return postpythonify({'__class_name__': obj.__class__.__name__, **obj.__dict__})
+class JsonishFormatter:
+    """Formats a Marshal object graph into a Python object whose structure can be inspected using
+    `json.dumps`.
+    
+    This may be a lossy transformation. (It might not be, but no particular care has been taken to
+    make sure it isn't lossy.)"""
+    graph: MarshalGraph
+    seen: set[MarshalRef]
+    
+    def __init__(self, graph: MarshalGraph):
+        self.graph = graph
+        self.seen = set()
 
-    if isinstance(obj, (dict, defaultdict)):
-        old_keys = list(obj.keys())
-        new_keys = {}
+    def format(self) -> Jsonish:
+        return self.format_at(self.graph.root_ref())
+        
+    REGEX_OPTIONS_TABLE = {re.I: 'i', re.X: 'x', re.M: 'm'}
+        
+    def format_at(self, ref: MarshalRef) -> Jsonish:
+        if ref.type_ == MarshalRefType.OBJECT and ref in self.seen:
+            # maybe would be better to only do the deref if it's a parent
+            return {'deref': str(ref)}
+        else:
+            self.seen.add(ref)
+        
+        vertex = self.graph[ref]
+        if vertex == RUBY_TRUE: return True
+        if vertex == RUBY_FALSE: return False
+        if vertex == RUBY_NIL: return None
+        if isinstance(vertex, (RubyFixnum, RubyBignum, RubyFloat)): return vertex.value
+        
+        if isinstance(vertex, (RubySymbol, RubyClassRef, RubyModuleRef, RubyClassOrModuleRef)):
+            return vertex.decoded_name()
+            
+        assert isinstance(vertex, MarshalExtensibleVertex)
+            
+        res = {'ref': str(ref)}
+        inst_vars = vertex.inst_vars
+        module_ext = vertex.module_ext
+        
+        is_string = isinstance(vertex, RubyString)
+        is_regex = isinstance(vertex, RubyRegex)
+        
+        if is_string or is_regex:
+            new_inst_vars = []
+            encoding = None
+            
+            for key_ref, value_ref in inst_vars:
+                key = self.graph[key_ref]
+                assert isinstance(key, RubySymbol)
+                
+                if key.name == b'E':
+                    encoding = read_encoding_from(self.graph, value_ref)
+                else:
+                    new_inst_vars.append((key_ref, value_ref))
+                    
+            inst_vars = new_inst_vars
+            decode_args = ('utf-8', 'surrogateescape') if encoding is None else (encoding,)
+            
+        if is_string:
+            assert isinstance(vertex, RubyString)
+            res |= {'type': 'string', 'value': vertex.value.decode(*decode_args)}
+        elif is_regex:
+            assert isinstance(vertex, RubyRegex)
+            res |= {
+                'type': 'regex',
+                'source': vertex.source.decode(*decode_args),
+                'options': ''.join(self.REGEX_OPTIONS_TABLE[flag] for flag in vertex.options)
+            }
+        elif isinstance(vertex, MarshalArray):
+            res |= {'type': 'array', 'items': [self.format_at(ref) for ref in vertex.items]}
+        elif isinstance(vertex, MarshalHash):
+            res['items'] = {
+                self.format_at(key_ref): self.format_at(value_ref)
+                for key_ref, value_ref in vertex.items
+            }
+            
+            if vertex.default is None:
+                res['type'] = 'hash'
+            else:
+                res |= {'type': 'default_hash', 'default': self.format_at(vertex.default)}
+        elif isinstance(vertex, MarshalRegObj):
+            res |= {'type': 'object', 'class': self.format_at(vertex.cls)}
+        elif isinstance(vertex, MarshalStruct):
+            res |= {'type': 'struct', 'name': self.format_at(vertex.name), 'members': {
+                self.format_at(key_ref): self.format_at(value_ref)
+                for key_ref, value_ref in vertex.members
+            }}
+        elif isinstance(vertex, MarshalWrappedExtPtr):
+            res |= {
+                'type': 'data',
+                'class': self.format_at(vertex.cls),
+                'wraps': self.format_at(vertex.obj)
+            }
+        elif isinstance(vertex, MarshalUserBuiltin):
+            res |= {
+                'type': 'user_builtin',
+                'class': self.format_at(vertex.cls),
+                'wraps': self.format_at(vertex.obj)
+            }
+        elif isinstance(vertex, MarshalUserObject):
+            res |= {
+                'type': 'user_object',
+                'class': self.format_at(vertex.cls),
+                'wraps': self.format_at(vertex.obj)
+            }
+        elif isinstance(vertex, MarshalUserData):
+            res |= {
+                'type': 'user_data',
+                'class': self.format_at(vertex.cls),
+                'data': base64.b64encode(vertex.data).decode('us-ascii')
+            }
+            
+        res['inst_vars'] = {}
+            
+        for key_ref, value_ref in inst_vars:
+            key = self.format_at(key_ref)
+            value = self.format_at(value_ref)
+            
+            try:
+                res['inst_vars'][key] = value
+            except TypeError:
+                breakpoint()
+        
+        #res['inst_vars'] = {
+            #self.format_at(key_ref): self.format_at(value_ref)
+            #for key_ref, value_ref in inst_vars
+        #}
+        #
+        res['module_ext'] = [self.format_at(module_ref) for module_ref in module_ext]
+        
+        return res
+        
+###################################################################################################
 
-        for key in old_keys:
-            new_keys[str(key)] = postpythonify(obj[key])
-            del obj[key]
+def load(data: Sequence[int]) -> MarshalFile:
+    return Loader(data).load()
 
-        obj.update(new_keys)
-        return obj
-    elif isinstance(obj, frozendict):
-        return {str(key): postpythonify(value) for key, value in obj.items()}
-    elif isinstance(obj, tuple):
-        return tuple(postpythonify(item) for item in obj)
-    else:
-        return obj
+def load_file(filename: str) -> MarshalFile:
+    with open(filename, 'rb') as f:
+        data = f.read()
+        return load(data)
 
-def parse(bytes_, transform=None):
-    parser = MarshalParser(bytes_)
-    res = parser.parse()
+# why do all the prettyprinters suck. fine, i'll write my own
+# this should be suitable for pasting into an online json viewing tool --- my favourite is
+# http://jsonviewer.stack.hu/ although https://jsonformatter.curiousconcept.com/# is good for
+# when it doesn't validate 
+def dump_jsonish(data):
+    LIMIT = 120
+    
+    def dumplines(data, indent, prefix, suffix):
+        res = []
+        
+        #if data is None: return [prefix + 'null' + suffix]
+        #if data is True: return [prefix + 'true' + suffix]
+        #if data is False: return [prefix + 'false' + suffix]
+        #if isinstance(data, (int, float)): return [prefix + str(data) + suffix]
+        #if isinstance(data, str): return [prefix + '"' + data + '"' + suffix]
+        
+        if data is None or isinstance(data, (bool, int, float, str)):
+            #if isinstance(data, str):
+                #data = data.encode('utf-8', 'surrogateescape')
+                
+            return [prefix + json.dumps(data) + suffix]
+    
+        if isinstance(data, list):
+            oneline = prefix + json.dumps(data) + suffix
+            if len(oneline) <= LIMIT: return [oneline]
+            innerindent = indent + ' '
+            innerlines = []
+            
+            for i, item in enumerate(data):
+                innersuffix = ',' if i < len(data) - 1 else ''
+                innerlines.extend(dumplines(item, innerindent, innerindent, innersuffix))
+            
+            return [prefix + '[', *innerlines, indent + ']' + suffix]
+            
+        if isinstance(data, dict):
+            oneline = prefix + json.dumps(data) + suffix
+            if len(oneline) <= LIMIT: return [oneline]
+            innerindent = indent + ' '
+            innerlines = []
+            
+            for i, (key, value) in enumerate(data.items()):
+                innersuffix = ',' if i < len(data) - 1 else ''
+                
+                key_oneline = innerindent + json.dumps(key) + ': '
+                value_oneline = json.dumps(value) + innersuffix
+                keyvalue_oneline = key_oneline + value_oneline
 
-    if transform == 'decode':
-        res = decode(res)
-    elif transform == 'pythonify':
-        res = pythonify(decode(res))
+                if len(keyvalue_oneline) <= LIMIT:
+                    # both key and value on one line
+                    innerlines.append(keyvalue_oneline)
+                    continue
+                
+                key_lines = dumplines(key, innerindent, innerindent, ': ' + value_oneline)
+                value_lines = dumplines(value, innerindent, key_oneline, innersuffix)
 
-    return res
+                if len(value_lines[0]) <= LIMIT:
+                    # key in one line, value on multiple lines
+                    innerlines.extend(value_lines)
+                    continue
+                
+                if len(key_lines[-1]) <= LIMIT:
+                    # key in multiple lines, value on one line
+                    innerlines.extend(key_lines)
+                    continue
+                    
+                # both key and value on multiple lines
+                key_lines = dumplines(key, innerindent, innerindent, ': ')
+                value_lines = dumplines(value, innerindent, key_lines[-1], innersuffix)
+                innerlines.extend(key_lines[:-1])
+                innerlines.extend(value_lines)
+                                                    
+            return [prefix + '{', *innerlines, indent + '}' + suffix]
+            
+        raise ValueError(f'{data} is not jsonish enough')
+            
+    return '\n'.join(dumplines(data, '', '', ''))
 
-def stringify(obj):
-    return dcformat.stringify(obj)
-
-def load(fname):
-    with open(fname, 'rb') as f:
-        return parse(f.read(), 'decode')
 
 if __name__ == '__main__':
-    import sys
+    import doctest
+    doctest.testmod()
+
+    from pathlib import Path
     import json
-
-    fname = sys.argv[1]
-    transform = sys.argv[2] if len(sys.argv) >= 3 else None
-
-    with open(fname, 'rb') as f:
-        data = parse(f.read(), transform)
-        print('Parsed data.')
+    import pprint
+    import sys
+    
+    path = Path(sys.argv[1])
+    data = JsonishFormatter(load_file(str(path)).graph).format()
 
     with open('marshal-output.txt', 'w', encoding='utf-8') as f:
-        if transform == 'pythonify':
-            data = postpythonify(data)
-            print(json.dumps(data, indent=2, default=str), file=f)
-        else:
-            print(stringify(data), file=f)
+        #print(json.dumps(data, indent=2), file=f)
+        #print(pprint.pformat(data), file=f)
+        print(dump_jsonish(data), file=f)
+        #print(data, file=f)
