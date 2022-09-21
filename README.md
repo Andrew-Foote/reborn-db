@@ -10,7 +10,7 @@ The website is based on an SQLite database, which is generated from files in the
 
 The SQLite database itself is not stored in this Git repository as largeish binary files make Git slow. However I've uploaded a recent copy (as of 2022-09-18) to Google Drive at [https://drive.google.com/file/d/18po9y19qKWbhLYRJQaLWtLl1hnvCeahJ/view?usp=sharing](https://drive.google.com/file/d/18po9y19qKWbhLYRJQaLWtLl1hnvCeahJ/view?usp=sharing), and hopefully I'll remember to update this copy as I update the database in future.
 
-I use [DB Browser for SQLite](https://sqlitebrowser.org/) to browse the data, but there are some tables (e.g. `pokemon_encounter_rate`) which make use of a custom collation, and there are also custom functions that I've found useful for generating the website views. The custom collations and functions aren't stored with the database, so if you view it using DB Browser for SQLite, you can't use them. If you do want to use them, you can set up a virtual environment for the project according to the instructions below, then open up the Python shell within the virtual environment and do
+I use [DB Browser for SQLite](https://sqlitebrowser.org/) to browse the data most of the time, but there are some tables (e.g. `pokemon_encounter_rate`) which make use of a custom collation, and there are also custom functions that I've found useful for generating the website views. The custom collations and functions aren't stored with the database, so if you view it using DB Browser for SQLite, you can't use them (). If you do want to use them, you can set up a virtual environment for the project according to the instructions below, then open up the Python shell within the virtual environment and do
 
     from reborndb import DB
     

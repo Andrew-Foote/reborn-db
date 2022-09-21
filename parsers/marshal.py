@@ -1,12 +1,13 @@
 from abc import ABC
 import base64
+from collections import OrderedDict
 from dataclasses import dataclass, make_dataclass
 from enum import Enum
 import locale
 import math
 import re
 import struct
-from typing import Any, ClassVar, get_args, Iterable, Iterator, Optional, Sequence
+from typing import Any, Callable, ClassVar, get_args, Iterable, Iterator, Optional, Sequence
 
 # handy little ruby script for testing:
 #
@@ -1085,8 +1086,44 @@ class Loader:
 #             return
 
 ###################################################################################################
+# The following helper functions are used for fetching data from the graph via a reference while
+# asserting that the referenced vertex has a particular type/format. They are conveniences which
+# simplify the process of inspecting the graph in the most common cases; they aren't designed to
+# handle every possible situation (for example, the `get_string` method expects the string to have
+# no instance variables other than the one for the encoding; if you are dealing with string data
+# that may have other instance variables added to it for some reason, you should write your own
+# version of the `get_string` method to deal with that).
 
-def read_encoding_from(graph: MarshalGraph, ref: MarshalRef) -> str:
+Lookup = Callable[[MarshalGraph, MarshalRef], Any]
+
+def get_bool(graph: MarshalGraph, ref: MarshalRef) -> bool:
+    return {RUBY_TRUE: True, RUBY_FALSE: False}[graph[ref]]    
+
+def get_fixnum(graph: MarshalGraph, ref: MarshalRef) -> int:
+    vertex = graph[ref]
+    assert isinstance(vertex, RubyFixnum)
+    return vertex.value
+
+def get_symbol(graph: MarshalGraph, ref: MarshalRef) -> str:
+    vertex = graph[ref]
+    assert isinstance(vertex, RubySymbol)
+    return vertex.name.decode('utf-8', 'surrogateescape')
+
+def get_inst_vars(graph: MarshalGraph, ref: MarshalRef) -> OrderedDict[str, MarshalRef]:
+    vertex = graph[ref]
+    
+    if not isinstance(vertex, MarshalExtensibleVertex):
+        raise ValueError(f'vertex at {ref} does not have instance variables')
+    
+    inst_vars = {}
+    
+    for key_ref, value_ref in vertex.inst_vars:
+        name = get_symbol(graph, key_ref)
+        inst_vars[name] = value_ref
+        
+    return inst_vars
+
+def get_encoding(graph: MarshalGraph, ref: MarshalRef) -> str:
     vertex = graph[ref]
     
     if vertex == RUBY_TRUE: return 'utf-8'
@@ -1113,6 +1150,98 @@ def read_encoding_from(graph: MarshalGraph, ref: MarshalRef) -> str:
         
     # that's right, we simply assume that Python will understand the name in the same way as Ruby
     return name
+
+def get_encoding_from_inst_vars(
+    graph: MarshalGraph, ref: MarshalRef
+) -> tuple[Optional[str], MarshalPairSeq]:
+
+    vertex = graph[ref]
+    new_inst_vars = []
+    encoding = None
+    
+    for key_ref, value_ref in vertex.inst_vars:
+        if get_symbol(graph, key_ref) == 'E':
+            encoding = get_encoding(graph, value_ref)
+        else:
+            new_inst_vars.append((key_ref, value_ref))
+        
+    return encoding, new_inst_vars
+        
+def get_string(graph: MarshalGraph, ref: MarshalRef) -> str:
+    vertex = graph[ref]
+    assert isinstance(vertex, RubyString)
+    encoding, inst_vars = get_encoding_from_inst_vars(graph, ref)
+    decode_args = ('utf-8', 'surrogateescape') if encoding is None else (encoding,)
+    assert not inst_vars
+    return vertex.value.decode(*decode_args)
+
+def get_array(graph: MarshalGraph, ref: MarshalRef, callback: Lookup=lambda graph, ref: ref) -> list:
+    vertex = graph[ref]
+    assert isinstance(vertex, MarshalArray)
+    assert not vertex.inst_vars
+    assert not vertex.module_ext
+    return [callback(graph, item_ref) for item_ref in vertex.items]
+    
+def get_hash(
+    graph: MarshalGraph, ref: MarshalRef, key_callback: Lookup, value_callback: Lookup
+) -> dict:
+
+    vertex = graph[ref]
+    assert isinstance(vertex, MarshalHash)
+    assert not vertex.inst_vars
+    assert not vertex.module_ext
+    assert vertex.default is None
+    
+    return {
+        key_callback(graph, key_ref): value_callback(graph, value_ref)
+        for key_ref, value_ref in vertex.items
+    }
+
+def get_inst(
+    graph: MarshalGraph, ref: MarshalRef, class_name: str, ctor: Callable[..., Any],
+    inst_var_callbacks: dict[str, Lookup]
+) -> Any:
+
+    vertex = graph[ref]
+    assert isinstance(vertex, MarshalRegObj)
+    actual_class_name = get_symbol(graph, vertex.cls)
+    
+    if actual_class_name != class_name:
+        raise ValueError(
+            f'expected an instance of \'{class_name}\', got an instance of \'{actual_class_name}\''
+        )
+    
+    assert not vertex.module_ext
+    inst_vars = {}
+    
+    for key_ref, value_ref in vertex.inst_vars:
+        key = get_symbol(graph, key_ref)
+        assert key[0] == '@'
+        mainkey = key[1:]
+        
+        try:
+            callback = inst_var_callbacks[mainkey]
+        except KeyError:
+            raise ValueError(f'unexpected instance variable "{mainkey}" for class "{class_name}"')
+        else:
+            value = callback(graph, value_ref)
+            inst_vars[mainkey] = value
+            
+    for key in inst_var_callbacks.keys():
+        if key not in inst_vars:
+            raise ValueError(f'expected instance variable "{key}" for class "{class_name}"')
+            
+    return ctor(**inst_vars)
+
+def get_user_data(graph: MarshalGraph, ref: MarshalRef, class_name: str) -> bytes:
+    vertex = graph[ref]
+    assert isinstance(vertex, MarshalUserData)
+    assert get_symbol(graph, vertex.cls) == class_name
+    assert not vertex.inst_vars
+    assert not vertex.module_ext
+    return vertex.data
+        
+###################################################################################################        
         
 Jsonish = bool | None | int | float | str | list['Jsonish'] | dict[str, 'Jsonish']
 
@@ -1155,31 +1284,15 @@ class JsonishFormatter:
         res = {'ref': str(ref)}
         inst_vars = vertex.inst_vars
         module_ext = vertex.module_ext
-        
-        is_string = isinstance(vertex, RubyString)
-        is_regex = isinstance(vertex, RubyRegex)
-        
-        if is_string or is_regex:
-            new_inst_vars = []
-            encoding = None
-            
-            for key_ref, value_ref in inst_vars:
-                key = self.graph[key_ref]
-                assert isinstance(key, RubySymbol)
-                
-                if key.name == b'E':
-                    encoding = read_encoding_from(self.graph, value_ref)
-                else:
-                    new_inst_vars.append((key_ref, value_ref))
                     
-            inst_vars = new_inst_vars
+        if isinstance(vertex, RubyString):
+            encoding, inst_vars = get_encoding_from_inst_vars(self.graph, ref)
             decode_args = ('utf-8', 'surrogateescape') if encoding is None else (encoding,)
-            
-        if is_string:
-            assert isinstance(vertex, RubyString)
             res |= {'type': 'string', 'value': vertex.value.decode(*decode_args)}
-        elif is_regex:
-            assert isinstance(vertex, RubyRegex)
+        elif isinstance(vertex, RubyRegex):
+            encoding, inst_vars = get_encoding_from_inst_vars(self.graph, ref)
+            decode_args = ('utf-8', 'surrogateescape') if encoding is None else (encoding,)
+
             res |= {
                 'type': 'regex',
                 'source': vertex.source.decode(*decode_args),
@@ -1233,18 +1346,9 @@ class JsonishFormatter:
             
         for key_ref, value_ref in inst_vars:
             key = self.format_at(key_ref)
-            value = self.format_at(value_ref)
-            
-            try:
-                res['inst_vars'][key] = value
-            except TypeError:
-                breakpoint()
+            value = self.format_at(value_ref)            
+            res['inst_vars'][key] = value
         
-        #res['inst_vars'] = {
-            #self.format_at(key_ref): self.format_at(value_ref)
-            #for key_ref, value_ref in inst_vars
-        #}
-        #
         res['module_ext'] = [self.format_at(module_ref) for module_ref in module_ext]
         
         return res

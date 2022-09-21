@@ -1153,12 +1153,14 @@ values
 ('SA', 'Special Attack', 4),
 ('SD', 'Special Defense', 5);
 
-insert into "time_of_day" ("name", "desc", "order")
+insert into "time_of_day" ("name", "desc", "order", "range_desc")
 values
-('Day', 'day', 1),
-('Night', 'night', 2),
-('DayNotDusk', 'day (except dusk)', 3),
-('Dusk', 'dusk', 4);
+('Morning', 'morning', '6am–noon'),
+('Day', 'day', 1, '6am–8pm'),
+('DayNotMorning', 'day (not morning)', '6am–noon'),
+('Night', 'night', 2, '8pm–6am'),
+('DayNotDusk', 'day (not dusk)', 3, 'noon-6pm and 7pm–6am'),
+('Dusk', 'dusk', 4, '6pm–7pm');
 
 insert into "gender" ("name", "code")
 values
