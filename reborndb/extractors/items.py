@@ -41,50 +41,50 @@ from reborndb import DB
 from reborndb import pbs
 
 FIELDS = OrderedDict((field, i) for i, field in enumerate((
-	'code', 'id', 'name', 'pocket', 'buy_price', 'desc', 'out_battle_usability',
-	'in_battle_usability', 'type', 'move'
+    'code', 'id', 'name', 'pocket', 'buy_price', 'desc', 'out_battle_usability',
+    'in_battle_usability', 'type', 'move'
 )))
 
 CODE_FIELDS = {
-	'pocket': ['Items', 'Medicine', 'Poké Balls', 'TMs & HMs', 'Berries', 'Mail', 'Battle Items', 'Key Items'],
-	'out_battle_usability': ['None', 'PokemonOnce', 'DirectOnce', 'TM', 'HM', 'PokemonReusable'],
-	'in_battle_usability': ['None', 'PokemonOnce', 'DirectOnce', 'PokemonReusable', 'DirectReusable'],
-	'type': ['Other', 'Mail', 'Mail2', 'SnagBall', 'PokeBall', 'Berry', 'KeyItem', 'EvolutionStone', 'Fossil', 'Apricorn', 'Gem', 'Mulch', 'MegaStone']
+    'pocket': ['Items', 'Medicine', 'Poké Balls', 'TMs & HMs', 'Berries', 'Mail', 'Battle Items', 'Key Items'],
+    'out_battle_usability': ['None', 'PokemonOnce', 'DirectOnce', 'TM', 'HM', 'PokemonReusable'],
+    'in_battle_usability': ['None', 'PokemonOnce', 'DirectOnce', 'PokemonReusable', 'DirectReusable'],
+    'type': ['Other', 'Mail', 'Mail2', 'SnagBall', 'PokeBall', 'Berry', 'KeyItem', 'EvolutionStone', 'Fossil', 'Apricorn', 'Gem', 'Mulch', 'MegaStone']
 }
 
 def extract():
-	pbs_data = pbs.load('items')
-	item_rows = []
-	machine_rows = []
+    pbs_data = pbs.load('items')
+    item_rows = []
+    machine_rows = []
 
-	for row in pbs_data:
-		row = (*row, *['' for _ in range(len(FIELDS) - len(row))])
-		new_row = list(row)
-		new_row[FIELDS['pocket']] = CODE_FIELDS['pocket'][int(row[FIELDS['pocket']]) - 1]
+    for row in pbs_data:
+        row = (*row, *['' for _ in range(len(FIELDS) - len(row))])
+        new_row = list(row)
+        new_row[FIELDS['pocket']] = CODE_FIELDS['pocket'][int(row[FIELDS['pocket']]) - 1]
 
-		for field in ('out_battle_usability', 'in_battle_usability', 'type'):
-			new_row[FIELDS[field]] = CODE_FIELDS[field][int(row[FIELDS[field]])]
+        for field in ('out_battle_usability', 'in_battle_usability', 'type'):
+            new_row[FIELDS[field]] = CODE_FIELDS[field][int(row[FIELDS[field]])]
 
-		move = row[FIELDS['move']]
-		del new_row[FIELDS['move']]
+        move = row[FIELDS['move']]
+        del new_row[FIELDS['move']]
 
-		item_rows.append(new_row)
+        item_rows.append(new_row)
 
-		if move:
-			m = re.match(r'^TM(X?)(\d+)$', new_row[FIELDS['name']])
-			machine_type = 'tmx' if m.group(1) else 'tm'
-			machine_number = int(m.group(2))
-			
-			machine_rows.append((
-				new_row[FIELDS['id']], new_row[FIELDS['pocket']],
-				machine_type, machine_number, move
-			))
+        if move:
+            m = re.match(r'^TM(X?)(\d+)$', new_row[FIELDS['name']])
+            machine_type = 'tmx' if m.group(1) else 'tm'
+            machine_number = int(m.group(2))
+            
+            machine_rows.append((
+                new_row[FIELDS['id']], new_row[FIELDS['pocket']],
+                machine_type, machine_number, move
+            ))
 
-	with DB.H.transaction():
-		DB.H.bulk_insert('item', tuple(field for field in FIELDS if field != 'move'), item_rows)
-		
-		DB.H.bulk_insert(
-			'machine_item',
-			('item', 'pocket', 'type', 'number', 'move'),
-			machine_rows
-		)
+    with DB.H.transaction():
+       DB.H.bulk_insert('item', tuple(field for field in FIELDS if field != 'move'), item_rows)
+        
+       DB.H.bulk_insert(
+            'machine_item',
+            ('item', 'pocket', 'type', 'number', 'move'),
+            machine_rows
+        )

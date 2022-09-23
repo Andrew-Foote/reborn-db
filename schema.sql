@@ -506,38 +506,40 @@ create view "pokemon_move" ("pokemon", "form", "move", "method") as
 create table "map" (
 	"id" integer primary key,
 	"name" text not null, -- name from the MapInfos.rxdata file (appears to reflect in-game name)
-	"pbs_name" text,
-	"desc" text,
-	"parent_id" integer,
-	"order" integer not null unique, -- from MapInfos.rxdata
+	"pbs_name" text, -- name from the PBS metadata.txt file
+	"desc" text, -- hand-written description by me
+	"tileset" text,
+	"width" integer, "height" integer, -- in terms of tiles---technically derivable from the map data but the denormalization is convenient
+	"parent_id" integer, -- from MapInfos.rxdata, no in-game meaning but useful for organisation
+	"order" integer not null unique, -- from MapInfos.rxdata, no in-game meaning AFAIK
 	"expanded" integer not null check (`expanded` in (0, 1)), -- no idea what this means, but it's in MapInfos.rxdata
-	"scroll_x" integer not null,
-	"scroll_y" integer not null,
-	"region_id" integer,
-	"x" integer,
-	"y" integer,
-	`has_location_signpost` integer not null check (`has_location_signpost` in (0, 1)),
-	`battle_backdrop` text,
-	`outdoor` integer not null check (`outdoor` in (0, 1)),
-	`bicycle_usable` integer not null check (`bicycle_usable` in (0, 1)),
-	`bicycle_required` integer not null check (`bicycle_required` in (0, 1)),
-	`flashable` integer not null check (`flashable` in (0, 1)),
-	`sets_teleport_map` integer,
-	`sets_teleport_x` integer,
-	`sets_teleport_y` integer,
-	`underwater_map` integer,
-	`weather` text,
-	`weather_chance` integer,
-	`in_safari_zone` integer not null check (`in_safari_zone` in (0, 1)),
-	`bicycle_music` text not null,
-	`surf_music` text not null,
-	`wild_battle_music` text not null,
-	`wild_win_music` text not null,
-	`trainer_battle_music` text not null,
-	`trainer_win_music` text not null,
-	foreign key (`parent_id`) references `map` (`id`) deferrable initially deferred,
-	foreign key (`sets_teleport_map`) references `map` (`id`) deferrable initially deferred,
-	foreign key (`underwater_map`) references `map` (`id`) deferrable initially deferred
+	"scroll_x" integer not null, -- likewise, no idea
+	"scroll_y" integer not null, -- likewise, no idea
+	"region_id" integer, -- reborn only has region so this one's a bit moot
+	"x" integer, "y" integer, -- x and y coordinates of the area within the region's Town Map
+	-- whether there's a pop-up showing the map name when the player enters
+	"has_location_signpost" integer not null check ("has_location_signpost" in (0, 1)),
+	"battle_backdrop" text,
+	"outdoor" integer not null check ("outdoor" in (0, 1)),
+	"bicycle_usable" integer not null check ("bicycle_usable" in (0, 1)),
+	"bicycle_required" integer not null check ("bicycle_required" in (0, 1)),
+	"flashable" integer not null check ("flashable" in (0, 1)),
+	"sets_teleport_map" integer, -- teleport takes you here.
+	"sets_teleport_x" integer, "sets_teleport_y" integer, -- tile coordinates
+	"underwater_map" integer, -- using dive takes you here
+	"weather" text, "weather_chance" integer,
+	"in_safari_zone" integer not null check ("in_safari_zone" in (0, 1)),
+	"bicycle_music" text not null,
+	"surf_music" text not null,
+	"wild_battle_music" text not null,
+	"wild_win_music" text not null,
+	"trainer_battle_music" text not null,
+	"trainer_win_music" text not null,
+	"data" blob not null, -- the map tile data
+	foreign key ("tileset") references "tileset" ("name"),
+	foreign key ("parent_id") references "map" ("id"), --- deferrable initially deferred,
+	foreign key ("sets_teleport_map") references "map" ("id"), -- deferrable initially deferred,
+	foreign key ("underwater_map") references "map" ("id") -- deferrable initially deferred
 );
 
 create index "map_idx_parent_id" on "map" ("parent_id");
@@ -547,6 +549,7 @@ create table `time_of_day` (
 	`name` text primary key
 	,`desc` text not null
 	,"order" integer not null unique
+	,"range_desc" text not null
 ) without rowid;
 
 -- Pokémon genders.
@@ -798,7 +801,7 @@ select "base"."method", "base"."kind", case
 	when "base"."kind" = 'item' then json_array("item"."name")
 	when "base"."kind" = 'held_item' then json_array("held_item"."name")
 	when "base"."kind" = 'friendship' then json_array()
-	when "base"."kind" = 'time'	then json_array("time"."desc")
+	when "base"."kind" = 'time'	then json_array("time"."desc", "time"."range_desc")
 	when "base"."kind" = 'stat_cmp' then json_array("stat1"."name", "stat2"."name", "er_stat_cmp"."operator")
 	when "base"."kind" = 'coin_flip' then json_array("er_coin_flip"."value")
 	when "base"."kind" = 'leftover' then json_array()
@@ -1218,4 +1221,45 @@ create table "field_effect" (
 	"name" text primary key
 	,"code" integer unique not null
 	,"backdrop" text unique not null
+) without rowid;
+
+create table "game_switch" ("id" integer primary key, "name" text not null);
+create table "game_variable" ("id" integer primary key, "name" text not null);
+
+create table "tileset_file" (
+	"name" text primary key,
+	"content" blob not null
+) without rowid;
+
+create table "panorama" (
+	"name" text primary key,
+	"image" blob not null
+) without rowid;
+
+create table "tileset" (
+	"name" text primary key,
+	"id" integer not null unique,
+	"file" text not null,
+	"panorama" text,
+	-- ignore panorama hue, fog settings, battleback settings
+	-- since these are the same for all tilesets in reborn
+	"passages" blob not null,
+	"priorities" blob not null,
+	"terrain_tags" blob not null,
+	foreign key ("file") references "tileset_file" ("name"),
+	foreign key ("panorama") references "panorama" ("name")
+) without rowid;
+
+create table "autotile" (
+	"name" text primary key,
+	"image" blob not null
+) without rowid;
+
+create table "tileset_autotile" (
+	"tileset" text,
+	"index" integer check ("index" >= 0 and "index" < 7),
+	"autotile" text,
+	primary key ("tileset", "index"),
+	foreign key ("tileset") references "tileset" ("name"),
+	foreign key ("autotile") references "autotile" ("name")
 ) without rowid;

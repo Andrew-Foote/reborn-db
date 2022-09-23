@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+import itertools as it
 from functools import partial
 from typing import Any, Type, TypeVar
 from typing import get_args as type_get_args
@@ -8,6 +9,7 @@ from parsers import marshal
 from parsers.rpg.basic import *
 from parsers.rpg.move_route import *
 from parsers.rpg.event_command import *
+from reborndb import settings
 
 T = TypeVar('T')
 
@@ -38,7 +40,7 @@ class EventPageGraphic:
     tile_id: int
     character_name: str
     character_hue: int
-    direction: int
+    direction: Direction
     pattern: int
     opacity: int
     blend_type: int
@@ -47,7 +49,7 @@ class EventPageGraphic:
     def get(cls: Type[T], graph: marshal.MarshalGraph, ref: marshal.MarshalRef) -> Type[T]:
         return marshal.get_inst(graph, ref, 'RPG::Event::Page::Graphic', cls, {
             'tile_id': marshal.get_fixnum, 'character_name': marshal.get_string,
-            'character_hue': marshal.get_fixnum, 'direction': marshal.get_fixnum,
+            'character_hue': marshal.get_fixnum, 'direction': Direction.get,
             'pattern': marshal.get_fixnum, 'opacity': marshal.get_fixnum,
             'blend_type': marshal.get_fixnum
         })
@@ -115,12 +117,18 @@ class Map:
     bgs: AudioFile
     encounter_list: list
     encounter_step: int
-    data: bytes
+    data: Table
     events: dict[int, Event]
     
     def __post_init__(self):
+        # Sanity checks
+
         assert not self.encounter_list
         assert self.encounter_step == 30
+
+        width, height, depth = self.data.array.shape
+        assert self.width == width
+        assert self.height == height
         
         for event_id, event in self.events.items():
             assert event_id == event.id_
@@ -134,21 +142,29 @@ class Map:
             'autoplay_bgs': marshal.get_bool, 'bgs': AudioFile.get,
             'encounter_list': partial(marshal.get_array, callback=lambda graph, ref: ref),
             'encounter_step': marshal.get_fixnum,
-            'data': partial(marshal.get_user_data, class_name='Table'),
+            'data': partial(Table.get, expected_dimcount=3),
             'events': partial(
                 marshal.get_hash, key_callback=marshal.get_fixnum, value_callback=Event.get
             )
         })    
         
     @classmethod
-    def load(cls, path):
+    def load(cls, map_id):
+        path = settings.REBORN_DATA_PATH / f'Map{map_id:03}.rxdata'
+        print(str(path))
         data = marshal.load_file(str(path))
         return cls.get(data.graph, data.graph.root_ref())
-        
+
+    @classmethod
+    def load_all(cls):
+        for map_id in it.count(1):
+            try:
+                yield map_id, cls.load(map_id)
+            except FileNotFoundError:
+                return
+
 if __name__ == '__main__':
     import sys
-    from reborndb import settings
     map_id = int(sys.argv[1])
-    path = settings.REBORN_DATA_PATH / f'Map{map_id:03}.rxdata'
-    print(path)
-    map_ = Map.load(path)
+    map_ = Map.load(map_id)
+

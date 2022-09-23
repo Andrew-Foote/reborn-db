@@ -3,6 +3,8 @@ import base64
 from collections import OrderedDict
 from dataclasses import dataclass, make_dataclass
 from enum import Enum
+from frozendict import frozendict
+from functools import partial
 import locale
 import math
 import re
@@ -875,6 +877,7 @@ class Loader:
 ###################################################################################################
 # Dump
 ###################################################################################################
+# Forget about this for now (and possibly for ever)
 
 # def dump_long(value: int) -> Iterator[int]:
 #     # https://docs.ruby-lang.org/en/master/marshal_rdoc.html
@@ -1096,6 +1099,9 @@ class Loader:
 
 Lookup = Callable[[MarshalGraph, MarshalRef], Any]
 
+def get_ref(graph: MarshalGraph, ref: MarshalRef) -> MarshalRef:
+    return ref
+
 def get_bool(graph: MarshalGraph, ref: MarshalRef) -> bool:
     return {RUBY_TRUE: True, RUBY_FALSE: False}[graph[ref]]    
 
@@ -1175,15 +1181,29 @@ def get_string(graph: MarshalGraph, ref: MarshalRef) -> str:
     assert not inst_vars
     return vertex.value.decode(*decode_args)
 
-def get_array(graph: MarshalGraph, ref: MarshalRef, callback: Lookup=lambda graph, ref: ref) -> list:
+def get_array(graph: MarshalGraph, ref: MarshalRef, callback: Lookup=get_ref) -> list:
     vertex = graph[ref]
     assert isinstance(vertex, MarshalArray)
     assert not vertex.inst_vars
     assert not vertex.module_ext
     return [callback(graph, item_ref) for item_ref in vertex.items]
     
+def get_atom(graph: MarshalGraph, ref: MarshalRef) -> None | bool | int | float | str:
+    vertex = graph[ref]
+    
+    try:
+        return {RUBY_NIL: None, RUBY_TRUE: True, RUBY_FALSE: False}[vertex]
+    except KeyError:
+        pass
+
+    if isinstance(vertex, RubyFixnum): return vertex.value
+    if isinstance(vertex, RubyBignum): return vertex.value
+    if isinstance(vertex, RubyFloat): return vertex.value
+
+    if isinstance(vertex, RubyString): return get_string(graph, ref)
+    
 def get_hash(
-    graph: MarshalGraph, ref: MarshalRef, key_callback: Lookup, value_callback: Lookup
+    graph: MarshalGraph, ref: MarshalRef, key_callback: Lookup=get_ref, value_callback: Lookup=get_ref
 ) -> dict:
 
     vertex = graph[ref]
@@ -1203,7 +1223,10 @@ def get_inst(
 ) -> Any:
 
     vertex = graph[ref]
-    assert isinstance(vertex, MarshalRegObj)
+
+    if not isinstance(vertex, MarshalRegObj):
+        raise ValueError(f'vertex at ref {ref} is not a regular object')
+
     actual_class_name = get_symbol(graph, vertex.cls)
     
     if actual_class_name != class_name:
@@ -1243,7 +1266,9 @@ def get_user_data(graph: MarshalGraph, ref: MarshalRef, class_name: str) -> byte
         
 ###################################################################################################        
         
-Jsonish = bool | None | int | float | str | list['Jsonish'] | dict[str, 'Jsonish']
+# important that we only use hashable stuff --- Ruby may have arrays/hashes as hash keys
+# (hence why this is only Json-ish)
+Jsonish = bool | None | int | float | str | tuple['Jsonish', ...] | frozendict[str, 'Jsonish']
 
 class JsonishFormatter:
     """Formats a Marshal object graph into a Python object whose structure can be inspected using
@@ -1266,7 +1291,7 @@ class JsonishFormatter:
     def format_at(self, ref: MarshalRef) -> Jsonish:
         if ref.type_ == MarshalRefType.OBJECT and ref in self.seen:
             # maybe would be better to only do the deref if it's a parent
-            return {'deref': str(ref)}
+            return frozendict({'deref': str(ref)})
         else:
             self.seen.add(ref)
         
@@ -1299,12 +1324,12 @@ class JsonishFormatter:
                 'options': ''.join(self.REGEX_OPTIONS_TABLE[flag] for flag in vertex.options)
             }
         elif isinstance(vertex, MarshalArray):
-            res |= {'type': 'array', 'items': [self.format_at(ref) for ref in vertex.items]}
+            res |= {'type': 'array', 'items': tuple(self.format_at(ref) for ref in vertex.items)}
         elif isinstance(vertex, MarshalHash):
-            res['items'] = {
+            res['items'] = frozendict({
                 self.format_at(key_ref): self.format_at(value_ref)
                 for key_ref, value_ref in vertex.items
-            }
+            })
             
             if vertex.default is None:
                 res['type'] = 'hash'
@@ -1313,10 +1338,10 @@ class JsonishFormatter:
         elif isinstance(vertex, MarshalRegObj):
             res |= {'type': 'object', 'class': self.format_at(vertex.cls)}
         elif isinstance(vertex, MarshalStruct):
-            res |= {'type': 'struct', 'name': self.format_at(vertex.name), 'members': {
+            res |= {'type': 'struct', 'name': self.format_at(vertex.name), 'members': frozendict({
                 self.format_at(key_ref): self.format_at(value_ref)
                 for key_ref, value_ref in vertex.members
-            }}
+            })}
         elif isinstance(vertex, MarshalWrappedExtPtr):
             res |= {
                 'type': 'data',
@@ -1348,10 +1373,11 @@ class JsonishFormatter:
             key = self.format_at(key_ref)
             value = self.format_at(value_ref)            
             res['inst_vars'][key] = value
+            
+        res['inst_vars'] = frozendict(res['inst_vars'])
+        res['module_ext'] = tuple(self.format_at(module_ref) for module_ref in module_ext)
         
-        res['module_ext'] = [self.format_at(module_ref) for module_ref in module_ext]
-        
-        return res
+        return frozendict(res)
         
 ###################################################################################################
 
@@ -1370,6 +1396,32 @@ def load_file(filename: str) -> MarshalFile:
 def dump_jsonish(data):
     LIMIT = 120
     
+    def json_dumps(data):
+        if data in (None, True, False) or isinstance(data, (int, float, str)):
+            return json.dumps(data)
+
+        # if data is None: return 'null'
+        # if data is True: return 'true'
+        # if data is False: return 'false'
+        # if isinstance(data, (int, float)): return str(data)
+        # if isinstance(data, str): return json.dumps(data)
+        #     repr_ = repr(data)
+        #     return f'"{repr_[1:-1]}"'
+            
+        if isinstance(data, (list, tuple)):
+            itemreps = [json_dumps(item) for item in data]
+            return '[' + ', '.join(itemreps) + ']'
+            
+        if isinstance(data, (dict, frozendict)):
+            keyreps = [json_dumps(key) for key in data.keys()]
+            valuereps = [json_dumps(value) for value in data.values()]
+            pairreps = [f'{keyrep}: {valuerep}' for keyrep, valuerep in zip(keyreps, valuereps)]
+            return '{' + ', '.join(pairreps) + '}'
+            
+        assert False
+    
+    #json_dumps = partial(json.dumps, default=dict) # convert frozendicts to dicts
+    
     def dumplines(data, indent, prefix, suffix):
         res = []
         
@@ -1383,10 +1435,10 @@ def dump_jsonish(data):
             #if isinstance(data, str):
                 #data = data.encode('utf-8', 'surrogateescape')
                 
-            return [prefix + json.dumps(data) + suffix]
+            return [prefix + json_dumps(data) + suffix]
     
-        if isinstance(data, list):
-            oneline = prefix + json.dumps(data) + suffix
+        if isinstance(data, (tuple, list)):
+            oneline = prefix + json_dumps(data) + suffix
             if len(oneline) <= LIMIT: return [oneline]
             innerindent = indent + ' '
             innerlines = []
@@ -1397,8 +1449,8 @@ def dump_jsonish(data):
             
             return [prefix + '[', *innerlines, indent + ']' + suffix]
             
-        if isinstance(data, dict):
-            oneline = prefix + json.dumps(data) + suffix
+        if isinstance(data, (dict, frozendict)):
+            oneline = prefix + json_dumps(data) + suffix
             if len(oneline) <= LIMIT: return [oneline]
             innerindent = indent + ' '
             innerlines = []
@@ -1406,8 +1458,8 @@ def dump_jsonish(data):
             for i, (key, value) in enumerate(data.items()):
                 innersuffix = ',' if i < len(data) - 1 else ''
                 
-                key_oneline = innerindent + json.dumps(key) + ': '
-                value_oneline = json.dumps(value) + innersuffix
+                key_oneline = innerindent + json_dumps(key) + ': '
+                value_oneline = json_dumps(value) + innersuffix
                 keyvalue_oneline = key_oneline + value_oneline
 
                 if len(keyvalue_oneline) <= LIMIT:
@@ -1451,10 +1503,8 @@ if __name__ == '__main__':
     import sys
     
     path = Path(sys.argv[1])
-    data = JsonishFormatter(load_file(str(path)).graph).format()
+    graph = load_file(str(path)).graph
 
     with open('marshal-output.txt', 'w', encoding='utf-8') as f:
-        #print(json.dumps(data, indent=2), file=f)
-        #print(pprint.pformat(data), file=f)
+        data = JsonishFormatter(graph).format()
         print(dump_jsonish(data), file=f)
-        #print(data, file=f)

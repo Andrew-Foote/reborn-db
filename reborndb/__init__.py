@@ -36,6 +36,7 @@ def connect():
 
         apsw.config(apsw.SQLITE_CONFIG_LOG, handle_error)
         connection = Connection(settings.DB_PATH)
+        connection.exec('pragma synchronous = off')
 
         @atexit.register
         def handle_exit():

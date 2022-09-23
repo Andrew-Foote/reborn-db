@@ -72,282 +72,272 @@ from reborndb import settings
 import dcformat
 
 def extract():
-	pbs_trainer_rows = []
+    pbs_trainer_rows = []
 
-	pbs_trainers = pbs.load('trainers')
+    pbs_trainers = pbs.load('trainers')
 
-	for pbs_order, ((type_, name, id_), trainer) in enumerate(pbs_trainers.items()):
-		pbs_trainer_rows.append((type_, name, id_, pbs_order))
+    for pbs_order, ((type_, name, id_), trainer) in enumerate(pbs_trainers.items()):
+        pbs_trainer_rows.append((type_, name, id_, pbs_order))
 
-	trainers = marshal.load(settings.REBORN_DATA_PATH / 'trainers.dat')
-	rows = defaultdict(lambda: [])
+    graph = marshal.load_file(settings.REBORN_DATA_PATH / 'trainers.dat').graph
+    rows = defaultdict(lambda: [])
+    
+    trainers = marshal.get_array(graph, graph.root_ref())
 
-	assert isinstance(trainers, marshal.MarshalArray)
+    for trainer_type_id, trainers_for_type_ref in enumerate(trainers):
+        trainers_for_type = marshal.get_hash(graph, trainers_for_type_ref)
 
-	for trainer_type_id, trainers_for_type in enumerate(trainers.items):
-		assert isinstance(trainers_for_type, marshal.MarshalHash)
+        for trainer_name_ref, parties_ref in trainers_for_type.items():
+            trainer_name = marshal.get_string(graph, trainer_name_ref)
+            parties = marshal.get_hash(graph, parties_ref)
 
-		prev_trainer_name = None
+            for party_id_ref, party_ref in parties.items():
+                party_id = marshal.get_fixnum(graph, party_id_ref)
+                trainer_id = (trainer_type_id, trainer_name, party_id)
+                rows['marshal_trainer'].append(trainer_id)
+                pokemons_ref, items_ref = marshal.get_array(graph, party_ref)
+                pokemons = marshal.get_array(graph, pokemons_ref)
+                items = marshal.get_array(graph, items_ref, marshal.get_fixnum)
 
-		for trainer_name, parties in trainers_for_type.mapping.items():
-			assert isinstance(trainer_name, marshal.MarshalDecodedString), dcformat.stringify((trainer_type_id, trainer_name, prev_trainer_name))
-			prev_trainer_name = trainer_name
-			trainer_name = trainer_name.content
+                for item_id, quantity in Counter(items).items():
+                    rows['marshal_trainer_item'].append((*trainer_id, item_id, quantity))
 
-			assert isinstance(parties, marshal.MarshalHash)
+                for i, pokemon_ref in enumerate(pokemons):
+                    pokerow = marshal.get_array(graph, pokemon_ref, marshal.get_atom)
+                    rows['marshal_trainer_pokemon'].append((*trainer_id, i, *pokerow))
 
-			for party_id, party in parties.mapping.items():
-				assert isinstance(party_id, marshal.MarshalFixnum)
-				party_id = party_id.val
-				trainer_id = (trainer_type_id, trainer_name, party_id)
-				rows['marshal_trainer'].append(trainer_id)
+    with DB.H.transaction():
+        DB.H.bulk_insert(
+            'trainer',
+            ('type', 'name', 'party_id', 'pbs_order'),
+            pbs_trainer_rows
+        )
 
-				assert isinstance(party, marshal.MarshalArray)
-				pokemons, items = party.items
+        DB.H.dump_as_table(
+            'marshal_trainer_item',
+            ('trainer_type', 'trainer_name', 'party_id', 'item', 'quantity'),
+            rows['marshal_trainer_item']
+        )
 
-				assert isinstance(pokemons, marshal.MarshalArray)
+        DB.H.exec('''
+            insert into "trainer_item" ("trainer_type", "trainer_name", "party_id", "item", "quantity")
+            select "trainer_type"."id", "mti"."trainer_name", "mti"."party_id", "item"."id", "mti"."quantity"
+            from "marshal_trainer_item" as "mti"
+            join "trainer_type" on "trainer_type"."code" = "mti"."trainer_type"
+            left join "item" on "item"."code" = "mti"."item"
+        ''')
 
-				assert isinstance(items, marshal.MarshalArray)
+        DB.H.dump_as_table(
+            'marshal_trainer_pokemon',
+            (
+                'trainer_type', 'trainer_name', 'party_id', 'index', 'pokemon', 'level', 'item',
+                'move1', 'move2', 'move3', 'move4', 'ability', 'gender', 'form', 'shiny',
+                'nature', 'ivs', 'friendship', 'nickname', 'shadow', 'ball', 'hidden_power',
+                'hp_ev', 'atk_ev', 'def_ev', 'spd_ev', 'sa_ev', 'sd_ev'
 
-				for item_id, quantity in Counter(items.items).items():
-					rows['marshal_trainer_item'].append((*trainer_id, item_id.val, quantity))
+            ),
+            rows['marshal_trainer_pokemon']
+        )
 
-				for i, pokemon in enumerate(pokemons.items):
-					pokerow = map(marshal.pythonify, pokemon.items)
-					rows['marshal_trainer_pokemon'].append((*trainer_id, i, *pokerow))
+        DB.H.exec('create index "marshal_trainer_pokemon_idx_ivs" on "marshal_trainer_pokemon" ("ivs")')
+        DB.H.exec('create index "marshal_trainer_pokemon_idx_hp_ev" on "marshal_trainer_pokemon" ("hp_ev")')
 
-	with DB.H.transaction():
-		DB.H.bulk_insert(
-			'trainer',
-			('type', 'name', 'party_id', 'pbs_order'),
-			pbs_trainer_rows
-		)
+        DB.H.exec('''
+            insert into "trainer_pokemon" (
+                "trainer_type", "trainer_name", "party_id", "index", "pokemon", "form",
+                "nickname", "gender", "level", "nature", "item", "friendship",
+                "shiny", "shadow", "ball", "hidden_power"
+            )
+            select
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
+                "pokemon"."id", ifnull("form"."name", ''), "mtp"."nickname",
+                case
+                    when "pokemon"."male_frequency" is null then 'Genderless'
+                    when "pokemon"."male_frequency" = 1000 then 'Male'
+                    when "pokemon"."male_frequency" = 0 then 'Female'
+                    else "gender"."name"
+                end as "gender", 
+                "mtp"."level", "nature"."id", "item"."id", "mtp"."friendship", "mtp"."shiny",
+                "mtp"."shadow", "mtp"."ball", "mtp"."hidden_power"
+            from "marshal_trainer_pokemon" as "mtp"
+            join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+            join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
+            left join "pokemon_form" as "form" on (
+                "form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
+            )
+            left join "gender" on "gender"."code" = "mtp"."gender"
+            join "nature" on "nature"."code" = "mtp"."nature"
+            left join "item" on "item"."code" = "mtp"."item" and "mtp"."item" != 0
 
-		DB.H.dump_as_table(
-			'marshal_trainer_item',
-			('trainer_type', 'trainer_name', 'party_id', 'item', 'quantity'),
-			rows['marshal_trainer_item']
-		)
+        ''')
 
-		DB.H.exec('''
-			insert into "trainer_item" ("trainer_type", "trainer_name", "party_id", "item", "quantity")
-			select "trainer_type"."id", "mti"."trainer_name", "mti"."party_id", "item"."id", "mti"."quantity"
-			from "marshal_trainer_item" as "mti"
-			join "trainer_type" on "trainer_type"."code" = "mti"."trainer_type"
-			left join "item" on "item"."code" = "mti"."item"
-		''')
+        # if mti.ability is actually null, it could be any of the three abilites
+        # but if mti.ability is just an index that the pokemon doesn't have a slot for,
+        # then it may be the first or second ability, but not the hidden one
+        DB.H.exec('''
+            insert into "trainer_pokemon_ability" (
+                "trainer_type", "trainer_name", "party_id", "pokemon_index", "ability"
+            )
+            select
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
+                "ability"."index"
+            from "marshal_trainer_pokemon" as "mtp"
+            join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+            join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
+            left join "pokemon_form" as "form" on (
+                "form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
+            )
+            left join "pokemon_ability" as "matching_ability" on (
+                "matching_ability"."pokemon" = "pokemon"."id"
+                and "matching_ability"."form" = ifnull("form"."name", '')
+                and "matching_ability"."index" = "mtp"."ability" + 1
+            )
+            join "pokemon_ability" as "ability" on (
+                "ability"."pokemon" = "pokemon"."id"
+                and "ability"."form" = ifnull("form"."name", '')
+                and (
+                    "mtp"."ability" is null
+                    or ("matching_ability"."index" is null and "ability"."index" != 3)
+                    or "ability"."index" = "matching_ability"."index"
+                )
+            )
+        ''')
 
-		DB.H.dump_as_table(
-			'marshal_trainer_pokemon',
-			(
-				'trainer_type', 'trainer_name', 'party_id', 'index', 'pokemon', 'level', 'item',
-				'move1', 'move2', 'move3', 'move4', 'ability', 'gender', 'form', 'shiny',
-				'nature', 'ivs', 'friendship', 'nickname', 'shadow', 'ball', 'hidden_power',
-				'hp_ev', 'atk_ev', 'def_ev', 'spd_ev', 'sa_ev', 'sd_ev'
+        DB.H.exec('''
+            insert into "trainer_pokemon_move" (
+                "trainer_type", "trainer_name", "party_id",
+                "pokemon_index", "move_index", "move"
+            )
+            select
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id",
+                "mtp"."index", "mtp_move"."key", "move"."id"
+            from "marshal_trainer_pokemon" as "mtp"
+            join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+            join json_each(json_array(
+                "mtp"."move1", "mtp"."move2", "mtp"."move3", "mtp"."move4"
+            )) as "mtp_move"
+            join "move" on "move"."code" = "mtp_move"."value"
+            where (
+                "mtp"."move1" != 0 or "mtp"."move2" != 0 
+                or "mtp"."move3" != 0 or "mtp"."move4" != 0
+            ) and "mtp_move"."value" != 0
+        ''')
 
-			),
-			rows['marshal_trainer_pokemon']
-		)
+        DB.H.exec('''
+            insert into "trainer_pokemon_move" (
+                "trainer_type", "trainer_name", "party_id",
+                "pokemon_index", "move_index", "move"
+            )
+            select * from (
+                select
+                    "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id",
+                    "mtp"."index",  4 - (rank() over (
+                        partition by "move"."pokemon", "move"."form"
+                        order by "move"."level" desc, "move"."order" desc
+                    )) as "move_index", "move"."move"
+                from "marshal_trainer_pokemon" as "mtp"
+                join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+                join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
+                left join "pokemon_form" as "form" on (
+                    "form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
+                )
+                join "level_move" as "move" on (
+                    "move"."pokemon" = "pokemon"."id"
+                    and "move"."form" = ifnull("form"."name", '')
+                )
+                where (
+                    "mtp"."move1" = 0 and "mtp"."move2" = 0 
+                    and "mtp"."move3" = 0 and "mtp"."move4" = 0
+                )
+            ) where "move_index" > 0
+        ''')
 
-		DB.H.exec('create index "marshal_trainer_pokemon_idx_ivs" on "marshal_trainer_pokemon" ("ivs")')
-		DB.H.exec('create index "marshal_trainer_pokemon_idx_hp_ev" on "marshal_trainer_pokemon" ("hp_ev")')
+        DB.H.exec('''
+            insert into "trainer_pokemon_ev" (
+                "trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
+            )
+            select
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
+                "stat"."id", "ev"."value"
+            from "marshal_trainer_pokemon" as "mtp"
+            join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+            join json_each(json_array(
+                "mtp"."hp_ev", "mtp"."atk_ev", "mtp"."def_ev", "mtp"."spd_ev",
+                "mtp"."sa_ev", "mtp"."sd_ev"
+            )) as "ev"
+            join "stat" on "stat"."order" = "ev"."key"
+            where (
+                "mtp"."hp_ev" != 0 or "mtp"."atk_ev" != 0 or "mtp"."def_ev" != 0
+                or "mtp"."spd_ev" != 0 or "mtp"."sa_ev" != 0 or "mtp"."sd_ev" != 0
+            )
+        ''')
 
-		DB.H.exec('''
-			insert into "trainer_pokemon" (
-				"trainer_type", "trainer_name", "party_id", "index", "pokemon", "form",
-				"nickname", "gender", "level", "nature", "item", "friendship",
-				"shiny", "shadow", "ball", "hidden_power"
-			)
-			select
-				"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
-				"pokemon"."id", ifnull("form"."name", ''), "mtp"."nickname",
-				case
-					when "pokemon"."male_frequency" is null then 'Genderless'
-					when "pokemon"."male_frequency" = 1000 then 'Male'
-					when "pokemon"."male_frequency" = 0 then 'Female'
-					else "gender"."name"
-				end as "gender", 
-				"mtp"."level", "nature"."id", "item"."id", "mtp"."friendship", "mtp"."shiny",
-				"mtp"."shadow", "mtp"."ball", "mtp"."hidden_power"
-			from "marshal_trainer_pokemon" as "mtp"
-			join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-			join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
-			left join "pokemon_form" as "form" on (
-				"form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
-			)
-			left join "gender" on "gender"."code" = "mtp"."gender"
-			join "nature" on "nature"."code" = "mtp"."nature"
-			left join "item" on "item"."code" = "mtp"."item" and "mtp"."item" != 0
+        DB.H.exec('''
+            insert into "trainer_pokemon_ev" (
+                "trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
+            )
+            select
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
+                "stat"."id", min(85, "mtp"."level" * 3 / 2)
+            from "marshal_trainer_pokemon" as "mtp"
+            join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+            join "stat"
+            where (
+                "mtp"."hp_ev" = 0 and "mtp"."atk_ev" = 0 and "mtp"."def_ev" = 0
+                and "mtp"."spd_ev" = 0 and "mtp"."sa_ev" = 0 and "mtp"."sd_ev" = 0
+            )
+        ''')
 
-		''')
+        DB.H.exec('''
+            insert into "trainer_pokemon_iv" (
+                "trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
+            )
+            select
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
+                "stat"."id", "mtp"."ivs"
+            from "marshal_trainer_pokemon" as "mtp"
+            join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+            join "stat"
+            where "mtp"."ivs" != 32
+        ''')
 
-		# if mti.ability is actually null, it could be any of the three abilites
-		# but if mti.ability is just an index that the pokemon doesn't have a slot for,
-		# then it may be the first or second ability, but not the hidden one
-		DB.H.exec('''
-			insert into "trainer_pokemon_ability" (
-				"trainer_type", "trainer_name", "party_id", "pokemon_index", "ability"
-			)
-			select
-				"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
-				"ability"."index"
-			from "marshal_trainer_pokemon" as "mtp"
-			join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-			join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
-			left join "pokemon_form" as "form" on (
-				"form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
-			)
-			left join "pokemon_ability" as "matching_ability" on (
-				"matching_ability"."pokemon" = "pokemon"."id"
-				and "matching_ability"."form" = ifnull("form"."name", '')
-				and "matching_ability"."index" = "mtp"."ability" + 1
-			)
-			join "pokemon_ability" as "ability" on (
-				"ability"."pokemon" = "pokemon"."id"
-				and "ability"."form" = ifnull("form"."name", '')
-				and (
-					"mtp"."ability" is null
-					or ("matching_ability"."index" is null and "ability"."index" != 3)
-					or "ability"."index" = "matching_ability"."index"
-				)
-			)
-		''')
+        DB.H.exec('''
+            insert into "trainer_pokemon_iv" (
+                "trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
+            )
+            select
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
+                "stat"."id", case when "stat"."id" = 'SPD' then 0 else 31 end
+            from "marshal_trainer_pokemon" as "mtp"
+            join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
+            join "stat"
+            where "mtp"."ivs" = 32
+        ''')
 
-		DB.H.exec('''
-			insert into "trainer_pokemon_move" (
-				"trainer_type", "trainer_name", "party_id",
-				"pokemon_index", "move_index", "move"
-			)
-			select
-				"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id",
-				"mtp"."index", "mtp_move"."key", "move"."id"
-			from "marshal_trainer_pokemon" as "mtp"
-			join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-			join json_each(json_array(
-				"mtp"."move1", "mtp"."move2", "mtp"."move3", "mtp"."move4"
-			)) as "mtp_move"
-			join "move" on "move"."code" = "mtp_move"."value"
-			where (
-				"mtp"."move1" != 0 or "mtp"."move2" != 0 
-				or "mtp"."move3" != 0 or "mtp"."move4" != 0
-			) and "mtp_move"."value" != 0
-		''')
+        # special cases from PokemonEncounterModifiers.rb
 
-		DB.H.exec('''
-			insert into "trainer_pokemon_move" (
-				"trainer_type", "trainer_name", "party_id",
-				"pokemon_index", "move_index", "move"
-			)
-			select * from (
-				select
-					"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id",
-					"mtp"."index",  4 - (rank() over (
-						partition by "move"."pokemon", "move"."form"
-						order by "move"."level" desc, "move"."order" desc
-					)) as "move_index", "move"."move"
-				from "marshal_trainer_pokemon" as "mtp"
-				join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-				join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
-				left join "pokemon_form" as "form" on (
-					"form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
-				)
-				join "level_move" as "move" on (
-					"move"."pokemon" = "pokemon"."id"
-					and "move"."form" = ifnull("form"."name", '')
-				)
-				where (
-					"mtp"."move1" = 0 and "mtp"."move2" = 0 
-					and "mtp"."move3" = 0 and "mtp"."move4" = 0
-				)
-			) where "move_index" > 0
-		''')
+        DB.H.exec('''
+            update "trainer_pokemon" set "nickname" = 'Same as player', "gender" = 'Same as player'
+            where
+                "trainer_type" in ('SHELLY', 'FUTURESHELLY') and "trainer_name" = 'Shelly'
+                and "index" = 5 and "pokemon" = 'LEAVANNY'
+        ''')
 
-		DB.H.exec('''
-			insert into "trainer_pokemon_ev" (
-				"trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
-			)
-			select
-				"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
-				"stat"."id", "ev"."value"
-			from "marshal_trainer_pokemon" as "mtp"
-			join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-			join json_each(json_array(
-				"mtp"."hp_ev", "mtp"."atk_ev", "mtp"."def_ev", "mtp"."spd_ev",
-				"mtp"."sa_ev", "mtp"."sd_ev"
-			)) as "ev"
-			join "stat" on "stat"."order" = "ev"."key"
-			where (
-				"mtp"."hp_ev" != 0 or "mtp"."atk_ev" != 0 or "mtp"."def_ev" != 0
-				or "mtp"."spd_ev" != 0 or "mtp"."sa_ev" != 0 or "mtp"."sd_ev" != 0
-			)
-		''')
+        DB.H.exec('''
+            update "trainer_pokemon" set "nickname" = 'Same one you gave to the Darkrai that Shiv appeared to give you'
+            where
+                "trainer_type" = 'DARKRAI' and "trainer_name" = 'Darkrai'
+                and "index" = 3 and "pokemon" = 'DARKRAI'
+        ''')
 
-		DB.H.exec('''
-			insert into "trainer_pokemon_ev" (
-				"trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
-			)
-			select
-				"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
-				"stat"."id", min(85, "mtp"."level" * 3 / 2)
-			from "marshal_trainer_pokemon" as "mtp"
-			join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-			join "stat"
-			where (
-				"mtp"."hp_ev" = 0 and "mtp"."atk_ev" = 0 and "mtp"."def_ev" = 0
-				and "mtp"."spd_ev" = 0 and "mtp"."sa_ev" = 0 and "mtp"."sd_ev" = 0
-			)
-		''')
-
-		DB.H.exec('''
-			insert into "trainer_pokemon_iv" (
-				"trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
-			)
-			select
-				"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
-				"stat"."id", "mtp"."ivs"
-			from "marshal_trainer_pokemon" as "mtp"
-			join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-			join "stat"
-			where "mtp"."ivs" != 32
-		''')
-
-		DB.H.exec('''
-			insert into "trainer_pokemon_iv" (
-				"trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
-			)
-			select
-				"trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
-				"stat"."id", case when "stat"."id" = 'SPD' then 0 else 31 end
-			from "marshal_trainer_pokemon" as "mtp"
-			join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-			join "stat"
-			where "mtp"."ivs" = 32
-		''')
-
-		# special cases from PokemonEncounterModifiers.rb
-
-		DB.H.exec('''
-			update "trainer_pokemon" set "nickname" = 'Same as player', "gender" = 'Same as player'
-			where
-				"trainer_type" in ('SHELLY', 'FUTURESHELLY') and "trainer_name" = 'Shelly'
-				and "index" = 5 and "pokemon" = 'LEAVANNY'
-		''')
-
-		DB.H.exec('''
-			update "trainer_pokemon" set "nickname" = 'Same one you gave to the Darkrai that Shiv appeared to give you'
-			where
-				"trainer_type" = 'DARKRAI' and "trainer_name" = 'Darkrai'
-				and "index" = 3 and "pokemon" = 'DARKRAI'
-		''')
-
-		# for trainer type 'DARKRAI', trainer name 'Darkrai',
-		# 4th party member, species 'DARKRAI',
-		# the name is set to $game_variables[782] if it's a non-empty string
-		# and it's shiny if $game_switches[2200] is true
-		# so we need to find where those variables/switches are set (can't see them CTRL+Fing map 893)
-		# (it just looked like a normal darkrai when i got to it in-game)
-		# oh wait, there's a second darkrai... and it looks like it has the same nickname i gave to
-		# the fake darkrai i got from shiv
-		# (still don't know fur sure if the shininess is affected by shiv's gift. especially since you
-		# never actually see that darkrai, so i don't know if it would have a personality value)
-		# the darkrai is given in endgame, so we should examine the map scripts for endgame
+        # for trainer type 'DARKRAI', trainer name 'Darkrai',
+        # 4th party member, species 'DARKRAI',
+        # the name is set to $game_variables[782] if it's a non-empty string
+        # and it's shiny if $game_switches[2200] is true
+        # so we need to find where those variables/switches are set (can't see them CTRL+Fing map 893)
+        # (it just looked like a normal darkrai when i got to it in-game)
+        # oh wait, there's a second darkrai... and it looks like it has the same nickname i gave to
+        # the fake darkrai i got from shiv
+        # (still don't know fur sure if the shininess is affected by shiv's gift. especially since you
+        # never actually see that darkrai, so i don't know if it would have a personality value)
+        # the darkrai is given in endgame, so we should examine the map scripts for endgame

@@ -101,7 +101,9 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
             pokemon_names = [f'<a href="{URL_BASE}/pokemon/{slugify(name)}.html">{name}</a>' for name in pokemon_names]
             sentence += ' in exchange for ' + conjunction_join('or', pokemon_names)
         elif kind == 'time':
-            vs = [v[0] for v in vs]
+            vnames = [v[0] for v in vs]
+            vranges = [v[1] for v in vs]
+            vs = [f'{vname} ({vrange})' for vname, vrange in zip(vnames, vranges)]
             sentence += ' during ' + conjunction_join('or', vs)
         elif kind == 'held_item':
             vs = [v[0] for v in vs]

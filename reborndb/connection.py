@@ -123,7 +123,7 @@ class Connection:
     def quote(self, name):
         return f'"{name}"'
 
-    def bulk_insert(self, table, columns, data):
+    def bulk_insert(self, table, columns, data, *, debug=False):
         """Do a bulk insert into a table of data given in a simple row-by-row format.
 
         This method will execute one query per row, so make sure to call it within a transaction to
@@ -138,7 +138,9 @@ class Connection:
         placeholders = ', '.join(('?',) * len(columns))
 
         for row in data:
-            self.exec(f'insert into {table}{collist} values ({placeholders})', row)
+            query = f'insert into {table}{collist} values ({placeholders})'
+            if debug: print(query, row)
+            self.exec(query, row)
 
     def dump_as_table(self, name, columns, data):
         if columns is None:
