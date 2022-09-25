@@ -1263,3 +1263,56 @@ create table "tileset_autotile" (
 	foreign key ("tileset") references "tileset" ("name"),
 	foreign key ("autotile") references "autotile" ("name")
 ) without rowid;
+
+create table "direction" ("name" text primary key, "code" integer not null unique) without rowid;
+insert into "direction" ("name", "code")
+values
+('none', 0),
+('down', 2),
+('left', 4),
+('right', 6),
+('up', 8);
+
+create table "move_type" ("name" text primary key, "code" integer not null unique) without rowid;
+insert into "move_type" ("name", "code")
+values
+('fixed', 0),
+('random', 1),
+('approach', 2),
+('custom', 3);
+
+create table "move_speed" ("name" text primary key, "code" integer not null unique) without rowid;
+insert into "move_speed" ("name", "code")
+values
+('slowest', 1), -- the superior unit system
+('slower', 2),
+('slow', 3),
+('fast', 4),
+('faster', 5),
+('fastest', 6);
+
+create table "move_frequency" ("name" text primary key, "code" integer not null unique) without rowid;
+insert into "move_frequency" ("name", "code")
+values
+('lowest', 1),
+('lower', 2),
+('low', 3),
+('high', 4),
+('higher', 5),
+('highest', 6);
+
+create table "common_event_trigger" ("name" text primary key, "code" integer not null unique) without rowid;
+insert into "common_event_trigger" ("name", "code")
+values
+('none', 0),
+('autorun', 1),
+('parallel', 2);
+
+create table "common_event" (
+	"id" integer primary key,
+	"name" text not null,
+	"trigger" text not null,
+	"switch" integer not null,
+	foreign key ("trigger") references "common_event_trigger" ("name"),
+	foreign key ("switch") references "game_switch" ("id")
+);

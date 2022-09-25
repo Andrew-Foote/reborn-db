@@ -44,12 +44,17 @@ class MoveFrequency(FixnumBasedEnum):
     HIGHER = 5
     HIGHEST = 6
     
-class Trigger(FixnumBasedEnum):
+class EventPageTrigger(FixnumBasedEnum):
     ACTION_BUTTON = 0
     PLAYER_TOUCH = 1
     EVENT_TOUCH = 2
     AUTORUN = 3
     PARALLEL_PROCESS = 4
+
+class CommonEventTrigger(FixnumBasedEnum):
+    NONE = 0
+    AUTORUN = 1
+    PARALLEL = 2
     
 class SwitchState(FixnumBasedEnum):
     ON = 0
@@ -151,32 +156,88 @@ class AudioFile:
 
 @dataclass
 class Table:
+    bytes_: bytes
     array: np.array
 
     @classmethod
-    def get(cls: Type[T], graph: marshal.MarshalGraph, ref: marshal.MarshalRef, expected_dimcount=None) -> Type[T]:
+    def get(
+        cls: Type[T], graph: marshal.MarshalGraph, ref: marshal.MarshalRef, expected_dimcount=None
+    ) -> Type[T]:
+    
         bytes_ = marshal.get_user_data(graph, ref, 'Table')
+
+        # The data begins with a 32-bit signed integer giving the number of dimensions in the
+        # array.
         dimcount = int.from_bytes(bytes_[:4], 'little', signed=True)
         assert 1 <= dimcount <= 3
 
         if expected_dimcount is not None and dimcount != expected_dimcount:
-            raise ValueError(f'Table object at ref {ref} has {dimcount} dimensions, expected {expected_dimcount}')
+            raise ValueError(
+                f'Table object at ref {ref} has {dimcount} dimensions, expected '
+                f'{expected_dimcount}'
+            )
+
+        # Next come three more 32-bit signed integers giving the size of each dimension, in number
+        # of tiles. Order is width, height, depth. If the number of dimensions is less than 3 then
+        # the remaining dimensions will be 1.
 
         dimensions = []
 
         for i in range(3):
-            offset = 4 + i * 4
-            dimsize = int.from_bytes(bytes_[offset:offset + 4], 'little', signed=True)
+            size = int.from_bytes(bytes_[4 * (i + 1):4 * (i + 2)], 'little', signed=True)
+            if i >= dimcount: assert size == 1
+            dimensions.append(size)
 
-            if i < dimcount:
-                dimensions.append(dimsize)
-            else:
-                assert dimsize == 1
+        width, height, depth = dimensions
 
+        # Next comes a final 32-bit signed integer which is simply equal to the product of the
+        # dimensions, giving us no new information.
         datalen = int.from_bytes(bytes_[16:20], 'little', signed=True)
-        assert datalen * 2 == len(bytes_) - 20, (datalen, len(bytes_), list(bytes_))
+        assert datalen == width * height * depth
 
-        # Assuming the data will be laid out like numpy does it (first dimension most major)
-        # but this needs to be confirmed
-        array = np.ndarray(shape=dimensions, buffer=bytes_[20:], dtype='h')
-        return cls(array)
+        # The remaining data consists of 16-bit signed integers, which reference tiles from the
+        # map's tileset. There is one of these for each tile, and the number of tiles is equal to
+        # the product of the dimensions, so the total length of the remaning data is twice the
+        # integer that we just read (datalen).
+        tiledata = bytes_[20:]
+        assert len(tiledata) == datalen * 2
+
+        # Tiles are arranged so that adjacent tiles have the same depth, height and width, in that
+        # order of preference. Since we access the tiles via (x, y, z) coordinates this is
+        # "Fortran order"---as you iterate over the data, the fastest-changing indices are the
+        # earliest ones.
+        array = np.ndarray(shape=(width, height, depth), dtype='h', buffer=bytes_[20:], order='F')
+        return cls(bytes_, array)
+
+    @property
+    def width(self): return self.array.shape[0]
+
+    @property
+    def height(self): return self.array.shape[1]
+
+    @property
+    def depth(self): return self.array.shape[2]
+
+    def __getitem__(self, indices):
+        x, y, z = indices
+        return self.array[x, y, z]
+
+    def format(self) -> str:
+        rows = []
+
+        # maximum size expected is 5 digits
+
+        for y in range(self.height):
+            row = []
+
+            for z in range(self.depth):
+                subrow = []
+
+                for x in range(self.width):
+                    subrow.append(f'{self[x, y, z]:05}')
+
+                row.append(' '.join(subrow))
+
+            rows.append('\n'.join(row))
+
+        return '\n\n'.join(rows)

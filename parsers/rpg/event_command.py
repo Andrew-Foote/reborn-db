@@ -260,6 +260,8 @@ CONDITIONAL_BRANCH_TYPES = {
     # char ref is -1 for player, 0 for this event, an event id otherwise. no, i don't really know what that means
     6: ('Character', ('char_ref', marshal.get_fixnum), ('direction', Direction.get)),
     7: ('Gold', ('amount', marshal.get_fixnum), ('bound_type', BoundType.get)),
+    # button is an enum but we don't know the mapping (it's in the closed-source RGSS lib)
+    11: ('Button', ('button', marshal.get_fixnum)),
     12: ('Script', ('expr', marshal.get_string)),
 }
 

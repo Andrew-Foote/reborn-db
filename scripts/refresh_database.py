@@ -4,6 +4,7 @@ from reborndb import DB
 extractor_names = [
 	'switches_and_variables',
 	'tilesets',
+	'common_events',
 	'abilities',
 	'types',
 	'moves',
@@ -21,7 +22,14 @@ extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for nam
 
 EXCEPTIONS = [
 	'event_encounter',
-	'marshal_mapdata'
+	'marshal_mapdata',
+	'map_event',
+	'event_page',
+	'event_page_switch_condition',
+	'event_page_variable_condition',
+	'event_page_self_switch_condition',
+	'event_page_tile',
+	'event_page_character'
 ]
 
 def run():

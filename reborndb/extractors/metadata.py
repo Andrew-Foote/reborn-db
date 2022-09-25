@@ -70,6 +70,7 @@ def extract():
 
     with DB.H.transaction():
         DB.H.dump_as_table('marshal_mapinfo', ('map_id', *marshal_mapinfo_cols), marshal_mapinfo_rows)
+        DB.H.exec('create index "marshal_mapinfo_idx_map_id" on "marshal_mapinfo" ("map_id")')
         
         DB.H.exec('''
             insert into "map" (

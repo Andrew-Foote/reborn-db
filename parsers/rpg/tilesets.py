@@ -4,6 +4,12 @@ from parsers import marshal
 from reborndb import settings
 from parsers.rpg.basic import *
     
+# Each tile is a 32 x 32 section of the tileset file.
+# The tileset file is always 256 pixels wide, i.e. 8 tiles wide,
+# but can be any multiple of 32 pixels high.
+# I'm guessing the tile IDs are allocated left-to-right, top-to-bottom.
+# We should be able to turn a map data table into an image, then...
+
 @dataclass
 class Tileset:
     id_: int

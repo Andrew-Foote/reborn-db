@@ -144,8 +144,7 @@ if __name__ == '__main__':
     import sys
     from reborndb import settings
     map_id = int(sys.argv[1])
-    path = settings.REBORN_DATA_PATH / f'Map{map_id:03}.rxdata'
-    map_ = rpg.Map.load(path)
+    map_ = rpg.Map.load(map_id)
     printer = Printer()
     printer.print_map(map_)
 

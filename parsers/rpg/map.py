@@ -67,7 +67,7 @@ class EventPage:
     direction_fix: bool
     through: bool
     always_on_top: bool
-    trigger: Trigger
+    trigger: EventPageTrigger
     list_: list[EventCommand]        
     
     @classmethod
@@ -82,7 +82,7 @@ class EventPage:
             'move_frequency': MoveFrequency.get, 'move_route': MoveRoute.get,
             'walk_anime': marshal.get_bool, 'step_anime': marshal.get_bool,
             'direction_fix': marshal.get_bool, 'through': marshal.get_bool,
-            'always_on_top': marshal.get_bool, 'trigger': Trigger.get,
+            'always_on_top': marshal.get_bool, 'trigger': EventPageTrigger.get,
             'list': partial(marshal.get_array, callback=EventCommand.get)
         })
         
@@ -126,9 +126,9 @@ class Map:
         assert not self.encounter_list
         assert self.encounter_step == 30
 
-        width, height, depth = self.data.array.shape
-        assert self.width == width
-        assert self.height == height
+        assert self.width == self.data.width
+        assert self.height == self.data.height
+        assert self.data.depth == 3
         
         for event_id, event in self.events.items():
             assert event_id == event.id_
@@ -151,7 +151,6 @@ class Map:
     @classmethod
     def load(cls, map_id):
         path = settings.REBORN_DATA_PATH / f'Map{map_id:03}.rxdata'
-        print(str(path))
         data = marshal.load_file(str(path))
         return cls.get(data.graph, data.graph.root_ref())
 
@@ -165,6 +164,31 @@ class Map:
 
 if __name__ == '__main__':
     import sys
+    from PIL import Image
+    from parsers.rpg import tilesets
+
     map_id = int(sys.argv[1])
     map_ = Map.load(map_id)
 
+    data = map_.data
+    tileset = tilesets.lookup(map_.tileset_id)
+    tileset_img = Image.open(settings.REBORN_GRAPHICS_PATH / 'Tilesets' / f'{tileset.tileset_name}.png')
+
+    def split_image(img, width_per_part, height_per_part):
+        for y in range(0, img.height, height_per_part):
+            for x in range(0, img.width, width_per_part):
+                cropped = img.crop((x, y, x + width_per_part, y + height_per_part))
+                yield cropped
+
+    # we will solve autotiles... later
+    basictiles = list(split_image(tileset_img, 32, 32))
+    img = Image.new(tileset_img.mode, (data.width * 32, data.height * 32))
+
+    for z in range(data.depth):
+        for x in range(data.width):
+            for y in range(data.height):
+                tile_id = data[x, y, z]
+
+                if tile_id >= 384:
+                    tile = basictiles[tile_id - 384]
+                    img.paste(tile, (x * 32, y * 32), tile)
