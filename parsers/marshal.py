@@ -113,6 +113,8 @@ MarshalLacksRef = RubyTrue | RubyFalse | RubyNil | RubyFixnum
 # with a module gives "can't define singleton", while for clas/module refs it gives no error but
 # isn't preserved on dumping.)
 
+# UPDATE: it turns out floats (and basically everything that's not a value ref) should have eq=False
+
 # Floats, symbols, class/module refs
 
 @dataclass(frozen=True)
@@ -124,10 +126,20 @@ class RubyFloat(MarshalVertex):
 # as bytes and a `decoded_name` method is provided which will decode the name to UTF-8 (with
 # invalid bytes escaped via surrogates).
 
+# oh wait! update! it turns out symbols do end up with encoding inst vars, if you put a non-ascii
+# char in them! but i think that's the only inst var they can have---as they still compare
+# for equality based on value
+
 @dataclass(frozen=True)
 class RubySymbol(MarshalVertex):
     name: bytes
     def decoded_name(self) -> str: return self.name.decode('utf-8', 'surrogateescape')
+
+    def __post_init__(self):
+        for b in self.name:
+            if b >= 128:
+                print(name)
+                break
 
 @dataclass(frozen=True)
 class RubyClassRef(MarshalVertex):

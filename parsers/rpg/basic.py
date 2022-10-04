@@ -142,6 +142,16 @@ class TextPosition(FixnumBasedEnum):
     MIDDLE = 1
     BOTTOM = 2
 
+class SelfSwitchName(Enum):
+    A = 'A'
+    B = 'B'
+    C = 'C'
+    D = 'D'
+
+    @classmethod
+    def get(cls: Type[T], graph: marshal.MarshalGraph, ref: marshal.MarshalRef) -> Type[T]:
+        return cls(marshal.get_string(graph, ref))
+
 @dataclass
 class AudioFile:
     name: str

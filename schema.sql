@@ -226,9 +226,9 @@ create table `item_in_battle_usability` (
 ) without rowid;
 
 -- Item types, to more specificity than supplied by the bag pocket (e.g. evolution stone, fossil).
-create table `item_type` (
-	`name` text primary key,
-	`code` integer not null unique
+create table "item_type" (
+	"name" text primary key,
+	"code" integer not null unique
 ) without rowid;
 
 -- Items.
@@ -431,32 +431,6 @@ create table "level_move" (
 
 create index "level_move_idx_move" on "level_move" ("move");
 
-create view "preevo_move" ("pokemon", "form", "preevo", "preevo_form", "dist", "method", "level", "order", "move") as
--- SQLite is too stupid to optimize away the union to egg_move if I were to just use the pokemon_move
--- view here
-with "non_egg_move" ("pokemon", "form", "move", "method", "level", "order") as (
-	select "pokemon", "form", "move", 'level', "level", "order" from "level_move"
-	union
-	select "pokemon", "form", "move", 'machine', null, null from "machine_move"
-	union
-	select "pokemon", "form", "move", 'tutor', null, null from "tutor_move"
-)
-select
-	"form"."pokemon", "form"."name", "preevo"."from", "preevo"."from_form", "preevo"."dist",
-	"move"."method", "move"."level", "move"."order", "move"."move"
-from "pokemon_form" as "form"
-join "evolution_trcl" as "preevo" on (
-	"preevo"."to" = "form"."pokemon" and "preevo"."to_form" = "form"."name"
-)
-join "non_egg_move" as "move" on (
-	"move"."pokemon" = "preevo"."from" and "move"."form" = "preevo"."from_form"
-)
-left join "non_egg_move" as "evo_move" on (
-   "evo_move"."pokemon" = "form"."pokemon" and "evo_move"."form" = "form"."name"
-   and "evo_move"."move" = "move"."move"
-)
-where "evo_move"."move" is null;
-
 -- Egg moves.
 create table "egg_move" (
 	"pokemon" text,
@@ -493,14 +467,34 @@ create table "tutor_move" (
 
 create index "tutor_move_idx_move" on "tutor_move" ("move");
 
-create view "pokemon_move" ("pokemon", "form", "move", "method") as
-	select "pokemon", "form", "move", 'level' from "level_move"
+create view "pokemon_move" ("pokemon", "form", "move", "method", "level", "order") as
+	select "pokemon", "form", "move", 'level', "level", "order" from "level_move"
 	union
-	select "pokemon", "form", "move", 'egg' from "egg_move"
+	select "pokemon", "form", "move", 'egg', null, null from "egg_move"
 	union
-	select "pokemon", "form", "move", 'machine' from "machine_move"
+	select "pokemon", "form", "move", 'machine', null, null from "machine_move"
 	union
-	select "pokemon", "form", "move", 'tutor' from "tutor_move";
+	select "pokemon", "form", "move", 'tutor', null, null from "tutor_move";
+
+-- note that this includes egg moves --- this is relevant because for a Pokémon like Roserade, it
+-- can learn either Extrasensory via Budew's egg move or Bullet Seed via Roselia's egg moves, but
+-- not both
+create view "preevo_move" ("pokemon", "form", "preevo", "preevo_form", "dist", "method", "level", "order", "move") as
+select
+	"form"."pokemon", "form"."name", "preevo"."from", "preevo"."from_form", "preevo"."dist",
+	"move"."method", "move"."level", "move"."order", "move"."move"
+from "pokemon_form" as "form"
+join "evolution_trcl" as "preevo" on (
+	"preevo"."to" = "form"."pokemon" and "preevo"."to_form" = "form"."name"
+)
+join "pokemon_move" as "move" on (
+	"move"."pokemon" = "preevo"."from" and "move"."form" = "preevo"."from_form"
+)
+left join "pokemon_move" as "evo_move" on (
+   "evo_move"."pokemon" = "form"."pokemon" and "evo_move"."form" = "form"."name"
+   and "evo_move"."move" = "move"."move"
+)
+where "evo_move"."move" is null;
 
 -- Overworld maps.
 create table "map" (
@@ -543,6 +537,22 @@ create table "map" (
 );
 
 create index "map_idx_parent_id" on "map" ("parent_id");
+
+create table "map_bgm" (
+	"map" integer primary key,
+	"file" text not null,
+	"volume" integer not null,
+	"pitch" integer not null,
+	foreign key ("map") references "map" ("id")
+);
+
+create table "map_bgs" (
+	"map" integer primary key,
+	"file" text not null,
+	"volume" integer not null,
+	"pitch" integer not null,
+	foreign key ("map") references "map" ("id")
+);
 
 -- Times of day (day, night or dusk---note that dusk is a sub-period of day).
 create table `time_of_day` (

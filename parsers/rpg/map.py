@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 import itertools as it
 from functools import partial
-from typing import Any, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar
 from typing import get_args as type_get_args
 
 from parsers import marshal
@@ -23,7 +23,7 @@ class EventPageCondition:
     switch2_id: int # references a switch from System.rxdata
     variable_id: int # references a variable from System.rxdata
     variable_value: int
-    self_switch_ch: str
+    self_switch_ch: SelfSwitchName # this can be one of 'A', 'B', 'C', 'D'
     
     @classmethod
     def get(cls: Type[T], graph: marshal.MarshalGraph, ref: marshal.MarshalRef) -> Type[T]:
@@ -32,7 +32,7 @@ class EventPageCondition:
             'variable_valid': marshal.get_bool, 'self_switch_valid': marshal.get_bool,
             'switch1_id': marshal.get_fixnum, 'switch2_id': marshal.get_fixnum,
             'variable_id': marshal.get_fixnum, 'variable_value': marshal.get_fixnum,
-            'self_switch_ch': marshal.get_string
+            'self_switch_ch': SelfSwitchName.get,
         })
         
 @dataclass
@@ -62,11 +62,15 @@ class EventPage:
     move_speed: MoveSpeed
     move_frequency: MoveFrequency
     move_route: MoveRoute
-    walk_anime: bool
-    step_anime: bool
-    direction_fix: bool
-    through: bool
-    always_on_top: bool
+
+    # Not really sure what these options mean, but here are some guesses, based on stuff like this:
+    # https://forums.rpgmakerweb.com/index.php?threads/what-does-the-event-options-do.147592/
+
+    walk_anime: bool # determines whether the character sprite will display a "walking animation" while it's moving.
+    step_anime: bool # Determines whether the character sprite will display a "stepping animation" while it's stationary.
+    direction_fix: bool # "makes it impossible to change a character's direction"
+    through: bool # "makes it possible to sneak through an impassable tile or character"
+    always_on_top: bool # "makes the display priority higher than any other tile or character"
     trigger: EventPageTrigger
     list_: list[EventCommand]        
     
@@ -111,10 +115,10 @@ class Map:
     tileset_id: int # references data in tilesets.rxdata
     width: int
     height: int
-    autoplay_bgm: bool
-    bgm: AudioFile
-    autoplay_bgs: bool
-    bgs: AudioFile
+    autoplay_bgm: bool # "Auto-Change BGM" - looks like bgm will only be set if this is true
+    bgm: Optional[AudioFile]
+    autoplay_bgs: bool # "Auto-Change BGS" - looks like bgs will only be set if this is true
+    bgs: Optional[AudioFile]
     encounter_list: list
     encounter_step: int
     data: Table
@@ -129,7 +133,12 @@ class Map:
         assert self.width == self.data.width
         assert self.height == self.data.height
         assert self.data.depth == 3
-        
+
+        # the bgm doesn't show in RPG Maker if autoplay_bgm is false, nonetheless this assertion doesn't hold
+        #assert (not self.autoplay_bgm) == (self.bgm == AudioFile('', 100, 100)), (self.autoplay_bgm, self.bgm)
+        if not self.bgm.name: self.bgm = None
+        if not self.bgs.name: self.bgs = None
+
         for event_id, event in self.events.items():
             assert event_id == event.id_
     
@@ -167,28 +176,31 @@ if __name__ == '__main__':
     from PIL import Image
     from parsers.rpg import tilesets
 
-    map_id = int(sys.argv[1])
-    map_ = Map.load(map_id)
+    if len(sys.argv) == 1:
+        maps = Map.load_all()
+    else:
+        map_id = int(sys.argv[1])
+        map_ = Map.load(map_id)
 
-    data = map_.data
-    tileset = tilesets.lookup(map_.tileset_id)
-    tileset_img = Image.open(settings.REBORN_GRAPHICS_PATH / 'Tilesets' / f'{tileset.tileset_name}.png')
+        data = map_.data
+        tileset = tilesets.lookup(map_.tileset_id)
+        tileset_img = Image.open(settings.REBORN_GRAPHICS_PATH / 'Tilesets' / f'{tileset.tileset_name}.png')
 
-    def split_image(img, width_per_part, height_per_part):
-        for y in range(0, img.height, height_per_part):
-            for x in range(0, img.width, width_per_part):
-                cropped = img.crop((x, y, x + width_per_part, y + height_per_part))
-                yield cropped
+        def split_image(img, width_per_part, height_per_part):
+            for y in range(0, img.height, height_per_part):
+                for x in range(0, img.width, width_per_part):
+                    cropped = img.crop((x, y, x + width_per_part, y + height_per_part))
+                    yield cropped
 
-    # we will solve autotiles... later
-    basictiles = list(split_image(tileset_img, 32, 32))
-    img = Image.new(tileset_img.mode, (data.width * 32, data.height * 32))
+        # we will solve autotiles... later
+        basictiles = list(split_image(tileset_img, 32, 32))
+        img = Image.new(tileset_img.mode, (data.width * 32, data.height * 32))
 
-    for z in range(data.depth):
-        for x in range(data.width):
-            for y in range(data.height):
-                tile_id = data[x, y, z]
+        for z in range(data.depth):
+            for x in range(data.width):
+                for y in range(data.height):
+                    tile_id = data[x, y, z]
 
-                if tile_id >= 384:
-                    tile = basictiles[tile_id - 384]
-                    img.paste(tile, (x * 32, y * 32), tile)
+                    if tile_id >= 384:
+                        tile = basictiles[tile_id - 384]
+                        img.paste(tile, (x * 32, y * 32), tile)

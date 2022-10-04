@@ -357,7 +357,8 @@ with
             order by "egg_move"."pokemon", "egg_move"."form", "move"."name"
         ) as "egg_move"
         group by "egg_move"."pokemon", "egg_move"."form"
-    ) as "egg_moves" on "egg_moves"."pokemon" = "evo_base"."base_pokemon" and "egg_moves"."form" = "evo_base"."base_form"
+    ) as "egg_moves" on "egg_moves"."pokemon" = "form"."pokemon" and "egg_moves"."form" = "form"."name"
+    -- ) as "egg_moves" on "egg_moves"."pokemon" = "evo_base"."base_pokemon" and "egg_moves"."form" = "evo_base"."base_form"
     left join (
         with recursive "evo_tree" (
             "level", "root", "root_form", "id", "form", "pokemon_order", "form_order", "node"

@@ -122,7 +122,14 @@ def extract():
             stream = io.BytesIO()
             np.save(stream, mapdata.data.array)
             databytes = stream.getvalue()
-            rows.append((map_id, mapdata.tileset_id, mapdata.width, mapdata.height, databytes))
+
+            bgm = (None,) * 3 if mapdata.autoplay_bgm or mapdata.bgm is None else (mapdata.bgm.name, mapdata.bgm.volume, mapdata.bgm.pitch)
+            bgs = (None,) * 3 if mapdata.autoplay_bgs or mapdata.bgs is None else (mapdata.bgs.name, mapdata.bgs.volume, mapdata.bgs.pitch)
+
+            rows.append((
+                map_id, mapdata.tileset_id, mapdata.width, mapdata.height, databytes,
+                *bgm, *bgs
+            ))
 
             for event in mapdata.events.values():
                 event_rows.append((map_id, event.id_, event.name, event.x, event.y))
@@ -182,8 +189,10 @@ def extract():
             DB.H.bulk_insert('event_page_character', (*page_id_cols, 'character_name', 'character_hue', 'direction', 'pattern', 'opacity', 'blend_type'), character_rows)
 
     with DB.H.transaction():
-        DB.H.dump_as_table('marshal_mapdata', ('map_id', 'tileset', 'width', 'height', 'data'), rows)
-        
+        DB.H.dump_as_table( 'marshal_mapdata', ('map_id', 'tileset', 'width', 'height', 'data',
+            'bgm_file', 'bgm_volume', 'bgm_pitch', 'bgs_file', 'bgs_volume', 'bgs_pitch'
+        ), rows)
+
 def save_map_tiles(map_id, mapdata, tilesets):
     data = mapdata.data
     tileset = tilesets[mapdata.tileset_id]

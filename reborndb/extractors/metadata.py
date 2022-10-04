@@ -129,6 +129,16 @@ def extract():
             join "tileset" on "tileset"."id" = "mapdata"."tileset"
         ''')
 
+        DB.H.exec('''
+            insert into "map_bgm" ("map", "file", "volume", "pitch")
+            select "map_id", "bgm_file", "bgm_volume", "bgm_pitch" from "marshal_mapdata"
+        ''')
+
+        DB.H.exec('''
+            insert into "map_bgs" ("map", "file", "volume", "pitch")
+            select "map_id", "bgs_file", "bgs_volume", "bgs_pitch" from "marshal_mapdata"
+        ''')
+
     # pbs_data = pbs.load('metadata')
     # rows = []
     # defaults = {}
