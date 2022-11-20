@@ -467,6 +467,11 @@ create table "tutor_move" (
 
 create index "tutor_move_idx_move" on "tutor_move" ("move");
 
+create table "move_learn_method" (
+	"name" text primary key,
+	"order" integer not null unique
+) without rowid;
+
 create view "pokemon_move" ("pokemon", "form", "move", "method", "level", "order") as
 	select "pokemon", "form", "move", 'level', "level", "order" from "level_move"
 	union
