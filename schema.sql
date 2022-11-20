@@ -861,7 +861,7 @@ left join "weather" as "weather" on "weather"."name" = "er_weather"."weather"
 order by 
  "item"."code", "held_item"."code", "time"."order", "stat1"."order", "stat2"."order",
  "er_coin_flip"."value", "gender"."code", "teammate"."number", "map"."order", "move"."code",
- "trademate"."number", "teammate_type"."code", "move_type"."code";
+ "trademate"."number", "teammate_type"."code", "move_type"."code", "weather"."order";
 
 -- Determines the method for evolving one Pokémon into another.
 create table `pokemon_evolution_method` (
