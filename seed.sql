@@ -1157,9 +1157,9 @@ insert into "time_of_day" ("name", "desc", "order", "range_desc")
 values
 ('Day', 'day', 1, '6am–8pm'),
 ('Morning', 'morning', 2, '6am–noon'),
-('DayNotMorning', 'day (not morning)', 3, '6am–noon'),
-('DayNotDusk', 'day (not dusk)', 4, 'noon-6pm and 7pm–6am'),
-('Dusk', 'dusk', 5, '6pm–7pm'),
+('DayNotMorning', 'day (not morning)', 3, 'noon-8pm'),
+('DayNotDusk', 'day (not dusk)', 4, '6am-5pm and 6pm–8pm'),
+('Dusk', 'dusk', 5, '5pm–6pm'),
 ('Night', 'night', 6, '8pm–6am');
 
 insert into "gender" ("name", "code")
