@@ -95,16 +95,42 @@ left join (
 left join (
     select "encounter"."map", json_group_array(json_object(
         'pokemon', "encounter"."pokemon", 'form', "encounter"."form"
-        ,'type', "encounter"."type", 'level', "encounter"."level"
+        ,'type', "encounter"."type", 'level', "encounter"."level",
+        'ot', "encounter"."ot", 'trainer_id', "encounter"."trainer_id",
+        'hp', "encounter"."hp", 'friendship', "encounter"."friendship",
+        'held_item', "encounter"."held_item", 'ability', "encounter"."ability",
+        'moves', json("encounter"."moves"), 'ivs', json("encounter"."ivs")
     )) as "all" from (
         select
             "encounter"."map_id" as "map",
             "pokemon"."name" as "pokemon", "form"."name" as "form",
-            "encounter"."type", "encounter"."level"
+            "encounter"."type", "encounter"."level", "encounter"."ot", "encounter"."trainer_id",
+            "encounter"."gender", "encounter"."hp", "encounter"."friendship",
+            "held_item"."name" as "held_item", "ability"."ability",
+            (
+                select json_group_array(
+                    json_object('id', "move"."id", 'name', "move"."name")
+                )
+                from json_each("encounter"."moves") as "encmove"
+                join "move" on "move"."id" = "encmove"."value"
+            ) as "moves",
+            (
+                select json_group_array(
+                    json_object('stat', "stat"."name", 'value', "iv"."value")
+                )
+                from json_each("encounter"."ivs") as "iv"
+                join "stat" on "stat"."order" = "iv"."key"
+            ) as "ivs"
         from "event_encounter" as "encounter"
         join "pokemon" on "pokemon"."id" = "encounter"."pokemon"
         join "pokemon_form" as "form" on (
             "form"."pokemon" = "encounter"."pokemon" and "form"."order" = "encounter"."form"
+        )
+        left join "item" as "held_item" on "held_item"."id" = "encounter"."held_item"
+        left join "pokemon_ability" as "ability" on (
+            "ability"."pokemon" = "form"."pokemon"
+            and "ability"."form" = "form"."name"
+            and "ability"."index" = "encounter"."ability" + 1
         )
         order by "pokemon"."number", "form"."order"
     ) as "encounter"
