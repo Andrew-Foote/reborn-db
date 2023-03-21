@@ -328,7 +328,7 @@ with
                 "encounter"."type", "encounter"."level",
                 "encounter"."ot", "encounter"."trainer_id", "encounter"."gender",
                 "encounter"."hp", "encounter"."friendship",
-                "held_item"."name" as "held_item", "ability"."ability",
+                "held_item"."name" as "held_item", "ability"."name" as "ability",
                 (
                     select json_group_array(
                         json_object('id', "move"."id", 'name', "move"."name")
@@ -350,11 +350,12 @@ with
                 "form"."pokemon" = "encounter"."pokemon"
                 and "form"."order" = "encounter"."form"
             )
-            left join "pokemon_ability" as "ability" on (
-                "ability"."pokemon" = "form"."pokemon"
-                and "ability"."form" = "form"."name"
-                and "ability"."index" = "encounter"."ability" + 1
+            left join "pokemon_ability" on (
+                "pokemon_ability"."pokemon" = "form"."pokemon"
+                and "pokemon_ability"."form" = "form"."name"
+                and "pokemon_ability"."index" = "encounter"."ability" + 1
             )
+            left join "ability" on "ability"."id" = "pokemon_ability"."ability"
             order by "map"."order"
         ) as "specialenc"
         group by "specialenc"."pokemon", cast("specialenc"."form" as int) -- string vs. int diff cause sunnecesary splitting

@@ -501,43 +501,42 @@
 					<td>{{ encounter.level }}</td>
 					<td>
 						{% if encounter.ot is not none %}
-							<b><abbr title="Original Trainer">OT</abbr></b>: {{ encounter.ot }}
-							<br>
+							<div><b><abbr title="Original Trainer">OT</abbr></b>: {{ encounter.ot }}</div>
+							<div>
 							<b>Trainer ID</b>:
 							{% if encounter.trainer_id == '$RANDOM' %}
 								<abbr title="A random 32-bit integer distinct from the current player's trainer ID.">random</abbr>
 							{% else %}
 								{{ encounter.trainer_id }}
 							{% endif %}
-							<br>
+							</div>
 						{% endif %}
 						{% if encounter.moves %}
-							<b>Moves</b>:
+							<div><b>Moves</b>:
 							{% for move in encounter.moves %}
 								<a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a>{% if not loop.last %},{% endif %}
 							{% endfor %}
-							<br>
+							</div>
 						{% endif %}
 						{% if encounter.gender %}
-							<b>Gender</b>: {{ encounter.gender }}<br>
+							<div><b>Gender</b>: {{ encounter.gender }}</div>
 						{% endif %}
 						{% if encounter.ivs %}
-							<b>IVs</b>:
 							{% for iv in encounter.ivs %}
-								{{ iv.value }} in {{ iv.stat }}{% if not loop.last %},{% endif %}
+								<div><b>{{ iv.stat }} IV</b>: {{ iv.value }}</div>
 							{% endfor %}
 						{% endif %}
 						{% if encounter.hp %}
-							<b>HP</b>: {{ encounter.hp }}
+							<div><b>HP</b>: {{ encounter.hp }}</div>
 						{% endif %}
 						{% if encounter.held_item %}
-							<a href="{{ url_base }}/item/{{ encounter.held_item|slug }}.html">{{ encounter.held_item }}</a>
+							<div><b>Held item</b>: <a href="{{ url_base }}/item/{{ encounter.held_item|slug }}.html">{{ encounter.held_item }}</a></div>
 						{% endif %}
 						{% if encounter.friendship %}
-							<b>Friendship</b>: {{ encounter.friendship }}
+							<div><b>Friendship</b>: {{ encounter.friendship }}</div>
 						{% endif %}
 						{% if encounter.ability %}
-							<b>Ability</b>: {{ encounter.ability }}
+							<div><b>Ability</b>: <a href="{{ url_base }}/ability/{{ encounter.ability|slug }}.html">{{ encounter.ability }}</a></div>
 						{% endif %}
 					</td>
 				</tr>
