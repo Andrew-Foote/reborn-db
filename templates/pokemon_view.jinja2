@@ -485,12 +485,13 @@
 		<section>
 			<h3>Special encounters</h3>
 
-			<table style="width: 70%; margin: auto">
+			<table style="margin: auto">
 				<tr>
 					<th>Area ID</th>
 					<th>Area name</th>
 					<th>Encounter type</th>
 					<th>Level</th>
+					<th>Other attributes of note</th>
 				</tr>
 				{% for encounter in form.special_encounters %}
 				<tr>
@@ -498,6 +499,47 @@
 					<td>{{ encounter.map_name }}</td>
 					<td>{{ encounter.type }}</td>
 					<td>{{ encounter.level }}</td>
+					<td style="white-space: nowrap">
+						{% if encounter.ot is not none %}
+							<b><abbr title="Original Trainer">OT</abbr></b>: {{ encounter.ot }}
+							<br>
+							<b>Trainer ID</b>:
+							{% if encounter.trainer_id == '$RANDOM' %}
+								<abbr title="A random 32-bit integer distinct from the current player's trainer ID.">random</abbr>
+							{% else %}
+								{{ encounter.trainer_id }}
+							{% endif %}
+							<br>
+						{% endif %}
+						{% if encounter.moves %}
+							<b>Moves</b>:
+							{% for move in encounter.moves %}
+								<a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a>{% if not loop.last %},{% endif %}
+							{% endfor %}
+							<br>
+						{% endif %}
+						{% if encounter.gender %}
+							<b>Gender</b>: {{ encounter.gender }}<br>
+						{% endif %}
+						{% if encounter.ivs %}
+							<b>IVs</b>:
+							{% for iv in encounter.ivs %}
+								{{ iv.value }} in {{ iv.stat }}{% if not loop.last %},{% endif %}
+							{% endfor %}
+						{% endif %}
+						{% if encounter.hp %}
+							<b>HP</b>: {{ encounter.hp }}
+						{% endif %}
+						{% if encounter.held_item %}
+							<a href="{{ url_base }}/item/{{ encounter.held_item|slug }}.html">{{ encounter.held_item }}</a>
+						{% endif %}
+						{% if encounter.friendship %}
+							<b>Friendship</b>: {{ encounter.friendship }}
+						{% endif %}
+						{% if encounter.ability %}
+							<b>Ability</b>: {{ encounter.ability }}
+						{% endif %}
+					</td>
 				</tr>
 				{% endfor %}
 			</table>

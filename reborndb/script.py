@@ -34,7 +34,7 @@ NUMBER = r'(\d+(?:\.\d+)?)'
 STRING = r'("[^"]*")'
 IDENTIFIER = r'[:\$]?([a-zA-Z_][a-zA-Z_0-9]*[?!]?)'
 QUALIFIED_IDENTIFIER = IDENTIFIER + '::' + IDENTIFIER
-KV_SEP = r'=>?'
+KV_SEP = r'=>?|:'
 SYMBOL = r'([\[\]{},])'
 
 tokenize = lexer(

@@ -315,15 +315,46 @@ with
             "specialenc"."pokemon", "specialenc"."form",
             json_group_array(json_object(
                 'map_id', "specialenc"."map_id", 'map_name', "specialenc"."map_name",
-                'type', "specialenc"."type", 'level', "specialenc"."level"
+                'type', "specialenc"."type", 'level', "specialenc"."level",
+                'ot', "specialenc"."ot", 'trainer_id', "specialenc"."trainer_id",
+                'gender', "specialenc"."gender", 'hp', "specialenc"."hp", 'friendship', "specialenc"."friendship",
+                'held_item', "specialenc"."held_item", 'ability', "specialenc"."ability",
+                'moves', json("specialenc"."moves"), 'ivs', json("specialenc"."ivs")
             )) as "all"
         from (
             select
                 "encounter"."pokemon", "encounter"."form",
                 "map"."id" as "map_id", "map"."name" as "map_name",
-                "encounter"."type", "encounter"."level"
+                "encounter"."type", "encounter"."level",
+                "encounter"."ot", "encounter"."trainer_id", "encounter"."gender",
+                "encounter"."hp", "encounter"."friendship",
+                "held_item"."name" as "held_item", "ability"."ability",
+                (
+                    select json_group_array(
+                        json_object('id', "move"."id", 'name', "move"."name")
+                    )
+                    from json_each("encounter"."moves") as "encmove"
+                    join "move" on "move"."id" = "encmove"."value"
+                ) as "moves",
+                (
+                    select json_group_array(
+                        json_object('stat', "stat"."name", 'value', "iv"."value")
+                    )
+                    from json_each("encounter"."ivs") as "iv"
+                    join "stat" on "stat"."order" = "iv"."key"
+                ) as "ivs"
             from "event_encounter" as "encounter"
             join "map" on "map"."id" = "encounter"."map_id"
+            left join "item" as "held_item" on "held_item"."id" = "encounter"."held_item"
+            left join "pokemon_form" as "form" on (
+                "form"."pokemon" = "encounter"."pokemon"
+                and "form"."order" = "encounter"."form"
+            )
+            left join "pokemon_ability" as "ability" on (
+                "ability"."pokemon" = "form"."pokemon"
+                and "ability"."form" = "form"."name"
+                and "ability"."index" = "encounter"."ability" + 1
+            )
             order by "map"."order"
         ) as "specialenc"
         group by "specialenc"."pokemon", cast("specialenc"."form" as int) -- string vs. int diff cause sunnecesary splitting

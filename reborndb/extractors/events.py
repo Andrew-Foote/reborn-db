@@ -83,7 +83,8 @@ for map_id, in map_ids:
 					m = re.match(r'poke.trainerID\s*=\s*(.*)', param)
 
 					if m is not None:
-						statevars['trainer_id'] = m.group(1)
+						trainer_id = m.group(1)
+						statevars['trainer_id'] = '$RANDOM' if trainer_id == '$Trainer.getForeignID' else trainer_id
 						continue
 
 					m = re.match(r'poke.pbLearnMove\(:(\w+)\)', param)
@@ -203,7 +204,9 @@ for map_id, in map_ids:
 						statevars.get('form', 0), statevars.get('level', None),
 						'trade',
 						# tstrictly speaking we need to look up the trainer name and get ot and id from there
-						statevars.get('trainer_name'), statevars.get('trainer_name'),
+						# wait, on rereading pbStartTrade, no we don't --- id is just a random 32-bit number
+						# not equal to current player's id, and name reflects name in the method call
+						statevars.get('trainer_name'), '$RANDOM',
 						json.dumps(statevars.get('moves', [])), statevars.get('gender'),
 						json.dumps(statevars.get('iv', {})),
 						statevars.get('hp'), statevars.get('held_item'), statevars.get('happiness'),
