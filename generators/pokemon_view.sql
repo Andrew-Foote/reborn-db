@@ -314,52 +314,64 @@ with
         select
             "specialenc"."pokemon", "specialenc"."form",
             json_group_array(json_object(
-                'map_id', "specialenc"."map_id", 'map_name', "specialenc"."map_name",
-                'type', "specialenc"."type", 'level', "specialenc"."level",
-                'ot', "specialenc"."ot", 'trainer_id', "specialenc"."trainer_id",
-                'gender', "specialenc"."gender", 'hp', "specialenc"."hp", 'friendship', "specialenc"."friendship",
-                'held_item', "specialenc"."held_item", 'ability', "specialenc"."ability",
-                'moves', json("specialenc"."moves"), 'ivs', json("specialenc"."ivs")
+                'map_id', "specialenc"."map_id", 'map_name', "specialenc"."map_name", 'event', "specialenc"."event",
+                'type', "specialenc"."type", 'level', "specialenc"."level", 'nickname', "specialenc"."nickname",
+                'hp', "specialenc"."hp", 'gender', "specialenc"."gender", 'held_item', "specialenc"."held_item",
+                'friendship', "specialenc"."friendship", 'ability', "specialenc"."ability",
+                'move_preference', json("specialenc"."move_preference"), 'ot', "specialenc"."ot", 'trainer_id', "specialenc"."trainer_id",
+                'move_sets', json("specialenc"."move_sets"), 'ivs', json("specialenc"."ivs")
             )) as "all"
         from (
             select
                 "encounter"."pokemon", "encounter"."form",
+                coalesce("encounter_common_event"."event", "encounter_map"."event") as "event",
                 "map"."id" as "map_id", "map"."name" as "map_name",
-                "encounter"."type", "encounter"."level",
-                "encounter"."ot", "encounter"."trainer_id", "encounter"."gender",
-                "encounter"."hp", "encounter"."friendship",
-                "held_item"."name" as "held_item", "ability"."name" as "ability",
+                "encounter"."type", "encounter"."level", "encounter"."nickname",
+                "encounter"."hp", "encounter"."gender", "held_item"."name" as "held_item",
+                "encounter"."friendship", "ability"."name" as "ability",
+                json_object('name', "move_preference"."name", 'id', "move_preference"."id") as "move_preference",
+                "encounter_ot"."ot", "encounter_ot"."trainer_id", "encounter"."gender",
                 (
-                    select json_group_array(
-                        json_object('id', "move"."id", 'name', "move"."name")
-                    )
-                    from json_each("encounter"."moves") as "encmove"
-                    join "move" on "move"."id" = "encmove"."value"
-                ) as "moves",
+                    select json_group_array("moves")
+                    from (
+                        select json_group_array(
+                           json_object('id', "move"."id", 'name', "move"."name")
+                        ) as "moves"
+                        from "event_encounter_extra_move_set" as "set"
+                        join "event_encounter_move" as "encmove" on "encmove"."set" = "set"."id"
+                        join "move" on "move"."id" = "encmove"."move"
+                        where "set"."encounter" = "encounter"."id"
+                        group by "set"."id"
+                    ) as "move_sets_subq"
+                ) as "move_sets",
                 (
                     select json_group_array(
                         json_object('stat', "stat"."name", 'value', "iv"."value")
                     )
-                    from json_each("encounter"."ivs") as "iv"
-                    join "stat" on "stat"."order" = "iv"."key"
+                    from "event_encounter_iv" as "iv"
+                    join "stat" on "stat"."id" = "iv"."stat"
+                    where "iv"."encounter" = "encounter"."id"
+                    order by "stat"."order"
                 ) as "ivs"
             from "event_encounter" as "encounter"
-            join "map" on "map"."id" = "encounter"."map_id"
+            left join "encounter_common_event" on "encounter_common_event"."encounter" = "encounter"."id"
+            left join "encounter_map_event" as "encounter_map" on "encounter_map"."encounter" = "encounter"."id"
+            left join "map" on "map"."id" = "encounter_map"."map"
             left join "item" as "held_item" on "held_item"."id" = "encounter"."held_item"
-            left join "pokemon_form" as "form" on (
-                "form"."pokemon" = "encounter"."pokemon"
-                and "form"."order" = "encounter"."form"
-            )
             left join "pokemon_ability" on (
-                "pokemon_ability"."pokemon" = "form"."pokemon"
-                and "pokemon_ability"."form" = "form"."name"
-                and "pokemon_ability"."index" = "encounter"."ability" + 1
+                "pokemon_ability"."pokemon" = "encounter"."pokemon"
+                and "pokemon_ability"."form" = "encounter"."form"
+                and "pokemon_ability"."index" = "encounter"."ability"
             )
             left join "ability" on "ability"."id" = "pokemon_ability"."ability"
+            left join "move" as "move_preference" on "move_preference"."id" = "encounter"."move_preference"
+            left join "event_encounter_ot" as "encounter_ot" on "encounter_ot"."encounter" = "encounter"."id"
             order by "map"."order"
         ) as "specialenc"
-        group by "specialenc"."pokemon", cast("specialenc"."form" as int) -- string vs. int diff cause sunnecesary splitting
-    ) as "specialencs" on "specialencs"."pokemon" = "form"."pokemon" and "specialencs"."form" = "form"."order"
+        group by "specialenc"."pokemon", "specialenc"."form"
+    ) as "specialencs" on "specialencs"."pokemon" = "form"."pokemon" and (
+        "specialencs"."form" = "form"."name" or "specialencs"."form" is null
+    )
     left join (
         with recursive "evo_base" ("pokemon", "form", "base_pokemon", "base_form") as (
             select "form"."pokemon", "form"."name", "form"."pokemon", "form"."name"

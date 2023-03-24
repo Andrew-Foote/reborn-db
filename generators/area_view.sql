@@ -16,6 +16,20 @@ with "encounter_form_note" ("map", "id", "pokemon", "content") as (
     where "form_note"."note" is not null
     group by "encounter"."map", "encounter"."pokemon"
 )
+,"event_encounter_form_note_w_id" ("map", "id", "encounter", "content") as (
+    select
+        "encounter"."map"
+        ,row_number() over (partition by "encounter"."map") as "id"
+        ,"encounter"."id" as "encounter"
+        ,replace("form_note"."note", '$ID', row_number() over (partition by "encounter"."map")) as "note"
+    from (
+        select "encounter_map"."map", "encounter"."id"
+        from "encounter_map_event" as "encounter_map"
+        join "event_encounter" as "encounter" on "encounter"."id" = "encounter_map"."encounter"
+    ) as "encounter"
+    left join "event_encounter_form_note" as "form_note" on "form_note"."encounter" = "encounter"."id"
+    where "form_note"."note" is not null
+)
 ,"encounter" ("map", "method", "rate", "pokemon", "form", "form_note", "min_level", "max_level") as (
      select
         "encounter"."map", "method"."desc", "encounter"."rate"
@@ -48,6 +62,7 @@ select "map"."id", json_object(
     ,'encounters', ifnull(json("encounters"."all"), json_array())
     ,'encounter_form_notes', ifnull(json("encounter_form_notes"."all"), json_array())
     ,'special_encounters', ifnull(json("special_encounters"."all"), json_array())
+    ,'event_encounter_form_notes', ifnull(json("event_encounter_form_notes"."all"), json_array())
 )
 from "map"
 left join "map" as "parent" on "parent"."id" = "map"."parent_id"
@@ -93,46 +108,67 @@ left join (
     group by "form_note"."map"
 ) as "encounter_form_notes" on "encounter_form_notes"."map" = "map"."id"
 left join (
+    select "form_note"."map", json_group_array(json_object(
+        'id', "form_note"."id", 'content', "form_note"."content"
+    )) as "all"
+    from "event_encounter_form_note_w_id" as "form_note"
+    group by "form_note"."map"
+) as "event_encounter_form_notes" on "event_encounter_form_notes"."map" = "map"."id"
+left join (
     select "encounter"."map", json_group_array(json_object(
-        'pokemon', "encounter"."pokemon", 'form', "encounter"."form"
-        ,'type', "encounter"."type", 'level', "encounter"."level",
+        'pokemon', "encounter"."pokemon", 'form', "encounter"."form", 'form_note', "encounter"."form_note",
+        'type', "encounter"."type", 'level', "encounter"."level", 'nickname', "encounter"."nickname",
         'ot', "encounter"."ot", 'trainer_id', "encounter"."trainer_id",
-        'hp', "encounter"."hp", 'friendship', "encounter"."friendship",
+        'hp', "encounter"."hp", 'gender', "encounter"."gender", 'friendship', "encounter"."friendship",
         'held_item', "encounter"."held_item", 'ability', "encounter"."ability",
-        'moves', json("encounter"."moves"), 'ivs', json("encounter"."ivs")
+        'move_preference', json("encounter"."move_preference"), 'move_sets', json("encounter"."move_sets"),
+        'ivs', json("encounter"."ivs")
     )) as "all" from (
         select
-            "encounter"."map_id" as "map",
-            "pokemon"."name" as "pokemon", "form"."name" as "form",
-            "encounter"."type", "encounter"."level", "encounter"."ot", "encounter"."trainer_id",
-            "encounter"."gender", "encounter"."hp", "encounter"."friendship",
-            "held_item"."name" as "held_item", "ability"."name" as "ability",
+            "encounter_map"."map" as "map",
+            "pokemon"."name" as "pokemon", "form"."name" as "form", "form_note"."id" as "form_note",
+            "encounter"."type", "encounter"."level", "encounter"."nickname",
+            "encounter"."hp", "encounter"."gender", "held_item"."name" as "held_item",
+            "encounter"."friendship", "ability"."name" as "ability", "encounter_ot"."ot", "encounter_ot"."trainer_id",
+            json_object('id', "move_preference"."id", 'name', "move_preference"."name") as "move_preference",
             (
-                select json_group_array(
-                    json_object('id', "move"."id", 'name', "move"."name")
-                )
-                from json_each("encounter"."moves") as "encmove"
-                join "move" on "move"."id" = "encmove"."value"
-            ) as "moves",
+                select json_group_array("moves")
+                from (
+                    select json_group_array(
+                       json_object('id', "move"."id", 'name', "move"."name")
+                    ) as "moves"
+                    from "event_encounter_extra_move_set" as "set"
+                    join "event_encounter_move" as "encmove" on "encmove"."set" = "set"."id"
+                    join "move" on "move"."id" = "encmove"."move"
+                    where "set"."encounter" = "encounter"."id"
+                    group by "set"."id"
+                ) as "move_sets_subq"
+            ) as "move_sets",
             (
                 select json_group_array(
                     json_object('stat', "stat"."name", 'value', "iv"."value")
                 )
-                from json_each("encounter"."ivs") as "iv"
-                join "stat" on "stat"."order" = "iv"."key"
+                from "event_encounter_iv" as "iv"
+                join "stat" on "stat"."id" = "iv"."stat"
+                where "iv"."encounter" = "encounter"."id"
+                order by "stat"."order"
             ) as "ivs"
-        from "event_encounter" as "encounter"
+        from "encounter_map_event" as "encounter_map"
+        join "event_encounter" as "encounter" on "encounter"."id" = "encounter_map"."encounter"
         join "pokemon" on "pokemon"."id" = "encounter"."pokemon"
-        join "pokemon_form" as "form" on (
-            "form"."pokemon" = "encounter"."pokemon" and "form"."order" = "encounter"."form"
+        left join "pokemon_form" as "form" on (
+            "form"."pokemon" = "encounter"."pokemon" and "form"."name" = "encounter"."form"
         )
+        left join "event_encounter_form_note_w_id" as "form_note" on "form_note"."encounter" = "encounter"."id"
         left join "item" as "held_item" on "held_item"."id" = "encounter"."held_item"
         left join "pokemon_ability" on (
             "pokemon_ability"."pokemon" = "form"."pokemon"
             and "pokemon_ability"."form" = "form"."name"
-            and "pokemon_ability"."index" = "encounter"."ability" + 1
+            and "pokemon_ability"."index" = "encounter"."ability"
         )
         left join "ability" on "ability"."id" = "pokemon_ability"."ability"
+        left join "event_encounter_ot" as "encounter_ot" on "encounter_ot"."encounter" = "encounter"."id"
+        left join "move" as "move_preference" on "move_preference"."id" = "encounter"."move_preference"
         order by "pokemon"."number", "form"."order"
     ) as "encounter"
     group by "encounter"."map"    

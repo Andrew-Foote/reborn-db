@@ -13,7 +13,7 @@ The SQLite database itself is not stored in this Git repository as largeish bina
 I use [DB Browser for SQLite](https://sqlitebrowser.org/) to browse the data most of the time, but there are some tables (e.g. `pokemon_encounter_rate`) which make use of a custom collation, and there are also custom functions that I've found useful for generating the website views. The custom collations and functions aren't stored with the database, so if you view it using DB Browser for SQLite, you can't use them. If you do want to use them, you can set up a virtual environment for the project according to the instructions below, then open up the Python shell within the virtual environment and do
 
     from reborndb import DB
-    
+
 Then you will be able to access a database connection object via the expression `DB.H`, which you can use to run SQL queries. See `reborndb\connection.py` for the interface of this connection object.
 
 # Build instructions
@@ -29,12 +29,14 @@ Create a virtual environment (replace `py` with whatever command you use to invo
 Install modules from requirements.txt (replace `env\Scripts\pip` with `env\bin\pip` if on Mac/Linux):
 
      env\Scripts\pip install -r requirements.txt
-     
+
 Edit `reborndb/settings.py` and ensure that `REBORN_INSTALL_PATH` points to a Pokémon Reborn installation.
 
 Build the database:
 
-     env\Scripts\python __main__.py db
+     env\Scripts\python __main__.py db_full
+
+(Note: the first time you do this, you need to use `db_full`. Afterwards, most of the time you can just use `db`, which will skip rebuilding parts of the database that are particularly time-consuming to rebuild.)
 
 Build the website:
 

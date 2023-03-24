@@ -350,7 +350,7 @@ COMMAND_TYPES[122] = ('ControlVariables',)
 OPERAND_TYPES = {
     0: ('InvariantOperand', ('value', marshal.get_fixnum)),
     1: ('VariableOperand', ('var_id', marshal.get_fixnum)),
-    2: ('RandomNumberOpernad', ('lb', marshal.get_fixnum), ('ub', marshal.get_fixnum)),
+    2: ('RandomNumberOperand', ('lb', marshal.get_fixnum), ('ub', marshal.get_fixnum)),
     6: ('CharacterOperand', ('attr_value', marshal.get_fixnum), ('attr_code', marshal.get_fixnum)),
     7: ('OtherOperand', ('infracode', marshal.get_fixnum))
 }

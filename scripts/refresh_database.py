@@ -1,4 +1,5 @@
 import importlib
+import os
 from reborndb import DB
 
 extractor_names = [
@@ -18,10 +19,15 @@ extractor_names = [
 	'trainers',
 ]
 
-extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]
+#extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]
 
 EXCEPTIONS = [
-	'event_encounter',
+	#'event_encounter',
+	#'event_encounter_ot',
+	#'event_encounter_move',
+	#'encounter_common_event',
+	#'encounter_map_event',
+	'event_encounter_old',
 	'marshal_mapdata',
 	'map_event',
 	'event_page',
@@ -34,6 +40,9 @@ EXCEPTIONS = [
 
 def run():
 	DB.H.dropall(exceptions=EXCEPTIONS)
+
+	if os.environ.get('FULL'):
+		extractor_names.append('event_encounters')
 	
 	print('Creating schema... ', end='')
 	with DB.H.transaction(): DB.H.execscript('schema.sql')
@@ -42,6 +51,8 @@ def run():
 	with DB.H.transaction(): DB.H.execscript('seed.sql')
 
 	print('done.')
+
+	extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]
 
 	for name, extractor in zip(extractor_names, extractors):
 		print(f'Extracting {name}...')

@@ -116,13 +116,14 @@
 							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html">{{ encounter.pokemon }}</a>
 							<sup><a href="#form-note-{{ encounter.form_note }}">{{ encounter.form_note }}</a></sup>
 						{% else %}
-							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html{% if encounter.form %}#{% endif %}{{ encounter.form }}">
+							<a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html{% if encounter.form %}#{% endif %}{{ encounter.form|slug }}">
 							{{ encounter.pokemon }}
 							{% if encounter.form %}
 								({{ encounter.form }} Form)
 							{% endif %}
+							</a>
 						{% endif %}
-					</a></td>
+					</td>
 					<td>{{ encounter.min_level }}{% if encounter.max_level != encounter.min_level %}&ndash;{{ encounter.max_level }}{% endif %}</td>
 					<td>{{ encounter.rate|frac_mixed }} %</td>
 				</tr>
@@ -154,44 +155,39 @@
 			</tr>
 			{% for encounter in area.special_encounters %}
 			<tr>
-				<td><a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html#{{ encounter.form|slug }}">
-						{{ encounter.pokemon }}{% if encounter.form %}-{{ encounter.form }}{% endif %}
-				</a></td>
-				<td>{{ encounter.type }}</td>
-				<td>{{ encounter.level }}</td>
 				<td>
-					{% if encounter.ot is not none %}
-						<b><abbr title="Original Trainer">OT</abbr></b>: {{ encounter.ot }}
-						<br>
-						<b>Trainer ID</b>:
-						{% if encounter.trainer_id == '$RANDOM' %}
-							<abbr title="A random 32-bit integer distinct from the current player's trainer ID.">random</abbr>
-						{% else %}
-							{{ encounter.trainer_id }}
+					{% if encounter.form is none %}
+						<a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html">{{ encounter.pokemon }}</a>
+						<sup><a href="#event-form-note-{{ encounter.form_note }}">{{ encounter.form_note }}</a></sup>
+					{% else %}
+						<a href="{{ url_base }}/pokemon/{{ encounter.pokemon|slug }}.html{% if encounter.form %}#{% endif %}{{ encounter.form|slug }}">
+						{{ encounter.pokemon }}
+						{% if encounter.form %}
+							({{ encounter.form }} Form)
 						{% endif %}
-						<br>
+						</a>
 					{% endif %}
-					{% if encounter.moves %}
-						<b>Moves</b>:
-						{% for move in encounter.moves %}
-							<a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a>{% if not loop.last %},{% endif %}
-						{% endfor %}
-						<br>
+				</td>
+				<td>{{ encounter.type }}</td>
+				<td>
+					{% if encounter.level == 0 %}
+						1 (egg)
+					{% else %}
+						{{ encounter.level }}
 					{% endif %}
-					{% if encounter.gender %}
-						<b>Gender</b>: {{ encounter.gender }}<br>
-					{% endif %}
-					{% if encounter.ivs %}
-						<b>IVs</b>:
-						{% for iv in encounter.ivs %}
-							{{ iv.value }} in {{ iv.stat }}{% if not loop.last %},{% endif %}
-						{% endfor %}
+				</td>
+				<td>
+					{% if encounter.nickname %}
+						<div><b>Nickname</b>: {{ encounter.nickname }}</div>
 					{% endif %}
 					{% if encounter.hp %}
 						<b>HP</b>: {{ encounter.hp }}
 					{% endif %}
+					{% if encounter.gender %}
+						<div><b>Gender</b>: {{ encounter.gender }}</div>
+					{% endif %}
 					{% if encounter.held_item %}
-						<a href="{{ url_base }}/item/{{ encounter.held_item|slug }}.html">{{ encounter.held_item }}</a>
+						<b>Held item</b>: <a href="{{ url_base }}/item/{{ encounter.held_item|slug }}.html">{{ encounter.held_item }}</a>
 					{% endif %}
 					{% if encounter.friendship %}
 						<b>Friendship</b>: {{ encounter.friendship }}
@@ -199,10 +195,57 @@
 					{% if encounter.ability %}
 						<div><b>Ability</b>: <a href="{{ url_base }}/ability/{{ encounter.ability|slug }}.html">{{ encounter.ability }}</a></div>
 					{% endif %}
+					{% if encounter.move_preference.id %}
+						<div><abbr title="All wild Pokémon have a move preference, which is one of their four moves that they are a little more likely to use in battle than the others. Most of the time the move preference is chosen randomly, but for this encounter it is set to a specific move."><b>Move preference</b></abbr>: <a href="{{ url_base }}/move/{{ encounter.move_preference.id }}.html">{{ encounter.move_preference.name }}</a></div> 
+					{% endif %}
+					{% if encounter.ot is not none %}
+						<div><b><abbr title="Original Trainer">OT</abbr></b>: {{ encounter.ot }}</div>
+						<div>
+							<b>Trainer ID</b>:
+							{% if encounter.trainer_id == '$RANDOM' %}
+								<abbr title="A random 32-bit integer distinct from the current player's trainer ID.">random</abbr>
+							{% else %}
+								{{ encounter.trainer_id }}
+							{% endif %}
+						</div>
+					{% endif %}
+					{% if encounter.move_sets %}
+						{% if encounter.move_sets|length == 1 %}
+							<div>
+							<b>Moves</b>:
+							{% for move in encounter.move_sets[0] %}
+								<a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a>{% if not loop.last %},{% endif %}
+							{% endfor %}
+							</div>
+						{% else %}
+							<div><b>Moves</b>:</div>
+							{% set set_count = encounter.move_sets|length %}
+							{% set per_set_chance = '1/' ~ set_count %}
+							{% for move_set in encounter.move_sets %}
+								<div>
+								{% for move in move_set %}
+									<a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a>{% if not loop.last %},{% endif %}
+								{% endfor %}
+								({{ per_set_chance | frac_mixed }} chance)
+								</div>
+							{% endfor %}
+						{% endif %}
+					{% endif %}
+					{% if encounter.ivs %}
+						{% for iv in encounter.ivs %}
+							<div><b>{{ iv.stat }} IV</b>: {{ iv.value }}</div>
+						{% endfor %}
+					{% endif %}
 				</td>
 			</tr>
 			{% endfor %}
 		</table>
+
+		<small class="event-notes">			
+		{% for note in area.event_encounter_form_notes %}
+			{{ note.content }}
+		{% endfor %}
+		</small>
 	</section>
 	{% endif %}
 </section>

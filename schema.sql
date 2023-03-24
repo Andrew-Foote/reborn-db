@@ -346,15 +346,15 @@ create table `ability_slot` (
 
 -- Pivot table between `pokemon_form` and `type`, with `ability_slot` limiting the number of
 -- `ability`s per `pokemon_form`.
-create table `pokemon_ability` (
-	`pokemon` text,
-	`form` text,
-	`index` integer,
-	`ability` text not null,
-	primary key (`pokemon`, `form`, `index`),
-	foreign key (`pokemon`, `form`) references `pokemon_form` (`pokemon`, `name`),
-	foreign key (`index`) references `ability_slot` (`index`),
-	foreign key (`ability`) references `ability` (`id`)
+create table "pokemon_ability" (
+	"pokemon" text,
+	"form" text,
+	"index" integer,
+	"ability" text not null,
+	primary key ("pokemon", "form", "index"),
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("index") references "ability_slot" ("index"),
+	foreign key ("ability") references "ability" ("id")
 ) without rowid;
 
 -- Unenforced constraint: each `pokemon_form` must have at least one related `pokemon_ability`.
@@ -740,75 +740,75 @@ create table `evolution_requirement_weather` (
 	foreign key (`weather`) references `weather` (`name`)
 ) without rowid;
 
-create view "evolution_requirement_displayold" ("method", "kind", "args") as
-select "base"."method", "base"."kind", case
-	when "base"."kind" = 'level' then json_array("er_level"."level")
-	when "base"."kind" = 'item' then json_array("item"."name")
-	when "base"."kind" = 'held_item' then json_array("held_item"."name")
-	when "base"."kind" = 'friendship' then json_array()
-	when "base"."kind" = 'time'	then json_array("time"."desc")
-	when "base"."kind" = 'stat_cmp' then json_array("stat1"."name", "stat2"."name", "er_stat_cmp"."operator")
-	when "base"."kind" = 'coin_flip' then json_array("er_coin_flip"."value")
-	when "base"."kind" = 'leftover' then json_array()
-	when "base"."kind" = 'gender' then json_array("er_gender"."gender")
-	when "base"."kind" = 'teammate' then json_array("teammate"."name")
-	when "base"."kind" = 'move' then json_array("move"."name")
-	when "base"."kind" = 'map' then json_array("map"."id", "map"."name")
-	when "base"."kind" = 'trademate' then json_array("trademate"."name")
-	when "base"."kind" = 'teammate_type' then json_array("teammate_type"."name")
-	when "base"."kind" = 'cancel' then json_array()
-	when "base"."kind" = 'move_type' then json_array("move_type"."name")
-	when "base"."kind" = 'weather' then json_array("weather"."desc")
-end
-from "evolution_requirement" as "base"
-left join "evolution_requirement_level" as "er_level" on "er_level"."method" = "base"."method"
-left join (
-	"evolution_requirement_item" as "er_item"
-	join "item" on "item"."id" = "er_item"."item"
-) on "er_item"."method" = "base"."method"
-left join (
-	"evolution_requirement_held_item" as "er_held_item"
-	join "item" as "held_item" on "held_item"."id" = "er_held_item"."item"
-)  on "er_held_item"."method" = "base"."method"
-left join (
-	"evolution_requirement_time" as "er_time" 
-	join "time_of_day" as "time" on "time"."name" = "er_time"."time"
-) on "er_time"."method" = "base"."method"
-left join (
-	"evolution_requirement_stat_cmp" as "er_stat_cmp" 
-	join "stat" as "stat1" on "stat1"."id" = "er_stat_cmp"."stat1"
-	join "stat" as "stat2" on "stat2"."id" = "er_stat_cmp"."stat2"
-) on "er_stat_cmp"."method" = "base"."method"
-left join "evolution_requirement_coin_flip" as "er_coin_flip" on "er_coin_flip"."method" = "base"."method"
-left join "evolution_requirement_gender" as "er_gender" on "er_gender"."method" = "base"."method"
-left join (
-	"evolution_requirement_teammate" as "er_teammate" 
-	join "pokemon" as "teammate" on "teammate"."id" = "er_teammate"."pokemon"
-) on "er_teammate"."method" = "base"."method"
-left join (
-	"evolution_requirement_map" as "er_map"
-	join "map" on "map"."id" = "er_map"."map"
-) on "er_map"."method" = "base"."method"
-left join (
-	"evolution_requirement_move" as "er_move" 
-	join "move" on "move"."id" = "er_move"."move"
-) on "er_move"."method" = "base"."method"
-left join (
-	"evolution_requirement_trademate" as "er_trademate" 
-	join "pokemon" as "trademate" on "trademate"."id" = "er_trademate"."pokemon"
-) on "er_trademate"."method" = "base"."method"
-left join (
-	"evolution_requirement_teammate_type" as "er_teammate_type" 
-	join "type" as "teammate_type" on "teammate_type"."id" = "er_teammate_type"."type"
-) on "er_teammate_type"."method" = "base"."method"
-left join (
-	"evolution_requirement_move_type" as "er_move_type" 
-	join "type" as "move_type" on "move_type"."id" = "er_move_type"."type"
-) on "er_move_type"."method" = "base"."method"
-left join ( 
-	"evolution_requirement_weather" as "er_weather" 
-	join "weather" as "weather" on "weather"."name" = "er_weather"."weather"
-) on "er_weather"."method" = "base"."method";
+-- create view "evolution_requirement_displayold" ("method", "kind", "args") as
+-- select "base"."method", "base"."kind", case
+-- 	when "base"."kind" = 'level' then json_array("er_level"."level")
+-- 	when "base"."kind" = 'item' then json_array("item"."name")
+-- 	when "base"."kind" = 'held_item' then json_array("held_item"."name")
+-- 	when "base"."kind" = 'friendship' then json_array()
+-- 	when "base"."kind" = 'time'	then json_array("time"."desc")
+-- 	when "base"."kind" = 'stat_cmp' then json_array("stat1"."name", "stat2"."name", "er_stat_cmp"."operator")
+-- 	when "base"."kind" = 'coin_flip' then json_array("er_coin_flip"."value")
+-- 	when "base"."kind" = 'leftover' then json_array()
+-- 	when "base"."kind" = 'gender' then json_array("er_gender"."gender")
+-- 	when "base"."kind" = 'teammate' then json_array("teammate"."name")
+-- 	when "base"."kind" = 'move' then json_array("move"."name")
+-- 	when "base"."kind" = 'map' then json_array("map"."id", "map"."name")
+-- 	when "base"."kind" = 'trademate' then json_array("trademate"."name")
+-- 	when "base"."kind" = 'teammate_type' then json_array("teammate_type"."name")
+-- 	when "base"."kind" = 'cancel' then json_array()
+-- 	when "base"."kind" = 'move_type' then json_array("move_type"."name")
+-- 	when "base"."kind" = 'weather' then json_array("weather"."desc")
+-- end
+-- from "evolution_requirement" as "base"
+-- left join "evolution_requirement_level" as "er_level" on "er_level"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_item" as "er_item"
+-- 	join "item" on "item"."id" = "er_item"."item"
+-- ) on "er_item"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_held_item" as "er_held_item"
+-- 	join "item" as "held_item" on "held_item"."id" = "er_held_item"."item"
+-- )  on "er_held_item"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_time" as "er_time" 
+-- 	join "time_of_day" as "time" on "time"."name" = "er_time"."time"
+-- ) on "er_time"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_stat_cmp" as "er_stat_cmp" 
+-- 	join "stat" as "stat1" on "stat1"."id" = "er_stat_cmp"."stat1"
+-- 	join "stat" as "stat2" on "stat2"."id" = "er_stat_cmp"."stat2"
+-- ) on "er_stat_cmp"."method" = "base"."method"
+-- left join "evolution_requirement_coin_flip" as "er_coin_flip" on "er_coin_flip"."method" = "base"."method"
+-- left join "evolution_requirement_gender" as "er_gender" on "er_gender"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_teammate" as "er_teammate" 
+-- 	join "pokemon" as "teammate" on "teammate"."id" = "er_teammate"."pokemon"
+-- ) on "er_teammate"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_map" as "er_map"
+-- 	join "map" on "map"."id" = "er_map"."map"
+-- ) on "er_map"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_move" as "er_move" 
+-- 	join "move" on "move"."id" = "er_move"."move"
+-- ) on "er_move"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_trademate" as "er_trademate" 
+-- 	join "pokemon" as "trademate" on "trademate"."id" = "er_trademate"."pokemon"
+-- ) on "er_trademate"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_teammate_type" as "er_teammate_type" 
+-- 	join "type" as "teammate_type" on "teammate_type"."id" = "er_teammate_type"."type"
+-- ) on "er_teammate_type"."method" = "base"."method"
+-- left join (
+-- 	"evolution_requirement_move_type" as "er_move_type" 
+-- 	join "type" as "move_type" on "move_type"."id" = "er_move_type"."type"
+-- ) on "er_move_type"."method" = "base"."method"
+-- left join ( 
+-- 	"evolution_requirement_weather" as "er_weather" 
+-- 	join "weather" as "weather" on "weather"."name" = "er_weather"."weather"
+-- ) on "er_weather"."method" = "base"."method";
 
 create view "evolution_requirement_display" ("method", "kind", "args") as
 select "base"."method", "base"."kind", case
@@ -981,32 +981,32 @@ create table "pokemon_encounter_form_note" (
 	,foreign key ("pokemon") references "pokemon" ("id")
 ) without rowid;
 
-create table "special_encounter" (
-	"id" integer primary key,
-	"map" integer,
-	"repeatable" integer not null check ("repeatable" in (0, 1)),
-	"desc" text not null,
-	foreign key ("map") references "map" ("id")
-);
+-- create table "special_encounter" (
+-- 	"id" integer primary key,
+-- 	"map" integer,
+-- 	"repeatable" integer not null check ("repeatable" in (0, 1)),
+-- 	"desc" text not null,
+-- 	foreign key ("map") references "map" ("id")
+-- );
 
-create table "special_encounter_pokemon" (
-	"encounter" integer,
-	"pokemon" text,
-	"form" text,
-	"egg" integer not null check ("egg" in (0, 1)),
-	"gift" integer not null check ("gift" in (0, 1)),
-	primary key ("encounter", "pokemon", "form", "egg"),
-	foreign key ("encounter") references "special_encounter" ("id"),
-	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
-) without rowid;
+-- create table "special_encounter_pokemon" (
+-- 	"encounter" integer,
+-- 	"pokemon" text,
+-- 	"form" text,
+-- 	"egg" integer not null check ("egg" in (0, 1)),
+-- 	"gift" integer not null check ("gift" in (0, 1)),
+-- 	primary key ("encounter", "pokemon", "form", "egg"),
+-- 	foreign key ("encounter") references "special_encounter" ("id"),
+-- 	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
+-- ) without rowid;
 
-create table `special_encounter_weather` (
-	"encounter" integer,
-	"weather" text,
-	primary key ("encounter", "weather"),
-	foreign key ("encounter") references "special_encounter" ("id"),
-	foreign key ("weather") references "weather" ("name")
-) without rowid;
+-- create table `special_encounter_weather` (
+-- 	"encounter" integer,
+-- 	"weather" text,
+-- 	primary key ("encounter", "weather"),
+-- 	foreign key ("encounter") references "special_encounter" ("id"),
+-- 	foreign key ("weather") references "weather" ("name")
+-- ) without rowid;
 
 -- Pokémon natures.
 create table `nature` (
@@ -1330,4 +1330,91 @@ create table "common_event" (
 	"switch" integer not null,
 	foreign key ("trigger") references "common_event_trigger" ("name"),
 	foreign key ("switch") references "game_switch" ("id")
+);
+
+create table "event_encounter_type" ("name" text primary key) without rowid;
+insert into "event_encounter_type" ("name") values
+('battle'),
+('gift'),
+('trade');
+
+create table "event_encounter" (
+	"id" integer primary key,
+	"start_event_command" integer not null,
+	"end_event_command" integer not null,
+	"pokemon" text not null,
+	"form" text,
+	"level" integer, -- 0 for egg
+	"type" text not null,
+	"nickname" text,
+	"hp" integer,
+	"gender" text,
+	"held_item" text,
+	"friendship" integer,
+	"ability" integer,
+	"move_preference" text,
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("type") references "event_encounter_type" ("name"),
+	foreign key ("gender") references "gender" ("name"),
+	foreign key ("held_item") references "item" ("id"),
+	foreign key ("ability") references "ability_slot" ("index"),
+	foreign key ("move_preference") references "move" ("id")
+);
+
+-- Verbal notes to explain how an event encounter's form is determined.
+create table "event_encounter_form_note" (
+	"encounter" integer primary key
+	,"note" text not null
+	,foreign key ("encounter") references "event_encounter" ("id")
+);
+
+create table "event_encounter_ot" (
+	"encounter" integer primary key,
+	"ot" text not null,
+	"trainer_id" text,
+	foreign key ("encounter") references "event_encounter" ("id")
+);
+
+-- Each event encounter is associated with zero or more "extra move sets", each of which consists of
+-- a set of moves. When the encounter occurs, one of the extra move sets is randomly chosen, and the
+-- moves from that set are added to the encountered Pokémon's move set.
+create table "event_encounter_extra_move_set" (
+	"id" integer primary key,
+	"encounter" integer not null,
+	foreign key ("encounter") references "event_encounter" ("id")
+);
+
+create table "event_encounter_move" (
+	"set" integer,
+	"move" text not null,
+	"index" integer,
+	primary key ("set", "index"),
+	foreign key ("set") references "event_encounter_extra_move_set" ("id"),
+	foreign key ("move") references "move" ("id"),
+	foreign key ("index") references "move_slot" ("index")
+);
+
+create table "event_encounter_iv" (
+	"encounter" integer,
+	"stat" text,
+	"value" integer not null,
+	primary key ("encounter", "stat"),
+	foreign key ("encounter") references "event_encounter" ("id"),
+	foreign key ("stat") references "stat" ("id")
+) without rowid;
+
+create table "encounter_common_event" (
+	"encounter" integer primary key,
+	"event" integer not null,
+	foreign key ("encounter") references "event_encounter" ("id"),
+	foreign key ("event") references "common_event" ("id")
+);
+
+create table "encounter_map_event" (
+	"encounter" integer primary key,
+	"map" integer not null,
+	"event" integer not null,
+	"event_page" integer not null,
+	foreign key ("encounter") references "event_encounter" ("id"),
+	foreign key ("map") references "map" ("id")
 );

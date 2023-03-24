@@ -1,5 +1,6 @@
 # The entry point. All scripts are run from here to ensure that imports work properly.
 
+import os
 import sys
 from scripts import refresh_database, regenerate_site, run_server
 
@@ -17,5 +18,11 @@ if len(sys.argv) <= 1:
 actions = sys.argv[1:]
 
 for action in actions:
+	if action.startswith('--'):
+		print(f'setting {action[2:]}')
+		os.environ[action[2:]] = '1'
+		continue
+
 	if action in SHORT_NAMES: action = SHORT_NAMES[action]
+
 	SCRIPTS_DICT[f'scripts.{action}'].run()
