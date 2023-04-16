@@ -30,11 +30,11 @@ with "encounter_form_note" ("map", "id", "pokemon", "content") as (
     left join "event_encounter_form_note" as "form_note" on "form_note"."encounter" = "encounter"."id"
     where "form_note"."note" is not null
 )
-,"encounter" ("map", "method", "rate", "pokemon", "form", "form_note", "min_level", "max_level") as (
+,"encounter" ("map", "method", "rate", "pokemon", "form", "form_note", "level_range") as (
      select
         "encounter"."map", "method"."desc", "encounter"."rate"
         ,"pokemon"."name" as "pokemon", "encounter"."form", "form_note"."id"
-        ,"encounter"."min_level", "encounter"."max_level"
+        ,json("encounter"."level_range")
     from "pokemon_encounter_rate_by_level_range" as "encounter"
     join "encounter_method" as "method" on "method"."name" = "encounter"."method"
     join "pokemon" on "pokemon"."id" = "encounter"."pokemon"
@@ -95,7 +95,7 @@ left join (
         'method', "encounter"."method"
         ,'pokemon', "encounter"."pokemon", 'form', "encounter"."form"
         ,'form_note', "encounter"."form_note"
-        ,'min_level', "encounter"."min_level", 'max_level', "encounter"."max_level"
+        ,'level_range', json("encounter"."level_range")
         ,'rate', frac_mul("encounter"."rate", 100)
     )) as "all" from "encounter"
     group by "encounter"."map"
@@ -132,7 +132,7 @@ left join (
             "encounter"."friendship", "ability"."name" as "ability", "encounter_ot"."ot", "encounter_ot"."trainer_id",
             json_object('id', "move_preference"."id", 'name', "move_preference"."name") as "move_preference",
             (
-                select json_group_array("moves")
+                select json_group_array(json("moves"))
                 from (
                     select json_group_array(
                        json_object('id', "move"."id", 'name', "move"."name")

@@ -37,8 +37,31 @@
 
 from collections import OrderedDict
 import re
-from reborndb import DB
-from reborndb import pbs
+from reborndb import DB, pbs, settings
+
+def get_pocket_names():
+    path = settings.REBORN_INSTALL_PATH / 'Scripts' / 'Reborn' / 'Settings.rb'
+
+    with path.open(encoding='utf-8') as f:
+        src = f.read()
+
+    pat = re.compile(r'''
+        def\s+pbPocketNames;\s*return\s*\[\s*""\s*,
+        \s*(?P<args>.*?)
+        \s*\];\s*end
+    ''', re.X | re.S)
+
+    m = re.search(pat, src)
+    if m is None: breakpoint()
+    args = m.groupdict()['args'].split(',')
+    parsed_args = []
+
+    for arg in args:
+        m = re.match(r'\s*_INTL\("(.*?)"\)', arg)
+        if m is None: breakpoint()
+        parsed_args.append(m.group(1))
+
+    return parsed_args
 
 FIELDS = OrderedDict((field, i) for i, field in enumerate((
     'code', 'id', 'name', 'pocket', 'buy_price', 'desc', 'out_battle_usability',
@@ -46,7 +69,7 @@ FIELDS = OrderedDict((field, i) for i, field in enumerate((
 )))
 
 CODE_FIELDS = {
-    'pocket': ['Items', 'Medicine', 'Poké Balls', 'TMs & HMs', 'Berries', 'Mail', 'Battle Items', 'Key Items'],
+    'pocket': get_pocket_names(), #['Items', 'Medicine', 'Poké Balls', 'TMs & HMs', 'Berries', 'Mail', 'Battle Items', 'Key Items'],
     'out_battle_usability': ['None', 'PokemonOnce', 'DirectOnce', 'TM', 'HM', 'PokemonReusable'],
     'in_battle_usability': ['None', 'PokemonOnce', 'DirectOnce', 'PokemonReusable', 'DirectReusable'],
     'type': ['Other', 'Mail', 'Mail2', 'SnagBall', 'PokeBall', 'Berry', 'KeyItem', 'EvolutionStone', 'Fossil', 'Apricorn', 'Gem', 'Mulch', 'MegaStone']

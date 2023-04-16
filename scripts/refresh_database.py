@@ -22,11 +22,15 @@ extractor_names = [
 #extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]
 
 EXCEPTIONS = [
-	#'event_encounter',
-	#'event_encounter_ot',
-	#'event_encounter_move',
-	#'encounter_common_event',
-	#'encounter_map_event',
+	'event_encounter',
+	'encounter_common_event',
+	'encounter_map_event',
+    'event_encounter_ot',
+    'event_encounter_extra_move_set',
+    'event_encounter_form_note',
+    'event_encounter_move',
+	'event_encounter',
+	'event_encounter_iv',
 	'event_encounter_old',
 	'marshal_mapdata',
 	'map_event',
@@ -43,6 +47,7 @@ def run():
 
 	if os.environ.get('FULL'):
 		extractor_names.append('event_encounters')
+		extractor_names.append('map_data')
 	
 	print('Creating schema... ', end='')
 	with DB.H.transaction(): DB.H.execscript('schema.sql')

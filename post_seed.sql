@@ -462,3 +462,17 @@ values
 ('SHAYMIN', 'Sky', 'It changes into this form when a <a href="/item/gracidea.html">Gracidea</a> is used on it.'),
 ('ARCEUS', 'Normal', 'It will be in this form when not holding a Plate item or a type-specific Z-Crystal.'),
 ('ARCEUS', 'Flying', 'It will be in this form when holding a <a href="/item/sky-plate.html">Sky Plate</a> or <a href="/item/flyinium-z.html">Flyinium Z</a>.');
+
+-- this is a view really, but need to ensure it's materialized for performance
+create table "pokemon_evolution_schemes" as
+	select
+		"pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form"
+		,evolution_schemes("em"."base_method", "em"."reqs") as "schemes"
+	from "pokemon_evolution_method" as "pem"
+	join (
+		select "em"."id", "em"."base_method", json_group_object("erd"."kind", json("erd"."args")) as "reqs"
+		from "evolution_method" as "em"
+		join "evolution_requirement_display" as "erd" on "erd"."method" = "em"."id"
+		group by "em"."id"
+	) as "em" on "em"."id" = "pem"."method"
+	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	

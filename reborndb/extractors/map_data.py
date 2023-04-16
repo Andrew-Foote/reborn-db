@@ -154,7 +154,7 @@ def extract():
                         variable_rows.append((*page_id, page.condition.variable_id, page.condition.variable_value))
 
                     if page.condition.self_switch_valid:
-                        self_switch_rows.append((*page_id, page.condition.self_switch_ch))
+                        self_switch_rows.append((*page_id, page.condition.self_switch_ch.value))
 
                     if page.graphic.tile_id != 0:
                         tile_rows.append((map_id, event.id_, page_number, page.graphic.tile_id))

@@ -6,6 +6,7 @@ from pathlib import Path
 import apsw
 from reborndb.connection import Connection
 from reborndb import settings
+import textwrap
 
 def altconnect(db_path):
     def handle_error(errcode, message):
@@ -54,6 +55,10 @@ def connect():
             else:
                 return 1
 
+        @connection.register_function('frac2real', 1, True)
+        def sql_function_frac2real(x):
+            return float(frac(x))
+
         @connection.register_function('frac_mul', 2, True)
         def sql_function_frac_mul(x, y):
             """Multiply two fractions."""
@@ -64,14 +69,14 @@ def connect():
             """Divide two fractions."""
             return str(frac(x) / frac(y))
             
-        @connection.register_aggregate('frac_sum')
+        @connection.register_aggregate('frac_sum', 1)
         def sql_aggregate_frac_sum():
-            result = frac(0)
+            result = [frac(0)]
         
             def step(result, val):
-                result += frac(val)
+                result[0] += frac(val)
             
-            return frac(0), step, str
+            return frac(0), step, lambda result: str(result[0])
 
         @connection.register_collation('frac')
         def sql_collation_frac(x, y):
@@ -129,7 +134,11 @@ def connect():
                         'requirements': {kind: {tuple(v)} for kind, v in reqs.items()}
                     })
 
-            return [], step, lambda schemes: json.dumps(schemes, default=tuple)
+            def bunga(schemes):
+                r = json.dumps(schemes, default=tuple)
+                return r
+
+            return [], step, bunga
 
         print(f'Database initialized.')
 

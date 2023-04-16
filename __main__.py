@@ -23,6 +23,7 @@ for action in actions:
 		os.environ[action[2:]] = '1'
 		continue
 
-	if action in SHORT_NAMES: action = SHORT_NAMES[action]
-
-	SCRIPTS_DICT[f'scripts.{action}'].run()
+for action in actions:
+	if action in SHORT_NAMES:
+		action = SHORT_NAMES[action]
+		SCRIPTS_DICT[f'scripts.{action}'].run()

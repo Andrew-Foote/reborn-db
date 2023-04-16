@@ -34,9 +34,9 @@ Edit `reborndb/settings.py` and ensure that `REBORN_INSTALL_PATH` points to a Po
 
 Build the database:
 
-     env\Scripts\python __main__.py db_full
+     env\Scripts\python __main__.py --full db
 
-(Note: the first time you do this, you need to use `db_full`. Afterwards, most of the time you can just use `db`, which will skip rebuilding parts of the database that are particularly time-consuming to rebuild.)
+(Note: the first time you do this, you need to use the `--full` option. Afterwards, most of the time you can omit it; this will skip rebuilding parts of the database that are particularly time-consuming to rebuild.)
 
 Build the website:
 

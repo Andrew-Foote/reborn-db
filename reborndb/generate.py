@@ -171,10 +171,30 @@ def describe_evolution_scheme(scheme, scheme_index, from_name, from_form, to_nam
 
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader('templates'))
 
+def ranges_from_list(x):
+    values = x
+    if not isinstance(values, list) and all(isinstance(v, int) for v in values): breakpoint()
+    values = sorted(values)
+    start = values[0]
+    ranges = []
+    curstart = start
+    curend = start
+
+    for v in values[1:]:
+        if v == curend + 1:
+            curend = v
+        else:
+            ranges.append((curstart, curend))
+            curend = curstart = v
+
+    ranges.append((curstart, curend))
+    return ', '.join((f'{a}&ndash;{b}' if a != b else str(a)) for a, b in ranges)
+
 jinja_env.filters |= {
     'slug': slugify,
     'gender_ratio': gender_ratio,
-    'frac_mixed': frac_mixed
+    'frac_mixed': frac_mixed,
+    'ranges_from_list': ranges_from_list
 }
 
 jinja_env.globals |= {

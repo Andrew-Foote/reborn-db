@@ -1089,7 +1089,7 @@ values
 ('Poké Balls', 3),
 ('TMs & HMs', 4),
 ('Berries', 5),
-('Mail', 6),
+('Crystals', 6),
 ('Battle Items', 7),
 ('Key Items', 8);
 

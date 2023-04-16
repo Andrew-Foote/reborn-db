@@ -12,7 +12,7 @@ class Connection:
 
     def register_function(self, name, argcount, deterministic):
         def decorator(callback):
-            self.apsw.createscalarfunction(name, callback, argcount, deterministic)
+            self.apsw.createscalarfunction(name, callback, argcount, deterministic=deterministic)
             return callback
 
         return decorator

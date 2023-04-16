@@ -6,6 +6,7 @@
 import itertools as it
 import json
 import re
+from reborndb.settings import REBORN_INSTALL_PATH
 
 def lexer(*patterns):
 	patterns, callbacks = zip(*patterns)
@@ -61,10 +62,8 @@ def without_trailing_commas(tokens):
 		if not (token1 == ',' and token2 in (']', '}')):
 			yield token1
 
-REBORN_INSTALL_PATH = 'D:\\Program Files\\Reborn19-Win\\Pokemon Reborn\\'
-
 def parse(script):
-	with open(REBORN_INSTALL_PATH + 'Scripts\\' + script, encoding='utf-8') as f:
+	with open(REBORN_INSTALL_PATH / 'Scripts' / script, encoding='utf-8') as f:
 		source = f.read()
 
 	tokens = without_trailing_commas(lex(source))

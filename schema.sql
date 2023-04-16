@@ -896,117 +896,18 @@ union
 select "form"."pokemon", "form"."name", "form"."pokemon", "form"."name", 0
 from "pokemon_form" as "form";
 
-create view "pokemon_evolution_schemes" ("from", "from_form", "to", "to_form", "schemes") as
-	select
-		"pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form"
-		,evolution_schemes("em"."base_method", "em"."reqs")
-	from "pokemon_evolution_method" as "pem"
-	join (
-		select "em"."id", "em"."base_method", json_group_object("erd"."kind", json("erd"."args")) as "reqs"
-		from "evolution_method" as "em"
-		join "evolution_requirement_display" as "erd" on "erd"."method" = "em"."id"
-		group by "em"."id"
-	) as "em" on "em"."id" = "pem"."method"
-	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
-
--- The three types of terrain on a map, which are distinguished with respect to encounter rates
--- (grass, cave and water).
-create table "terrain" ("name" text primary key, "order" integer not null unique) without rowid;
-
--- The chance of encountering a wild Pokémon per step (as a fraction of 250), for each map and
--- terrain type. This is for any Pokémon; the chances of encountering each specific Pokémon,
--- conditional on an encounter having started already, are given in `pokemon_encounter_rate`.
--- Depends on `map` and `terrain`.
-create table `map_encounter_rate` (
-	`map` integer,
-	`terrain` text not null, 
-	`rate` integer not null check (`rate` >= 0 and `rate` <= 250),
-	primary key (`map`, `terrain`),
-	foreign key (`map`) references `map` (`id`),
-	foreign key (`terrain`) references `terrain` (`name`)
-) without rowid;
-
--- Unenforced constraint: there must be a `map_encounter_rate` row for each `map` and each of the
--- three terrain types (grass, cave and water).
-
--- The various methods of initiating an encounter (e.g. walking on the ground, using the Old Rod,
--- headbutting a tree).
-create table `encounter_method` (
-	`name` text primary key,
-	`order` integer not null unique,
-	`desc` text not null
-) without rowid;
-
--- The chance of encountering a given wild Pokémon, given that an encounter has started, for each
--- map, encounter method and level.
--- Depends on `map`, `encounter_method` and `pokemon_form`.
-create table "pokemon_encounter_rate" (
-	"map" integer,
-	"method" text,
-	"pokemon" text,
-	"form" text, -- may be null if form is not determined by the area
-	"level" integer,
-	"rate" text check (is_frac("rate")) collate "frac",
-	-- this should be the PK but since form is nullable, SQL won't let us do it
-	unique ("map", "method", "pokemon", "form", "level"),
-	foreign key ("map") references "map" ("id"),
-	foreign key ("method") references "encounter_method" ("name"),
-	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
-);
-
-create index "pokemon_encounter_rate_idx" on "pokemon_encounter_rate" (
-	"map", "method", "pokemon", "form", "rate" collate "frac" desc
-);
-
-create view "pokemon_encounter_rate_by_level_range" (
-	"map", "method", "pokemon", "form", "min_level", "max_level", "rate"
-) as select
-	"map", "method", "pokemon", "form", min("level"), max("level"),
-	frac_mul("rate", (max("level") - min("level") + 1))
-from "pokemon_encounter_rate"
-group by "map", "method", "pokemon", "form", "rate";
-
-create view "pokemon_encounter_rate_by_form" (
-	"map", "method", "pokemon", "form", "rate"
-) as select
-	"map", "method", "pokemon", "form", frac_sum("rate")
-from "pokemon_encounter_rate"
-group by "map", "method", "pokemon", "form";
-
--- Verbal notes to explain how an encounter's form is determined, if not by area.
-create table "pokemon_encounter_form_note" (
-	"pokemon" text
-	,"note" text not null
-	,primary key ("pokemon")
-	,foreign key ("pokemon") references "pokemon" ("id")
-) without rowid;
-
--- create table "special_encounter" (
--- 	"id" integer primary key,
--- 	"map" integer,
--- 	"repeatable" integer not null check ("repeatable" in (0, 1)),
--- 	"desc" text not null,
--- 	foreign key ("map") references "map" ("id")
--- );
-
--- create table "special_encounter_pokemon" (
--- 	"encounter" integer,
--- 	"pokemon" text,
--- 	"form" text,
--- 	"egg" integer not null check ("egg" in (0, 1)),
--- 	"gift" integer not null check ("gift" in (0, 1)),
--- 	primary key ("encounter", "pokemon", "form", "egg"),
--- 	foreign key ("encounter") references "special_encounter" ("id"),
--- 	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
--- ) without rowid;
-
--- create table `special_encounter_weather` (
--- 	"encounter" integer,
--- 	"weather" text,
--- 	primary key ("encounter", "weather"),
--- 	foreign key ("encounter") references "special_encounter" ("id"),
--- 	foreign key ("weather") references "weather" ("name")
--- ) without rowid;
+-- create view "pokemon_evolution_schemes" ("from", "from_form", "to", "to_form", "schemes") as
+-- 	select
+-- 		"pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form"
+-- 		,evolution_schemes("em"."base_method", "em"."reqs")
+-- 	from "pokemon_evolution_method" as "pem"
+-- 	join (
+-- 		select "em"."id", "em"."base_method", json_group_object("erd"."kind", json("erd"."args")) as "reqs"
+-- 		from "evolution_method" as "em"
+-- 		join "evolution_requirement_display" as "erd" on "erd"."method" = "em"."id"
+-- 		group by "em"."id"
+-- 	) as "em" on "em"."id" = "pem"."method"
+-- 	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
 
 -- Pokémon natures.
 create table `nature` (
@@ -1332,13 +1233,88 @@ create table "common_event" (
 	foreign key ("switch") references "game_switch" ("id")
 );
 
-create table "event_encounter_type" ("name" text primary key) without rowid;
+-- The three types of terrain on a map, which are distinguished with respect to encounter rates
+-- (grass, cave and water).
+create table "terrain" ("name" text primary key, "order" integer not null unique) without rowid;
+
+-- The chance of encountering a wild Pokémon per step (as a fraction of 250), for each map and
+-- terrain type. This is for any Pokémon; the chances of encountering each specific Pokémon,
+-- conditional on an encounter having started already, are given in `pokemon_encounter_rate`.
+-- Depends on `map` and `terrain`.
+create table `map_encounter_rate` (
+	`map` integer,
+	`terrain` text not null, 
+	`rate` integer not null check (`rate` >= 0 and `rate` <= 250),
+	primary key (`map`, `terrain`),
+	foreign key (`map`) references `map` (`id`),
+	foreign key (`terrain`) references `terrain` (`name`)
+) without rowid;
+
+-- Unenforced constraint: there must be a `map_encounter_rate` row for each `map` and each of the
+-- three terrain types (grass, cave and water).
+
+-- The various methods of initiating an encounter (e.g. walking on the ground, using the Old Rod,
+-- headbutting a tree).
+create table "encounter_method" (
+	"name" text primary key,
+	"order" integer not null unique,
+	"desc" text not null
+) without rowid;
+
+-- The chance of encountering a given wild Pokémon, given that an encounter has started, for each
+-- map, encounter method and level.
+-- Depends on `map`, `encounter_method` and `pokemon_form`.
+create table "pokemon_encounter_rate" (
+	"map" integer,
+	"method" text,
+	"pokemon" text,
+	"form" text, -- may be null if form is not determined by the area
+	"level" integer,
+	"rate" text check (is_frac("rate")) collate "frac",
+	-- this should be the PK but since form is nullable, SQL won't let us do it
+	unique ("map", "method", "pokemon", "form", "level"),
+	foreign key ("map") references "map" ("id"),
+	foreign key ("method") references "encounter_method" ("name"),
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
+);
+
+create index "pokemon_encounter_rate_idx" on "pokemon_encounter_rate" (
+	"map", "method", "pokemon", "form", "rate" collate "frac" desc
+);
+
+-- note that the level range is not necessarily made up of consecutive levels!
+-- example is pyroar in obsidia alleyway post-restoration; 4% encounter rate,
+-- 2% levels 45--65, 2% levels 70--90
+create view "pokemon_encounter_rate_by_level_range" (
+	"map", "method", "pokemon", "form", "level_range", "rate"
+) as select
+	"map", "method", "pokemon", "form", json_group_array("level"),
+	frac_mul("rate", count("level"))
+from "pokemon_encounter_rate"
+group by "map", "method", "pokemon", "form", "rate";
+
+create view "pokemon_encounter_rate_by_form" (
+	"map", "method", "pokemon", "form", "rate"
+) as select
+	"map", "method", "pokemon", "form", frac_sum("rate")
+from "pokemon_encounter_rate"
+group by "map", "method", "pokemon", "form";
+
+-- Verbal notes to explain how an encounter's form is determined, if not by area.
+create table "pokemon_encounter_form_note" (
+	"pokemon" text
+	,"note" text not null
+	,primary key ("pokemon")
+	,foreign key ("pokemon") references "pokemon" ("id")
+) without rowid;
+
+create table if not exists "event_encounter_type" ("name" text primary key) without rowid;
 insert into "event_encounter_type" ("name") values
 ('battle'),
 ('gift'),
 ('trade');
 
-create table "event_encounter" (
+create table if not exists "event_encounter" (
 	"id" integer primary key,
 	"start_event_command" integer not null,
 	"end_event_command" integer not null,
@@ -1362,13 +1338,13 @@ create table "event_encounter" (
 );
 
 -- Verbal notes to explain how an event encounter's form is determined.
-create table "event_encounter_form_note" (
+create table if not exists "event_encounter_form_note" (
 	"encounter" integer primary key
 	,"note" text not null
 	,foreign key ("encounter") references "event_encounter" ("id")
 );
 
-create table "event_encounter_ot" (
+create table if not exists "event_encounter_ot" (
 	"encounter" integer primary key,
 	"ot" text not null,
 	"trainer_id" text,
@@ -1378,13 +1354,13 @@ create table "event_encounter_ot" (
 -- Each event encounter is associated with zero or more "extra move sets", each of which consists of
 -- a set of moves. When the encounter occurs, one of the extra move sets is randomly chosen, and the
 -- moves from that set are added to the encountered Pokémon's move set.
-create table "event_encounter_extra_move_set" (
+create table if not exists "event_encounter_extra_move_set" (
 	"id" integer primary key,
 	"encounter" integer not null,
 	foreign key ("encounter") references "event_encounter" ("id")
 );
 
-create table "event_encounter_move" (
+create table if not exists "event_encounter_move" (
 	"set" integer,
 	"move" text not null,
 	"index" integer,
@@ -1394,7 +1370,7 @@ create table "event_encounter_move" (
 	foreign key ("index") references "move_slot" ("index")
 );
 
-create table "event_encounter_iv" (
+create table if not exists "event_encounter_iv" (
 	"encounter" integer,
 	"stat" text,
 	"value" integer not null,
@@ -1403,14 +1379,14 @@ create table "event_encounter_iv" (
 	foreign key ("stat") references "stat" ("id")
 ) without rowid;
 
-create table "encounter_common_event" (
+create table if not exists "encounter_common_event" (
 	"encounter" integer primary key,
 	"event" integer not null,
 	foreign key ("encounter") references "event_encounter" ("id"),
 	foreign key ("event") references "common_event" ("id")
 );
 
-create table "encounter_map_event" (
+create table if not exists "encounter_map_event" (
 	"encounter" integer primary key,
 	"map" integer not null,
 	"event" integer not null,
@@ -1418,3 +1394,47 @@ create table "encounter_map_event" (
 	foreign key ("encounter") references "event_encounter" ("id"),
 	foreign key ("map") references "map" ("id")
 );
+
+create table "roam_path" (
+	"from_map" integer,
+	"to_map" integer,
+	primary key ("from_map", "to_map"),
+	foreign key ("from_map") references "map" ("id"),
+	foreign key ("to_map") references "to" ("id")
+) without rowid;
+
+create table "roam_type" (
+	"name" text primary key,
+	"order" integer not null unique,
+	"desc" text not null
+) without rowid;
+
+insert into "roam_type" ("name", "order", "desc")
+values
+('Any', 0, 'Encountered when walking in grass, walking in a cave, or surfing.'),
+('Ground', 1, 'Encountered when walking in grass or a cave.'),
+('Surfing', 2, 'Encountered when surfing.'),
+('Fishing', 3, 'Encountered when fishing.'),
+('Surfing or fishing', 4, 'Encountered when surfing or fishing.');
+
+create table "roam_type_encounter_method" (
+	"roam_type" text,
+	"method" text,
+	primary key ("roam_type", "method"),
+	foreign key ("roam_type") references "roam_type" ("name"),
+	foreign key ("method") references "encounter_method" ("name")
+);
+
+create table "roamer" (
+	"id" integer primary key,
+	"pokemon" text not null,
+	"level" integer not null,
+	"type" text not null,
+	"graphic" text not null,
+	"switch" integer,
+	"bgm" text,
+	foreign key ("pokemon") references "pokemon" ("id"),
+	foreign key ("type") references "roam_type" ("name"),
+	foreign key ("switch") references "game_switch" ("id")
+) without rowid;
+

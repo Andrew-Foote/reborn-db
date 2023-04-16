@@ -132,11 +132,13 @@ def extract():
         DB.H.exec('''
             insert into "map_bgm" ("map", "file", "volume", "pitch")
             select "map_id", "bgm_file", "bgm_volume", "bgm_pitch" from "marshal_mapdata"
+            where "bgm_file" is not null
         ''')
 
         DB.H.exec('''
             insert into "map_bgs" ("map", "file", "volume", "pitch")
             select "map_id", "bgs_file", "bgs_volume", "bgs_pitch" from "marshal_mapdata"
+            where "bgs_file" is not null
         ''')
 
     # pbs_data = pbs.load('metadata')

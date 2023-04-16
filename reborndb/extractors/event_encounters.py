@@ -59,6 +59,7 @@ def process_line(poke_var, line, datum):
         datum['form'] = form_id
         return True
 
+    # this isn't working
     m = re.match(fr'{poke_var}.iv\[(\d+)]\s*=\s*(\d+)', line)
 
     if m is not None:
@@ -467,7 +468,8 @@ def extract():
     with DB.H.transaction(foreign_keys_enabled=False):
         for table in (
              'event_encounter', 'encounter_common_event', 'encounter_map_event',
-            'event_encounter_ot', 'event_encounter_extra_move_set', 'event_encounter_move'
+            'event_encounter_ot', 'event_encounter_extra_move_set', 'event_encounter_move',
+            'event_encounter_form_note', 'event_encounter_iv'
         ):
             DB.H.exec(f'delete from {table}')
 

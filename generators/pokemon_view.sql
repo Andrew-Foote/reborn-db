@@ -291,13 +291,13 @@ with
             "encounter"."pokemon", "encounter"."form",
             json_group_array(json_object(
                 'map_id', "encounter"."map_id", 'map_name', "encounter"."map_name", 'method', "encounter"."method",
-                'min_level', "encounter"."min_level", 'max_level', "encounter"."max_level", 'rate',
+                'level_range', json("encounter"."level_range"), 'rate',
                 frac_mul("encounter"."rate", 100)
             )) as "all"
         from (
             select
                 "encounter"."pokemon", "encounter"."form", "map"."id" as "map_id", "map"."name" as "map_name",
-                "method"."desc" as "method", "encounter"."min_level", "encounter"."max_level", "encounter"."rate"
+                "method"."desc" as "method", "encounter"."level_range", "encounter"."rate"
             from "pokemon_encounter_rate_by_level_range" as "encounter"
             join "map" on "map"."id" = "encounter"."map"
             join "encounter_method" as "method" on "method"."name" = "encounter"."method"
@@ -332,7 +332,7 @@ with
                 json_object('name', "move_preference"."name", 'id', "move_preference"."id") as "move_preference",
                 "encounter_ot"."ot", "encounter_ot"."trainer_id", "encounter"."gender",
                 (
-                    select json_group_array("moves")
+                    select json_group_array(json("moves"))
                     from (
                         select json_group_array(
                            json_object('id', "move"."id", 'name', "move"."name")
