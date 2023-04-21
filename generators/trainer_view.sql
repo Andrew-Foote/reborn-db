@@ -26,8 +26,8 @@ select json_object(
   		,'nickname', "pokemon"."nickname", 'shiny', "pokemon"."shiny"
   		,'level', "pokemon"."level", 'gender', "pokemon"."gender",'nature', "pokemon"."nature"
   		,'item', "pokemon"."item", 'friendship', "pokemon"."friendship", 'sprite', "pokemon"."sprite"
-  	  ,'abilities', "pokemon"."abilities", 'moves', "pokemon"."moves"
-  		,'evs', "pokemon"."evs", 'ivs', "pokemon"."ivs", 'stats', "pokemon"."stats"
+  	  ,'abilities', json("pokemon"."abilities"), 'moves', json("pokemon"."moves")
+  		,'evs', json("pokemon"."evs"), 'ivs', json("pokemon"."ivs"), 'stats', json("pokemon"."stats")
   	))
   	from (
   		select
