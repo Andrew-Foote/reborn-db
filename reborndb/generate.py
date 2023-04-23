@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import deepcopy
 from fractions import Fraction as frac
 import json
@@ -190,11 +191,58 @@ def ranges_from_list(x):
     ranges.append((curstart, curend))
     return ', '.join((f'{a}&ndash;{b}' if a != b else str(a)) for a, b in ranges)
 
+def movesets_from_list(x):
+    # should split it up by form too
+    splitbyform = defaultdict(lambda: [])
+    ranges = {}
+
+    for v in x:
+        splitbyform[v['form']].append({'level': v['level'], 'moves': v['moves']})
+
+    for form, vv in splitbyform.items():
+        values = sorted(vv, key=lambda v: v[0])
+        curstart = values[0]['level']
+        curmoves = values[0]['moves']
+        curend = curstart
+        ranges[form] = []
+
+        for v in values[1:]:
+            if v['level'] == curend + 1 and v['moves'] == curmoves:
+                curend = v['level']
+            else:
+                ranges.append((curstart, curmoves, curend))
+                curend = curstart = v['level']
+                curmoves = v['moves']
+
+        ranges[form].append((curstart, curmoves, curend))
+        return ', '.join((f'{a}&ndash;{c}: {b}' if a != c else f'{a}: {b}') for a, b, c in ranges)
+
+
+
+    values = sorted(x, key=lambda v: v['level'])
+    print(values)
+    curstart = values[0]['level']
+    curmoves = values[0]['moves']
+    curend = curstart
+    ranges = []
+
+    for v in values[1:]:
+        if v['level'] == curend + 1 and v['moves'] == curmoves:
+            curend = v['level']
+        else:
+            ranges.append((curstart, curmoves, curend))
+            curend = curstart = v['level']
+            curmoves = v['moves']
+
+    ranges.append((curstart, curmoves, curend))
+    return ', '.join((f'{a}&ndash;{c}: {b}' if a != c else f'{a}: {b}') for a, b, c in ranges)
+
 jinja_env.filters |= {
     'slug': slugify,
     'gender_ratio': gender_ratio,
     'frac_mixed': frac_mixed,
-    'ranges_from_list': ranges_from_list
+    'ranges_from_list': ranges_from_list,
+    'movesets_from_list': movesets_from_list
 }
 
 jinja_env.globals |= {

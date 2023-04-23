@@ -1308,6 +1308,36 @@ create table "pokemon_encounter_form_note" (
 	,foreign key ("pokemon") references "pokemon" ("id")
 ) without rowid;
 
+create view "random_encounter_moveset" ("map", "method", "pokemon", "form", "level", "moves") as
+with
+	"level_move_o" as (
+		select
+			"pokemon", "form", "level"
+			,row_number() over (partition by "pokemon", "form" order by "level", "order") as "order"
+			,"move"
+		from "level_move"
+	)
+	,"per" as (
+		select
+			"per"."map", "per"."method", "lm"."pokemon", "lm"."form", "per"."level", max("lm"."order") as "last_move_order"
+			from "pokemon_encounter_rate" as "per"
+			join "level_move_o" as "lm"
+				on "lm"."pokemon" = "per"."pokemon" and ("lm"."form" = "per"."form" or "per"."form" is null)
+				and "lm"."level" <= "per"."level"
+			group by "per"."map", "per"."method", "lm"."pokemon", "lm"."form", "per"."level"
+	)
+select 
+	"per"."map", "per"."method", "per"."pokemon", "per"."form", "per"."level"
+	,(
+		select json_group_array("move") from (
+			select "lm"."move" from "level_move_o" "lm"
+			where "lm"."pokemon" = "per"."pokemon" and "lm"."form" = "per"."form"
+			and "lm"."order" between "per"."last_move_order" - 3 and "per"."last_move_order"
+			order by "lm"."order"
+		)
+	) as "moves"
+from "per";
+
 create table if not exists "event_encounter_type" ("name" text primary key) without rowid;
 insert into "event_encounter_type" ("name") values
 ('battle'),

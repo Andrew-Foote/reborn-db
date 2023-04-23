@@ -30,11 +30,26 @@ with "encounter_form_note" ("map", "id", "pokemon", "content") as (
     left join "event_encounter_form_note" as "form_note" on "form_note"."encounter" = "encounter"."id"
     where "form_note"."note" is not null
 )
-,"encounter" ("map", "method", "rate", "pokemon", "form", "form_note", "level_range") as (
+,"encounter" ("map", "method", "rate", "pokemon", "form", "form_note", "level_range", "movesets") as (
      select
         "encounter"."map", "method"."desc", "encounter"."rate"
         ,"pokemon"."name" as "pokemon", "encounter"."form", "form_note"."id"
-        ,json("encounter"."level_range")
+        ,"encounter"."level_range"
+        ,(
+            select json_group_array(json_object('level', "level", 'form', "form", 'moves', "moves"))
+            from (
+                select "level_range"."value" as "level", "random_encounter_moveset"."form", "random_encounter_moveset"."moves"
+                from json_each("encounter"."level_range") as "level_range"
+                join "random_encounter_moveset" on (
+                    "random_encounter_moveset"."map" = "encounter"."map"
+                    and "random_encounter_moveset"."method" = "encounter"."method"
+                    and "random_encounter_moveset"."pokemon" = "encounter"."pokemon"
+                    and ("random_encounter_moveset"."form" = "encounter"."form" or "encounter"."form" is null)
+                    and "random_encounter_moveset"."level" = "level_range"."value"
+                )
+                order by "level_range"."key"
+            )
+        ) as "movesets"
     from "pokemon_encounter_rate_by_level_range" as "encounter"
     join "encounter_method" as "method" on "method"."name" = "encounter"."method"
     join "pokemon" on "pokemon"."id" = "encounter"."pokemon"
@@ -97,6 +112,7 @@ left join (
         ,'form_note', "encounter"."form_note"
         ,'level_range', json("encounter"."level_range")
         ,'rate', frac_mul("encounter"."rate", 100)
+        ,'movesets', json("encounter"."movesets")
     )) as "all" from "encounter"
     group by "encounter"."map"
 ) as "encounters" on "encounters"."map" = "map"."id"
