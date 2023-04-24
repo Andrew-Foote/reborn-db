@@ -200,7 +200,7 @@ def movesets_from_list(x):
         splitbyform[v['form']].append({'level': v['level'], 'moves': v['moves']})
 
     for form, vv in splitbyform.items():
-        values = sorted(vv, key=lambda v: v[0])
+        values = sorted(vv, key=lambda v: v['level'])
         curstart = values[0]['level']
         curmoves = values[0]['moves']
         curend = curstart
@@ -210,32 +210,53 @@ def movesets_from_list(x):
             if v['level'] == curend + 1 and v['moves'] == curmoves:
                 curend = v['level']
             else:
-                ranges.append((curstart, curmoves, curend))
+                ranges[form].append((curstart, curmoves, curend))
                 curend = curstart = v['level']
                 curmoves = v['moves']
 
         ranges[form].append((curstart, curmoves, curend))
-        return ', '.join((f'{a}&ndash;{c}: {b}' if a != c else f'{a}: {b}') for a, b, c in ranges)
 
+    if len(splitbyform.keys()) == 1:
+        form = list(splitbyform.keys())[0]
+        lines = []
 
+        for start, moves, end in ranges[form]:
+            movesbit = ', '.join(f'<a href="{URL_BASE}/move/{move["id"]}.html">{move["name"]}</a>' for move in moves)
+            rangebit = f' ({start}&ndash;{end})'
+            lines.append(movesbit + rangebit)
+        
+        return '<br>'.join(lines)
+    else:
+        bits = []
+        for form in splitbyform.keys():
+            lines = [f'<b>{form}</b>']
 
-    values = sorted(x, key=lambda v: v['level'])
-    print(values)
-    curstart = values[0]['level']
-    curmoves = values[0]['moves']
-    curend = curstart
-    ranges = []
+            for start, moves, end in ranges[form]:
+                movesbit = ', '.join(f'<a href="{URL_BASE}/move/{move["id"]}.html">{move["name"]}</a>' for move in moves)
+                rangebit = f' ({start}&ndash;{end})'
+                lines.append(movesbit + rangebit)
 
-    for v in values[1:]:
-        if v['level'] == curend + 1 and v['moves'] == curmoves:
-            curend = v['level']
-        else:
-            ranges.append((curstart, curmoves, curend))
-            curend = curstart = v['level']
-            curmoves = v['moves']
+            bits.append('<br>'.join(lines))
 
-    ranges.append((curstart, curmoves, curend))
-    return ', '.join((f'{a}&ndash;{c}: {b}' if a != c else f'{a}: {b}') for a, b, c in ranges)
+        return '<br>'.join(bits)
+
+    # values = sorted(x, key=lambda v: v['level'])
+    # print(values)
+    # curstart = values[0]['level']
+    # curmoves = values[0]['moves']
+    # curend = curstart
+    # ranges = []
+
+    # for v in values[1:]:
+    #     if v['level'] == curend + 1 and v['moves'] == curmoves:
+    #         curend = v['level']
+    #     else:
+    #         ranges.append((curstart, curmoves, curend))
+    #         curend = curstart = v['level']
+    #         curmoves = v['moves']
+
+    # ranges.append((curstart, curmoves, curend))
+    # return ', '.join((f'{a}&ndash;{c}: {b}' if a != c else f'{a}: {b}') for a, b, c in ranges)
 
 jinja_env.filters |= {
     'slug': slugify,

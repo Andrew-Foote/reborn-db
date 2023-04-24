@@ -1308,7 +1308,7 @@ create table "pokemon_encounter_form_note" (
 	,foreign key ("pokemon") references "pokemon" ("id")
 ) without rowid;
 
-create view "random_encounter_moveset" ("map", "method", "pokemon", "form", "level", "moves") as
+create view "random_encounter_move" ("map", "method", "pokemon", "form", "level", "index", "move") as
 with
 	"level_move_o" as (
 		select
@@ -1328,15 +1328,10 @@ with
 	)
 select 
 	"per"."map", "per"."method", "per"."pokemon", "per"."form", "per"."level"
-	,(
-		select json_group_array("move") from (
-			select "lm"."move" from "level_move_o" "lm"
-			where "lm"."pokemon" = "per"."pokemon" and "lm"."form" = "per"."form"
-			and "lm"."order" between "per"."last_move_order" - 3 and "per"."last_move_order"
-			order by "lm"."order"
-		)
-	) as "moves"
-from "per";
+	,"lm"."order" - "per"."last_move_order" + min(3, "last_move_order" - 1) as "index"
+	,"lm"."move"
+from "per" join "level_move_o" as "lm" on "lm"."pokemon" = "per"."pokemon" and "lm"."form" = "per"."form"
+and "lm"."order" between "per"."last_move_order" - 3 and "per"."last_move_order";
 
 create table if not exists "event_encounter_type" ("name" text primary key) without rowid;
 insert into "event_encounter_type" ("name") values

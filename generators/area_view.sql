@@ -36,17 +36,21 @@ with "encounter_form_note" ("map", "id", "pokemon", "content") as (
         ,"pokemon"."name" as "pokemon", "encounter"."form", "form_note"."id"
         ,"encounter"."level_range"
         ,(
-            select json_group_array(json_object('level', "level", 'form', "form", 'moves', "moves"))
+            select json_group_array(json_object('level', "level", 'form', "form", 'moves', json("moves")))
             from (
-                select "level_range"."value" as "level", "random_encounter_moveset"."form", "random_encounter_moveset"."moves"
+                select "level_range"."value" as "level", "random_encounter_move"."form", json_group_array(
+                    json_object('id', "move"."id", 'name', "move"."name")
+                ) as "moves"
                 from json_each("encounter"."level_range") as "level_range"
-                join "random_encounter_moveset" on (
-                    "random_encounter_moveset"."map" = "encounter"."map"
-                    and "random_encounter_moveset"."method" = "encounter"."method"
-                    and "random_encounter_moveset"."pokemon" = "encounter"."pokemon"
-                    and ("random_encounter_moveset"."form" = "encounter"."form" or "encounter"."form" is null)
-                    and "random_encounter_moveset"."level" = "level_range"."value"
+                join "random_encounter_move" on (
+                    "random_encounter_move"."map" = "encounter"."map"
+                    and "random_encounter_move"."method" = "encounter"."method"
+                    and "random_encounter_move"."pokemon" = "encounter"."pokemon"
+                    and ("random_encounter_move"."form" = "encounter"."form" or "encounter"."form" is null)
+                    and "random_encounter_move"."level" = "level_range"."value"
                 )
+                join "move" on "move"."id" = "random_encounter_move"."move"
+                group by "random_encounter_move"."level", "random_encounter_move"."form"
                 order by "level_range"."key"
             )
         ) as "movesets"
