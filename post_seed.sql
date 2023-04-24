@@ -470,9 +470,14 @@ create table "pokemon_evolution_schemes" as
 		,evolution_schemes("em"."base_method", "em"."reqs") as "schemes"
 	from "pokemon_evolution_method" as "pem"
 	join (
-		select "em"."id", "em"."base_method", json_group_object("erd"."kind", json("erd"."args")) as "reqs"
+		select
+			"em"."id", "em"."base_method",
+			case
+				when "erd"."kind" is null then json_object()
+				else json_group_object("erd"."kind", json("erd"."args"))
+			end as "reqs"
 		from "evolution_method" as "em"
-		join "evolution_requirement_display" as "erd" on "erd"."method" = "em"."id"
+		left join "evolution_requirement_display" as "erd" on "erd"."method" = "em"."id"
 		group by "em"."id"
 	) as "em" on "em"."id" = "pem"."method"
 	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
