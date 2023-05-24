@@ -1463,3 +1463,10 @@ create table "roamer" (
 	foreign key ("switch") references "game_switch" ("id")
 ) without rowid;
 
+create table "fossil" (
+	"item" text,
+	"pokemon" text,
+	primary key ("item", "pokemon"),
+	foreign key ("item") references "item" ("id"),
+	foreign key ("pokemon") references "pokemon" ("id")
+) without rowid;

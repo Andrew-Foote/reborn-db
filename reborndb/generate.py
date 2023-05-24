@@ -258,12 +258,15 @@ def movesets_from_list(x):
     # ranges.append((curstart, curmoves, curend))
     # return ', '.join((f'{a}&ndash;{c}: {b}' if a != c else f'{a}: {b}') for a, b, c in ranges)
 
+def an(w):
+    return 'an' if w[0].lower() in 'aeiou' else 'a'
+
 jinja_env.filters |= {
     'slug': slugify,
     'gender_ratio': gender_ratio,
     'frac_mixed': frac_mixed,
     'ranges_from_list': ranges_from_list,
-    'movesets_from_list': movesets_from_list
+    'movesets_from_list': movesets_from_list,
 }
 
 jinja_env.globals |= {
@@ -271,6 +274,7 @@ jinja_env.globals |= {
     'pokemon_form_name': pokemon_form_name,
     'describe_evolution_scheme': describe_evolution_scheme,
     'describe_evolution_scheme_mapless': describe_evolution_scheme_mapless,
+    'an': an,
     'url_base': URL_BASE
 }
 

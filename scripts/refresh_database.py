@@ -17,6 +17,7 @@ extractor_names = [
 	'tm',
 	'trainertypes',
 	'trainers',
+	'fossils',
 ]
 
 #extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]

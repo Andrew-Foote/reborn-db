@@ -366,7 +366,6 @@ with
             left join "ability" on "ability"."id" = "pokemon_ability"."ability"
             left join "move" as "move_preference" on "move_preference"."id" = "encounter"."move_preference"
             left join "event_encounter_ot" as "encounter_ot" on "encounter_ot"."encounter" = "encounter"."id"
-            order by "map"."order"
         ) as "specialenc"
         group by "specialenc"."pokemon", "specialenc"."form"
     ) as "specialencs" on "specialencs"."pokemon" = "form"."pokemon" and (
@@ -473,6 +472,7 @@ select "pokemon"."name", json_object(
         'id', "growth_rate"."pbs_name",
         'name', "growth_rate"."name"
     )
+    ,'fossil',"fossil_item"."name"
     ,'egg_groups', json("egg_groups"."all")
     ,'breedability', case
         when "pokemon"."id" = 'DITTO' then 'ditto'
@@ -489,6 +489,8 @@ from "pokemon"
 left join "pokemon" as "prev_pokemon" on "prev_pokemon"."number" = "pokemon"."number" - 1
 left join "pokemon" as "next_pokemon" on "next_pokemon"."number" = "pokemon"."number" + 1
 join "growth_rate" on "growth_rate"."name" = "pokemon"."growth_rate"
+left join "fossil" on "fossil"."pokemon" = "pokemon"."id"
+left join "item" as "fossil_item" on "fossil_item"."id" = "fossil"."item"
 join (
     select
         "egg_group"."pokemon",

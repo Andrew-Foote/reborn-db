@@ -479,7 +479,11 @@
 			{% else %}
 			<p>There are no regular wild encounters for this Pokémon.</p>
 			{% endif %}
-		</section>
+
+			{% if pokemon.fossil %}
+				<p>This Pokémon can be revived from {{ an(pokemon.fossil) }} <a href="{{ url_base }}/item/{{ pokemon.fossil|slug }}.html">{{ pokemon.fossil }}</a>.</p>
+			{% endif %}
+		</section>		
 
 		{% if form.special_encounters %}
 		<section>
