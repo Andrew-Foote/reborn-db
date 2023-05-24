@@ -18,22 +18,23 @@ figure { display: inline-block; }
 {% endblock %}
 
 {% block content %}
+<div class="backlinks">
+	{% if shiny %}
+	<a href="{{ url_base }}/pokemon.html">Non-shiny sprites</a>
+	{% else %}
+	<a href="{{ url_base }}/shiny_pokemon.html">Shiny sprites</a>
+	{% endif %}
+</div>
+
 <section>
 	<h1>Pokémon List</h1>
 
-	{% set MAX_SPRITES_IN_SHEET = 341 %}
 	{% set SPRITE_SIZE = 192 %}
 
 	<div style="text-align: center">
 	{% for pokemon in pokemons %}
 	<figure>
-	  <!--
-		<a
-			href="/pokemon/{{ pokemon.name|slug }}.html"
-			class="sprite"
-			style="background-image: url(/img/pokemon/sheet_{{ (pokemon.number - 1) // MAX_SPRITES_IN_SHEET }}.png); background-position: left {{ -(((pokemon.number - 1) % MAX_SPRITES_IN_SHEET) * SPRITE_SIZE) }}px"></a>
-		-->
-		<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">{{ base64_image(pokemon.sprite, '', 192, 192) }}</a>
+		<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">{{ base64_image(pokemon.sprite, '', SPRITE_SIZE, SPRITE_SIZE) }}</a>
 		<figcaption>
 			{{ '{0:0>3}'.format(pokemon.number) }}
 			<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">{{ pokemon.name }}</a>

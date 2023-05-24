@@ -3,7 +3,7 @@ from reborndb import DB
 from reborndb import generate
 
 def run():
-    pokemons = (json.loads(pokemon) for pokemon, in DB.H.exec('''
+    query = '''
         select json_object(
             'number', "pokemon"."number",
             'name', "pokemon"."name",
@@ -16,12 +16,16 @@ def run():
             "sprite"."pokemon" = "pokemon"."id"
             and "sprite"."form" = "form"."name"
             and "sprite"."type" = 'front'
-            and "sprite"."shiny" = 0
+            and "sprite"."shiny" = ?
             and ("sprite"."gender" is null or "sprite"."gender" = 'Male')
         order by "number"
-    '''))
+    '''
 
-    generate.render_template('pokemon.html', 'pokemon_list.jinja2', pokemons=pokemons)
+    pokemons = (json.loads(pokemon) for pokemon, in DB.H.exec(query, (0,)))
+    shiny_pokemons = (json.loads(pokemon) for pokemon, in DB.H.exec(query, (1,)))
+
+    generate.render_template('pokemon.html', 'pokemon_list.jinja2', pokemons=pokemons, shiny=False)
+    generate.render_template('shiny_pokemon.html', 'pokemon_list.jinja2', pokemons=shiny_pokemons, shiny=True)
 
 if __name__ == '__main__':
     run()
