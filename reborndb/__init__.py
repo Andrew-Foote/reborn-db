@@ -121,7 +121,8 @@ def connect():
                         and set(scheme['requirements'].keys()) == set(reqs.keys())
                     ):
                         new_reqs = {
-                            kind: v | {tuple(reqs[kind])}
+                            kind: tuple(dict.fromkeys(v + (tuple(reqs[kind]),)))
+                            #kind: v | {tuple(reqs[kind])}
                             for kind, v in scheme['requirements'].items()
                         }
 
@@ -131,7 +132,8 @@ def connect():
                 else:
                     schemes.append({
                         'base_method': base_method,
-                        'requirements': {kind: {tuple(v)} for kind, v in reqs.items()}
+                        'requirements': {kind: (tuple(v),) for kind, v in reqs.items()}
+                        #'requirements': {kind: {tuple(v)} for kind, v in reqs.items()}
                     })
 
             def bunga(schemes):
