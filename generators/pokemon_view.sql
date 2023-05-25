@@ -86,6 +86,18 @@ with
                 order by "baby"."incense", "baby_pokemon"."number"
             ) as "baby"
         ) as "babies"
+        ,(
+            select json_group_array(json_object(
+                'trainer_id', "tp"."trainer_id", 'trainer_sprite', base64("tp"."trainer_sprite"),
+                'nickname', "tp"."nickname", 'shiny', "tp"."shiny",
+                'level', "tp"."level", 'gender', "tp"."gender", 'nature', "tp"."nature",
+                'item', "tp"."item", 'friendship', "tp"."friendship",
+                'abilities', json("tp"."abilities"), 'moves', json("tp"."moves"),
+                'evs', json("tp"."evs"), 'ivs', json("tp"."ivs"), 'stats', json("tp"."stats")
+            ))
+            from "trainer_pokemon_v" as "tp"
+            where "tp"."pokemon" = "form"."pokemon" and "tp"."form" = "form"."name"
+        ) as "appearances"
     from "pokemon_form" as "form"
     left join "pokemon_sprite" as "sprite" on (
      	"sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
@@ -537,6 +549,7 @@ join (
             ,'evo_tree', json("form"."evo_tree")
             ,'mega_evolution', json("form"."mega_evolution")
             ,'babies', json("form"."babies")
+            ,'appearances', json("form"."appearances")
         )) as "all"
     from "form_o" as "form"
     group by "form"."pokemon"

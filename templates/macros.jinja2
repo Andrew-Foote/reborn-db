@@ -64,3 +64,78 @@
 <td colspan="2">{{ base64_image(sprites.shiny, '', width, height) }}</td>
 {% endif %}
 {% endmacro %}
+
+{% macro move_list(moves, caption='') %}
+	<figure class="move-list-fig">
+		{% if caption %}<figcaption>{{ caption }}</figcaption>{% endif %}
+		<ul class="move-list">
+			{% for move in moves %}
+				<li>
+					<a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a>
+					<span style="move-list-pp">({{ move.pp }} PP)</span>
+				</li>
+			{% endfor %}
+		</ul>
+	</figure>
+{% endmacro %}
+
+{% macro stat_table(evs, ivs, stats, caption='') %}
+	<table class="stat-table">
+		{% if caption %}<caption>{{ caption }}</caption>{% endif %}
+		<tr>
+			<th rowspan="2"></th>
+			{% for ev in evs %}
+				<th>
+					{% if ev.stat == 'HP' %}
+						{{ ev.stat }}
+					{% elif ev.stat == 'Attack' %}
+						<abbr title="Attack">Atk</abbr>
+					{% elif ev.stat == 'Defense' %}
+						<abbr title="Defense">Def</abbr>
+					{% elif ev.stat == 'Special Attack' %}
+						<abbr title="Special Attack">SpA</abbr>
+					{% elif ev.stat == 'Special Defense' %}
+						<abbr title="Special Defense">SpD</abbr>
+					{% elif ev.stat == 'Speed' %}
+						<abbr title="Speed">Spe</abbr>
+					{% else %}
+						💀ERROR💀ERROR💀ERROR💀
+					{% endif %}
+				</th>
+			{% endfor %}
+		</tr>
+		<tr>
+			{% for stat in stats %}
+				<td>{{ stat.value }}</td>
+			{% endfor %}
+		</tr>
+		<tr class="stat-table-minor">
+			<th>EVs</th>
+			{% for ev in evs %}
+				<td>
+					{% if ev.value >= 252 %}
+						<span class="good-stat">{{ ev.value }}</span>
+					{% elif ev.value <= 0 %}
+						<span class="bad-stat">{{ ev.value }}</span>
+					{% else %}
+						{{ ev.value }}
+					{% endif %}
+				</td>
+			{% endfor %}
+		</tr>
+		<tr class="stat-table-minor">
+			<th>IVs</th>
+			{% for iv in ivs %}
+				<td>
+					{% if iv.value >= 31 %}
+						<span class="good-stat">{{ iv.value }}</span>
+					{% elif iv.value <= 0 %}
+						<span class="bad-stat">{{ iv.value }}</span>
+					{% else %}
+						{{ iv.value }}
+					{% endif %}
+				</td>
+			{% endfor %}
+		</tr>
+	</table>
+{% endmacro %}

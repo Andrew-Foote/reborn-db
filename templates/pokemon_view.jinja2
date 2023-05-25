@@ -1,4 +1,4 @@
-{% from 'macros.jinja2' import evolution_diagram, type_icon %}
+{% from 'macros.jinja2' import evolution_diagram, type_icon, move_list, stat_table %}
 {% extends 'base.jinja2' %}
 
 {% block title %}
@@ -8,6 +8,12 @@
 {% block links %}
 {% if pokemon.prev_name is not none %}<link rel="next" href="{{ url_base }}/pokemon/{{ pokemon.prev_name|slug }}.html">{% endif %}
 {% if pokemon.next_name is not none %}<link rel="next" href="{{ url_base }}/pokemon/{{ pokemon.next_name|slug }}.html">{% endif %}
+{% endblock %}
+
+{% block style %}
+	.trainer-spoiler {
+		display: none;
+	}
 {% endblock %}
 
 {% block script %}
@@ -40,6 +46,16 @@
 		selectTab(tabs, indexToSelect);
 	}
 
+	function showOrHideTrainerSpoilers() {
+		const box = document.getElementById('show-trainer-spoilers');
+		const display = box.checked ? 'block' : 'none';
+		const affected = Array.from(document.querySelectorAll('.trainer-spoiler'));
+
+		for (const elem of affected) {
+			elem.style.display = display;
+		}
+	}
+
 	document.addEventListener('DOMContentLoaded', () => {
 		let tabLists = Array.from(document.querySelectorAll('.tabs'));
 
@@ -59,6 +75,9 @@
 				selectTab(tabs, 0);
 			}
 		}
+
+		showOrHideTrainerSpoilers();
+		document.getElementById('show-trainer-spoilers').addEventListener('change', showOrHideTrainerSpoilers);
 	});
 
 	document.addEventListener('keydown', (event) => {
@@ -580,31 +599,107 @@
 		</section>
 		{% endif %}
 
-		{#
 		<section>
 			<h3>Appearances in Trainer teams</h3>
 
 			<p><input type="checkbox" id="show-trainer-spoilers" value="1"> Show trainer names and Pokémon nicknames (these may constitute spoilers)</p>
 
-			{% for appearance in form.trainer_appearances %}
+			{% for appearance in form.appearances %}
+
+			<div style="display: flex; justify-content: space-evenly; margin-bottom: 1em">
+				<figure style="margin-right: 0.4em" class="trainer-spoiler">
+					<a href="{{ url_base }}/trainer/{{ appearance.trainer_id|slug }}.html">
+						<img
+							src="data:image/png;base64,{{ appearance.trainer_sprite }}"
+							alt="{{ appearance.trainer_id }}"
+							width="192"
+							height="192"
+						>
+					</a>
+					<figcaption>
+						<b><a href="{{ url_base }}/trainer/{{ appearance.trainer_id|slug }}.html">{{ appearance.trainer_id }}</a></b>
+						{% if appearance.nickname %} ("{{ appearance.nickname }}") {% endif %}
+					</figcaption>
+				</figure>
+
+				<div style="display: flex; flex-direction: column">
+					<div>
+					Level {{ appearance.level }},
+					{% if appearance.item is none %}
+						no item,
+					{% else %}
+						holding <a href="{{ url_base }}/item/{{ appearance.item|slug }}.html">{{ appearance.item }}</a>,
+					{% endif %}
+					{% if appearance.gender is none %}
+						<abbr title="The Pokémon's gender will be randomly determined at the start of the battle, with the chance of it being male or female being determined by the species's gender ratio, the same as for a wild Pokémon.">random gender</abbr>,
+					{% else %}
+						{{ appearance.gender|lower }},
+					{% endif %}
+					{{ appearance.friendship }} friendship
+					<br>
+					{% for ability in appearance.abilities %}<a href="{{ url_base }}/ability/{{ ability|slug }}.html">{{ ability }}</a>{% if not loop.last %}/{% endif %}{% endfor %}{% if len(appearance.abilities) > 1 %} (<abbr title="The Pokémon will have one of these abilities randomly chosen for it at the start of the battle.">?</abbr>){% endif %};
+					{{ appearance.nature }} nature
+					</div>
+					<div style="display: flex; align-items: center; justify-content: space-between;">
+						{{ move_list(appearance.moves, 'Moves') }}
+						{{ stat_table(appearance.evs, appearance.ivs, appearance.stats, 'Stats') }}
+					</div>
+				</div>
+			</div>
+
+				{#
 				<div class="moveset">
 					<div class="trainer-spoiler">
-						<a href="{{ url_base }}/trainers/{{ appearance.trainer_name }}">{{ appearance.trainer_name }}</a></span>
+						<a href="{{ url_base }}/trainers/{{ appearance.trainer|slug }}">{{ appearance.trainer }}</a></span>
+						{% if appearance.nickname %}
+
 						&ndash;
 						"{{ appearance.nickname }}""
+						({{ appearance.shiny }})
 					</div>
-					<div>Level {{ appearance.level }},
-					{% if appearance.gender is none %} random gender, {% else %} {{ appearance.gender }}, {% endif %}
-						{{ appearance.item }}
-						{{ appearance.friendship }}
-						{{ appearance.shiny }}
-					{% for ability in appearance.abilities %}{{ ability }}{% if not loop.last %}/{% endif %}{% endfor %}
-					{% appearance.nature %}
-					table for stats
+					<div>
+						Level {{ appearance.level }},
+						{% if appearance.item %} holding <a href="{{ url_base }}/item/{{ appearance.item|slug }}">{{ appearance.item }}</a>, {% endif %}
+						{% if appearance.gender is none %} random gender, {% else %} {{ appearance.gender|lower }}, {% endif %}
+						{{ appearance.friendship }} friendship
+					</div>
+					<div>
+					{% for ability in appearance.abilities %}<a href="{{ url_base }}/ability/{{ ability|slug }}">{{ ability }}</a>{% if not loop.last %}/{% endif %}{% endfor %};
+					{{ appearance.nature }} nature
+					</div>
+					<table>
+						<tr>
+							<th></th>
+						{% for ev in pokemon.evs %}
+							<th>{{ ev.stat }}</th>
+						{% endfor %}
+						</tr>
+						<tr>
+							<th>Values</th>
+						{% for statval in pokemon.stats %}
+							<td>{{ statval.value }}</td>
+						{% endfor %}
+						</tr>
+						<tr>
+							<th>EVs</th>
+						{% for ev in pokemon.evs %}
+							<td>{{ ev.value }}</td>
+						{% endfor %}
+						</tr>
+						<tr>
+							<th>IVs</th>
+						{% for iv in pokemon.ivs %}
+							<td>{{ iv.value }}</td>
+						{% endfor %}
+						</tr>
+					</table>
 				</div>
+
+
+				#}
+
 			{% endfor %}
 		</section>
-		#}
 
 		{% if len(pokemon.forms) > 1 %}
 		</section>

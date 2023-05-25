@@ -84,7 +84,7 @@ def get_form_map():
                 <ul>
                 <li>Day (excluding dusk): <a href="/pokemon/lycanroc.html#midday">Midday Form</a>.</li>
                 <li>Dusk: <a href="/pokemon/lycanroc.html#dusk">Dusk Form</a>.</li>
-                <li>Night: <a href="/pokemon/lycanroc.html#midnight">Midnight Form.</li>
+                <li>Night: <a href="/pokemon/lycanroc.html#midnight">Midnight Form</a>.</li>
                 </ul>
             '''
             continue
