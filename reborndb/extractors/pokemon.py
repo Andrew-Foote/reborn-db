@@ -65,7 +65,18 @@ EGG_GROUP_MAP = {
 	'Water3': 'Water 3'
 }
 
-# pokemon, method, argument
+def should_ignore_this_form(pokemon, form):
+	# Ignore Galar forms (Gen 8 stuff) and Perfection forms (Desolation stuff)
+	if form in ('Galarian', 'Galar', 'Galar Zen', 'Perfection'):
+		return True
+
+	# Mega Mightyena/Toxicroak only appear in Desolation as far as I know
+	if pokemon in ('MIGHTYENA', 'TOXICROAK') and form == 'Mega':
+		return True
+
+	# the dev marshadow also doesn't seem to appear anywhere in Reborn, but I'll keep it in anyway
+
+	return False
 
 def extract():
 	# note: we ignore gen8pokemon.txt, it appears to contain (rather confusingly) only data
@@ -122,7 +133,12 @@ def extract():
 
 		pbs_form_names = section.content.get('FormNames', '').split(',')
 		script_section = script_data.get(f'PBSpecies::{id_}', {})
-		script_form_names = {int(i): name for i, name in script_section.get('FormName', {}).items() if name != 'Galarian'}
+		
+		script_form_names = {
+			int(i): name for i, name in script_section.get('FormName', {}).items()
+			if not should_ignore_this_form(id_, name)
+		}
+
 		form_count = max((len(pbs_form_names), *(i + 1 for i in script_form_names.keys())))
 		form_names = []
 
@@ -523,7 +539,10 @@ def handle_evolutions():
 		id_ = section.content['InternalName']
 		pbs_evolutions = section.content.get('Evolutions')
 		script_section = script_data.get(f'PBSpecies::{id_}', {})
-		script_form_names = {int(i): name for i, name in script_section.get('FormName', {}).items() if name != 'Galarian'}
+		script_form_names = {
+			int(i): name for i, name in script_section.get('FormName', {}).items()
+			if not should_ignore_this_form(id_, name)
+		}
 			
 		for form_index, form_name in list(DB.H.exec(
 			'select "order", "name" from "pokemon_form" where "pokemon" = ?',

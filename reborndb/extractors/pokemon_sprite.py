@@ -123,3 +123,14 @@ def extract():
 					and "female"."gender" = 'Female'
 			)
 		''')
+
+		# copy base sprites for forms without any existing sprites (i.e. dev forms)
+		DB.H.exec('''
+			insert into "pokemon_sprite" ("pokemon", "form", "type", "shiny", "gender", "sprite")
+			select "form"."pokemon", "form"."name", "sprite0"."type", "sprite0"."shiny", "sprite0"."gender", "sprite0"."sprite"
+			from "pokemon_form" as "form"
+			left join "pokemon_sprite" as "sprite" on "sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
+			join "pokemon_form" as "form0" on "form0"."pokemon" = "form"."pokemon" and "form0"."order" = 0
+			join "pokemon_sprite" as "sprite0" on "sprite0"."pokemon" = "form0"."pokemon" and "sprite0"."form" = "form0"."name"
+			where "sprite"."sprite" is null
+		''')
