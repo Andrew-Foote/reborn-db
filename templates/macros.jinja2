@@ -51,7 +51,14 @@
 {% endif %}
 {% endmacro %}
 
-{% macro base64_image(base64, alt, width, height) %}<img src="data:image/png;base64,{{ base64 }}" alt="{{ alt }}" width="{{ width }}" height="{{ height }}" loading="lazy">{% endmacro %}
+{% macro base64_image(base64, alt, width='', height='') %}
+	<img
+		src="data:image/png;base64,{{ base64 }}" alt="{{ alt }}" 
+		{% if width %} width="{{ width }}" {% endif %}
+		{% if height %} height="{{ height }}" {% endif %}
+		loading="lazy"
+	>
+{% endmacro %}
 
 {% macro pokemon_sprite_row(sprites, width, height) %}
 {% if sprites.genderdiff %}

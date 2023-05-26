@@ -1,3 +1,4 @@
+{% from 'macros.jinja2' import move_list, stat_table %}
 {% extends 'base.jinja2' %}
 
 {% block title %}
@@ -50,20 +51,41 @@
 
 	<div class="trainer-team">
 	{% for pokemon in trainer.pokemons %}			
-		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+		<div style="display: flex; justify-content: space-evenly; margin-bottom: 1em">
 			<figure style="margin-right: 0.4em">
-				<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html">
+				<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html#{{ pokemon.form|slug }}">
 					<img
 						src="data:image/png;base64,{{ pokemon.sprite }}"
 						alt="{{ pokemon.name }}{% if pokemon.gender is not none or pokemon.shiny == 1 %} ({% if pokemon.gender is not none %}{{ pokemon.gender|lower }}{% endif %}{% if pokemon.shiny == 1 %}{% if pokemon.gender is not none %}, {% endif %}shiny{% endif %}){% endif %}"
-						width="192"
-						height="192"
 					>
 				</a>
 				<figcaption><b>{{ pokemon.nickname }}</b></figcaption>
 			</figure>
 
 			<div style="display: flex; flex-direction: column">
+				<div>
+					Level {{ pokemon.level }},
+					{% if pokemon.item is none %}
+						no item,
+					{% else %}
+						holding <a href="{{ url_base }}/item/{{ pokemon.item|slug }}.html">{{ pokemon.item }}</a>,
+					{% endif %}
+					{% if pokemon.gender is none %}
+						<abbr title="The Pokémon's gender will be randomly determined at the start of the battle, with the chance of it being male or female being determined by the species's gender ratio, the same as for a wild Pokémon.">random gender</abbr>,
+					{% else %}
+						{{ pokemon.gender|lower }},
+					{% endif %}
+					{{ pokemon.friendship }} friendship
+					<br>
+					{% for ability in pokemon.abilities %}<a href="{{ url_base }}/ability/{{ ability|slug }}.html">{{ ability }}</a>{% if not loop.last %}/{% endif %}{% endfor %}{% if len(pokemon.abilities) > 1 %} (<abbr title="The Pokémon will have one of these abilities randomly chosen for it at the start of the battle.">?</abbr>){% endif %};
+					{{ pokemon.nature }} nature
+					</div>
+					<div style="display: flex; align-items: center; justify-content: space-between;">
+						{{ move_list(pokemon.moves, 'Moves') }}
+						{{ stat_table(pokemon.evs, pokemon.ivs, pokemon.stats, 'Stats') }}
+					</div>
+
+				{#
 				<table class="data-table" style="margin-bottom: 0.5em">
 					<tr>
 						<th>Species</th>
@@ -154,6 +176,8 @@
 						</tr>
 					</table>
 				</div>
+
+				#}
 			</div>
 		</div>
 	{% endfor %}

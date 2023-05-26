@@ -46,10 +46,10 @@
 		selectTab(tabs, indexToSelect);
 	}
 
-	function showOrHideTrainerSpoilers() {
-		const box = document.getElementById('show-trainer-spoilers');
+	function showOrHideTrainerSpoilers(box) {
+		const form = box.dataset.form;
 		const display = box.checked ? 'block' : 'none';
-		const affected = Array.from(document.querySelectorAll('.trainer-spoiler'));
+		const affected = Array.from(document.querySelectorAll(`.trainer-spoiler-${form}`));
 
 		for (const elem of affected) {
 			elem.style.display = display;
@@ -76,8 +76,12 @@
 			}
 		}
 
-		showOrHideTrainerSpoilers();
-		document.getElementById('show-trainer-spoilers').addEventListener('change', showOrHideTrainerSpoilers);
+		const trainerSpoilerTickboxes = Array.from(document.querySelectorAll('.show-trainer-spoilers'));
+
+		for (const box of trainerSpoilerTickboxes) {
+			showOrHideTrainerSpoilers(box);
+			box.addEventListener('change', () => { showOrHideTrainerSpoilers(box) });
+		}
 	});
 
 	document.addEventListener('keydown', (event) => {
@@ -175,7 +179,7 @@
 			  {% if form.sprite is none %}
 			  <div style="width: 192px; height: 192px"></div>
 			  {% else %}
-			  <img src="data:image/png;base64,{{ form.sprite }}" alt="" width="192" height="192">
+			  <img src="data:image/png;base64,{{ form.sprite }}" alt="">
 			  {% endif %}
 				<!--<img src="/img/pokemon/{{ '{0:0>3}'.format(pokemon.number) }}_{{ form.order }}.png">-->
 				<figcaption>
@@ -602,18 +606,18 @@
 		<section>
 			<h3>Appearances in Trainer teams</h3>
 
-			<p><input type="checkbox" id="show-trainer-spoilers" value="1"> Show trainer names and Pokémon nicknames (these may constitute spoilers)</p>
+			{% if form.appearances %}
+
+			<p><input type="checkbox" class="show-trainer-spoilers" data-form="{{ form.name|slug }}" value="1"> Show trainer names and Pokémon nicknames (these may constitute spoilers)</p>
 
 			{% for appearance in form.appearances %}
 
 			<div style="display: flex; justify-content: space-evenly; margin-bottom: 1em">
-				<figure style="margin-right: 0.4em" class="trainer-spoiler">
+				<figure style="margin-right: 0.4em" class="trainer-spoiler-{{ form.name|slug }}">
 					<a href="{{ url_base }}/trainer/{{ appearance.trainer_id|slug }}.html">
 						<img
 							src="data:image/png;base64,{{ appearance.trainer_sprite }}"
 							alt="{{ appearance.trainer_id }}"
-							width="192"
-							height="192"
 						>
 					</a>
 					<figcaption>
@@ -699,6 +703,10 @@
 				#}
 
 			{% endfor %}
+
+			{% else %}
+			<p>This Pokémon does not appear in any trainer teams.</p> 
+			{% endif %}
 		</section>
 
 		{% if len(pokemon.forms) > 1 %}
