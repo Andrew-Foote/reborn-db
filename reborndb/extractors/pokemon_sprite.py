@@ -65,17 +65,19 @@ def extract():
 
 			for i, j, part in split_image(img, sprite_size, sprite_size):
 				form = j if egg else j // 2
-				
-				if number == 678 and form == 0: # special case for Meowstic-F
-				    form = 1
-				    gender = None
+
+				if number == 678: # special case for Meowstic-F
+					form = int(gender == 'Female')
+					gender2 = None
+				else:
+					gender2 = gender
 				
 				type_ = 'egg' if egg else ('back' if j % 2 else 'front')
 				shiny = [False, True][i]
 
 				# prefer to use the sprite that's in its own file
-				key = (number, form, type_, shiny, gender)
-				if key not in blobs: blobs[number, form, type_, shiny, gender] = getblob(part)
+				key = (number, form, type_, shiny, gender2)
+				if key not in blobs: blobs[number, form, type_, shiny, gender2] = getblob(part)
 
 	rows = [(*key, blob) for key, blob in blobs.items()]
 
@@ -93,9 +95,16 @@ def extract():
 
 		for i, j, part in split_image(img, sprite_size, sprite_size):
 			form = j
+			
+			if number == 678: # special case for Meowstic-F
+				form = int(gender == 'Female')
+				gender2 = None
+			else:
+				gender2 = gender
+
 			type_, shiny = [('icon1', False), ('icon2', False), ('icon1', True), ('icon2', True)][i]
 			if egg: type_ = f'egg-{type_}'
-			rows.append((number, form, type_, shiny, gender, getblob(part)))
+			rows.append((number, form, type_, shiny, gender2, getblob(part)))
 			
 	with DB.H.transaction():
 		DB.H.dump_as_table('pokemon_sprite_raw', ('pokemon', 'form', 'type', 'shiny', 'gender', 'sprite'), rows)
@@ -132,5 +141,5 @@ def extract():
 			left join "pokemon_sprite" as "sprite" on "sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
 			join "pokemon_form" as "form0" on "form0"."pokemon" = "form"."pokemon" and "form0"."order" = 0
 			join "pokemon_sprite" as "sprite0" on "sprite0"."pokemon" = "form0"."pokemon" and "sprite0"."form" = "form0"."name"
-			where "sprite"."sprite" is null
+			where "form"."name" = 'Dev' and "sprite"."sprite" is null
 		''')

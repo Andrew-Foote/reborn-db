@@ -641,7 +641,16 @@
 					{% endif %}
 					{{ appearance.friendship }} friendship
 					<br>
-					{% for ability in appearance.abilities %}<a href="{{ url_base }}/ability/{{ ability|slug }}.html">{{ ability }}</a>{% if not loop.last %}/{% endif %}{% endfor %}{% if len(appearance.abilities) > 1 %} (<abbr title="The Pokémon will have one of these abilities randomly chosen for it at the start of the battle.">?</abbr>){% endif %};
+					{% if len(appearance.abilities) == 1 %}
+						{% for ability in appearance.abilities.0.abilities %}<a href="{{ url_base }}/ability/{{ ability|slug }}.html">{{ ability }}</a>{% if not loop.last %}/{% endif %}{% endfor %}{% if len(appearance.abilities.0.abilities) > 1 %} (<abbr title="The Pokémon will have one of these abilities randomly chosen for it at the start of the battle.">?</abbr>){% endif %}
+						<br>
+					{% else %}
+						{% for abilentry in appearance.abilities %}
+							<b><a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html#{{ abilentry.form }}">{{ abilentry.form }}</a></b>:
+							{% for ability in abilentry.abilities %}<a href="{{ url_base }}/ability/{{ ability|slug }}.html">{{ ability }}</a>{% if not loop.last %}/{% endif %}{% endfor %}{% if len(abilentry.abilities) > 1 %} (<abbr title="The Pokémon will have one of these abilities randomly chosen for it at the start of the battle.">?</abbr>){% endif %}
+							<br>
+						{% endfor %}
+					{% endif %}
 					{{ appearance.nature }} nature
 					</div>
 					<div style="display: flex; align-items: center; justify-content: space-between;">
@@ -650,60 +659,7 @@
 					</div>
 				</div>
 			</div>
-
-				{#
-				<div class="moveset">
-					<div class="trainer-spoiler">
-						<a href="{{ url_base }}/trainers/{{ appearance.trainer|slug }}">{{ appearance.trainer }}</a></span>
-						{% if appearance.nickname %}
-
-						&ndash;
-						"{{ appearance.nickname }}""
-						({{ appearance.shiny }})
-					</div>
-					<div>
-						Level {{ appearance.level }},
-						{% if appearance.item %} holding <a href="{{ url_base }}/item/{{ appearance.item|slug }}">{{ appearance.item }}</a>, {% endif %}
-						{% if appearance.gender is none %} random gender, {% else %} {{ appearance.gender|lower }}, {% endif %}
-						{{ appearance.friendship }} friendship
-					</div>
-					<div>
-					{% for ability in appearance.abilities %}<a href="{{ url_base }}/ability/{{ ability|slug }}">{{ ability }}</a>{% if not loop.last %}/{% endif %}{% endfor %};
-					{{ appearance.nature }} nature
-					</div>
-					<table>
-						<tr>
-							<th></th>
-						{% for ev in pokemon.evs %}
-							<th>{{ ev.stat }}</th>
-						{% endfor %}
-						</tr>
-						<tr>
-							<th>Values</th>
-						{% for statval in pokemon.stats %}
-							<td>{{ statval.value }}</td>
-						{% endfor %}
-						</tr>
-						<tr>
-							<th>EVs</th>
-						{% for ev in pokemon.evs %}
-							<td>{{ ev.value }}</td>
-						{% endfor %}
-						</tr>
-						<tr>
-							<th>IVs</th>
-						{% for iv in pokemon.ivs %}
-							<td>{{ iv.value }}</td>
-						{% endfor %}
-						</tr>
-					</table>
-				</div>
-
-
-				#}
-
 			{% endfor %}
-
 			{% else %}
 			<p>This Pokémon does not appear in any trainer teams.</p> 
 			{% endif %}

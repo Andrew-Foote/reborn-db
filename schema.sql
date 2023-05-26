@@ -1022,7 +1022,7 @@ create table "trainer_pokemon" (
 	"party_id" integer,
 	"index" integer check ("index" >= 0),
 	"pokemon" text not null,
-	"form" text not null,
+	"form" text,
 	"nickname" text,
 	"gender" text, -- null = determined by personal id, i.e. effectively random per battle
 	"level" integer not null check ("level" >= 0),
@@ -1050,6 +1050,8 @@ create table "trainer_pokemon" (
 -- this table lists all the possible abilities a trainer pokemon can have
 -- some have a specific ability, others can have any of their three abils (depending
 -- on personal id), some can only have first/second but not hidden
+-- also arcade star carol's meowstic, which has variable gender and hence form, will choose from a different
+-- set of abilities accordingly!
 create table "trainer_pokemon_ability" (
 	"trainer_type" text,
 	"trainer_name" text,
@@ -1160,24 +1162,53 @@ select
 	,"nature"."name" as "nature","item"."name" as "item", "trainer_pokemon"."friendship"
 	,"sprite"."sprite"
 	,(
-		select json_group_array("ability"."name")
+		select json_group_array(json_object('form', "possible_form"."name", 'abilities', json("possible_form"."abilities")))
 		from (
-			select "ability"."name"
-			from "trainer_pokemon_ability"
-			join "pokemon_ability" on (
-				"pokemon_ability"."pokemon" = "trainer_pokemon"."pokemon"
-				and "pokemon_ability"."form" = "trainer_pokemon"."form"
-				and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
-			)
-			join "ability" on "ability"."id" = "pokemon_ability"."ability"
+			select "possible_form"."name", (
+				select json_group_array("ability"."name")
+				from (
+					select "ability"."name"
+					from "trainer_pokemon_ability"
+					join "pokemon_ability" on (
+						"pokemon_ability"."pokemon" = "trainer_pokemon"."pokemon"
+						and "pokemon_ability"."form" = "possible_form"."name"
+						and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
+					)
+					join "ability" on "ability"."id" = "pokemon_ability"."ability"
+					where
+						"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
+						and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
+						and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
+						and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
+					order by "pokemon_ability"."index"
+				) as "ability"
+			) as "abilities"
+			from "pokemon_form" as "possible_form"
 			where
-				"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
-				and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
-				and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
-				and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
-			order by "pokemon_ability"."index"
-		) as "ability"
+				"possible_form"."pokemon" = "trainer_pokemon"."pokemon"
+				and ("trainer_pokemon"."form" is null or "possible_form"."name" = "trainer_pokemon"."form")
+			order by "possible_form"."order"
+		) as "possible_form"
 	) as "abilities"
+	-- ,(
+	-- 	select json_group_array("ability"."name")
+	-- 	from (
+	-- 		select "ability"."name"
+	-- 		from "trainer_pokemon_ability"
+	-- 		join "pokemon_ability" on (
+	-- 			"pokemon_ability"."pokemon" = "trainer_pokemon"."pokemon"
+	-- 			and ("trainer_pokemon"."form" is null or "pokemon_ability"."form" = "trainer_pokemon"."form")
+	-- 			and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
+	-- 		)
+	-- 		join "ability" on "ability"."id" = "pokemon_ability"."ability"
+	-- 		where
+	-- 			"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
+	-- 			and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
+	-- 			and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
+	-- 			and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
+	-- 		order by "pokemon_ability"."index"
+	-- 	) as "ability"
+	-- ) as "abilities"
 	,(
 		select json_group_array(json_object('id', "move"."id", 'name', "move"."name", 'pp', "move"."pp"))
 		from (
@@ -1246,7 +1277,8 @@ join "trainer_v" as "trainer" on (
 join "pokemon" on "pokemon"."id" = "trainer_pokemon"."pokemon"
 join "nature" on "nature"."id" = "trainer_pokemon"."nature"
 left join "pokemon_sprite" as "sprite" on (
-	"sprite"."pokemon" = "trainer_pokemon"."pokemon" and "sprite"."form" = "trainer_pokemon"."form"
+	"sprite"."pokemon" = "trainer_pokemon"."pokemon" and
+	("trainer_pokemon"."form" is null or "sprite"."form" = "trainer_pokemon"."form")
 	and "sprite"."type" = 'front' and "sprite"."shiny" = "trainer_pokemon"."shiny"
 	and ((
 		"trainer_pokemon"."gender" is null
@@ -1255,7 +1287,12 @@ left join "pokemon_sprite" as "sprite" on (
 		"sprite"."gender" is null or "trainer_pokemon"."gender" = "sprite"."gender"
 	))
 )
-left join "item" on "item"."id" = "trainer_pokemon"."item";
+join "pokemon_form" as "sprite_form" on (
+	"sprite_form"."pokemon" = "trainer_pokemon"."pokemon"
+	and "sprite_form"."name" = "sprite"."form"
+)
+left join "item" on "item"."id" = "trainer_pokemon"."item"
+where "trainer_pokemon"."form" is not null or "sprite_form"."order" = 0;
 
 create table "field_effect" (
 	"name" text primary key

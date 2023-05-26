@@ -96,7 +96,7 @@ with
                 'evs', json("tp"."evs"), 'ivs', json("tp"."ivs"), 'stats', json("tp"."stats")
             ))
             from "trainer_pokemon_v" as "tp"
-            where "tp"."pokemon" = "form"."pokemon" and "tp"."form" = "form"."name"
+            where "tp"."pokemon" = "form"."pokemon" and ("tp"."form" is null or "tp"."form" = "form"."name")
         ) as "appearances"
     from "pokemon_form" as "form"
     left join "pokemon_sprite" as "sprite" on (

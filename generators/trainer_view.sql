@@ -38,24 +38,55 @@ select json_object(
   			,"nature"."name" as "nature","item"."name" as "item", "trainer_pokemon"."friendship"
   			,base64("sprite"."sprite") as "sprite"
   			,(
-					select json_group_array("ability"."name")
-					from (
-						select "ability"."name"
-						from "trainer_pokemon_ability"
-						join "pokemon_ability" on (
-							"pokemon_ability"."pokemon" = "pokemon"."id"
-							and "pokemon_ability"."form" = "form"."name"
-							and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
-						)
-						join "ability" on "ability"."id" = "pokemon_ability"."ability"
-						where
-							"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
-							and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
-							and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
-							and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
-						order by "pokemon_ability"."index"
-					) as "ability"
-				) as "abilities"
+  				select json_group_array(json_object('form', "possible_form"."name", 'abilities', json("possible_form"."abilities")))
+  				from (
+  					select "possible_form"."name", (
+  						select json_group_array("ability"."name")
+  						from (
+  							select "ability"."name"
+  							from "trainer_pokemon_ability"
+  							join "pokemon_ability" on (
+  								"pokemon_ability"."pokemon" = "trainer_pokemon"."pokemon"
+  								and "pokemon_ability"."form" = "possible_form"."name"
+  								and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
+  							)
+  							join "ability" on "ability"."id" = "pokemon_ability"."ability"
+								where
+									"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
+									and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
+									and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
+									and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
+								order by "pokemon_ability"."index"
+  						) as "ability"
+  					) as "abilities"
+  					from "pokemon_form" as "possible_form"
+  					where
+	  					"possible_form"."pokemon" = "trainer_pokemon"."pokemon"
+	  					and 
+  						("trainer_pokemon"."form" is null or "possible_form"."name" = "trainer_pokemon"."form")
+	  				order by "possible_form"."order"
+  				) as "possible_form"
+  			) as "abilities"
+  			-- ,(
+				-- 	select json_group_array("ability"."name")
+				-- 	from (
+				-- 		select "ability"."name"
+				-- 		from "trainer_pokemon_ability"
+				-- 		join "pokemon_ability" on (
+				-- 			"pokemon_ability"."pokemon" = "pokemon"."id"
+				-- 			and ("form"."name" is null or "pokemon_ability"."form" = "form"."name")
+				-- 			and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
+				-- 		)
+				-- 		join "pokemon_form" as "ability_form" on "ability_form"."pokemon" = "pokemon_ability"."pokemon" and "ability_form"."name" = "pokemon_ability"."form"
+				-- 		join "ability" on "ability"."id" = "pokemon_ability"."ability"
+				-- 		where
+				-- 			"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
+				-- 			and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
+				-- 			and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
+				-- 			and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
+				-- 		order by "ability_form"."order", "pokemon_ability"."index"
+				-- 	) as "ability"
+				-- ) as "abilities"
 				,(
 					select json_group_array(json_object('id', "move"."id", 'name', "move"."name", 'pp', "move"."pp"))
 					from (
@@ -116,13 +147,16 @@ select json_object(
 					) as "stat"
 				) as "stats"
       from "trainer_pokemon"
-      join "pokemon_form" as "form" on (
+      left join "pokemon_form" as "form" on (
           "form"."pokemon" = "trainer_pokemon"."pokemon"
           and "form"."name" = "trainer_pokemon"."form"
       )
-      join "pokemon" on "pokemon"."id" = "form"."pokemon"
+      join "pokemon" on "pokemon"."id" = "trainer_pokemon"."pokemon"
       left join "pokemon_sprite" as "sprite" on (
-      	"sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
+      	"sprite"."pokemon" = "trainer_pokemon"."pokemon"
+      	-- due solely to Arcade Star Carol 3 having a Meowstic with variable gender, we have to account for the form
+      	-- sometimes being null (in which case we just use the first form, i.e. Male in this case, for the sprite)
+      	and ("form"."name" is null or "sprite"."form" = "form"."name")
       	and "sprite"."type" = 'front' and "sprite"."shiny" = "trainer_pokemon"."shiny"
       	and ((
       		"trainer_pokemon"."gender" is null
@@ -131,15 +165,19 @@ select json_object(
       		"sprite"."gender" is null or "trainer_pokemon"."gender" = "sprite"."gender"
       	))
       )
+      join "pokemon_form" as "sprite_form" on "sprite_form"."pokemon" = "sprite"."pokemon" and "sprite_form"."name" = "sprite"."form"
       join "nature" on "nature"."id" = "trainer_pokemon"."nature"
       left join "item" on "item"."id" = "trainer_pokemon"."item"
       where 
 		    "trainer_pokemon"."trainer_type" = "type"."id"
 		    and "trainer_pokemon"."trainer_name" = "trainer"."name"
 		    and "trainer_pokemon"."party_id" = "trainer"."party_id"
+		    and ("form"."name" is not null or "sprite_form"."order" = 0)
       order by "trainer_pokemon"."index"
   	) as "pokemon"
   )
 )
 from "trainer"
 join "trainer_type" as "type" on "type"."id" = "trainer"."type"
+
+-- where does the order of the trainers in debug menu come from?

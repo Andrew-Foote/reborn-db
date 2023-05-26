@@ -149,8 +149,15 @@ def extract():
                 "shiny", "shadow", "ball", "hidden_power"
             )
             select
-                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
-                "pokemon"."id", ifnull("form"."name", ''), "mtp"."nickname",
+                "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index", "pokemon"."id",
+                case
+                    when "pokemon"."id" = 'MEOWSTIC' then "gender"."name"
+                    when "form"."name" is null then "primary_form"."name"
+                    -- there are lots of weird form entries in the mtp table, e.g. 1 for Typhlosion
+                    -- although some of them may be meaningful, e.g. Furfrou/Vivillon, we are ignoring those for now
+                    else "form"."name"
+                end,
+                "mtp"."nickname",
                 case
                     when "pokemon"."male_frequency" is null then 'Genderless'
                     when "pokemon"."male_frequency" = 1000 then 'Male'
@@ -162,6 +169,7 @@ def extract():
             from "marshal_trainer_pokemon" as "mtp"
             join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
             join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
+            join "pokemon_form" as "primary_form" on "primary_form"."pokemon" = "pokemon"."id" and "primary_form"."order" = 0
             left join "pokemon_form" as "form" on (
                 "form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
             )
@@ -178,23 +186,25 @@ def extract():
             insert into "trainer_pokemon_ability" (
                 "trainer_type", "trainer_name", "party_id", "pokemon_index", "ability"
             )
-            select
+            select distinct --- distinct is only needed for arcade star carol's meowstic
                 "trainer_type"."id", "mtp"."trainer_name", "mtp"."party_id", "mtp"."index",
                 "ability"."index"
             from "marshal_trainer_pokemon" as "mtp"
             join "trainer_type" on "trainer_type"."code" = "mtp"."trainer_type"
-            join "pokemon" on "pokemon"."number" = "mtp"."pokemon"
-            left join "pokemon_form" as "form" on (
-                "form"."pokemon" = "pokemon"."id" and "form"."order" = "mtp"."form"
+            join "trainer_pokemon" on (
+                "trainer_pokemon"."trainer_type" = "trainer_type"."id"
+                and "trainer_pokemon"."trainer_name" = "mtp"."trainer_name"
+                and "trainer_pokemon"."party_id" = "mtp"."party_id"
+                and "trainer_pokemon"."index" = "mtp"."index"
             )
             left join "pokemon_ability" as "matching_ability" on (
-                "matching_ability"."pokemon" = "pokemon"."id"
-                and "matching_ability"."form" = ifnull("form"."name", '')
+                "matching_ability"."pokemon" = "trainer_pokemon"."pokemon"
+                and ("trainer_pokemon"."form" is null or "matching_ability"."form" = "trainer_pokemon"."form")
                 and "matching_ability"."index" = "mtp"."ability" + 1
             )
             join "pokemon_ability" as "ability" on (
-                "ability"."pokemon" = "pokemon"."id"
-                and "ability"."form" = ifnull("form"."name", '')
+                "ability"."pokemon" = "trainer_pokemon"."pokemon"
+                and ("trainer_pokemon"."form" is null or "ability"."form" = "trainer_pokemon"."form")
                 and (
                     "mtp"."ability" is null
                     or ("matching_ability"."index" is null and "ability"."index" != 3)
