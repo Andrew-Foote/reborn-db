@@ -268,7 +268,7 @@ with
         ) as "ev_yield"
         group by "ev_yield"."pokemon", "ev_yield"."form"
     ) as "ev_yields" on "ev_yields"."pokemon" = "form"."pokemon" and "ev_yields"."form" = "form"."name"
-    join (
+    left join (
         select "level_move"."pokemon", "level_move"."form", json_group_array(json_object(
             'level', "level_move"."level", 'id', "level_move"."id", 'name', "level_move"."name"
         )) as "all"
@@ -575,7 +575,7 @@ join (
             ,'bst', "form"."bst"
             ,'ev_yields', json("form"."ev_yields")
             ,'evtot', "form"."evtot"
-            ,'level_moves', json("form"."level_moves")
+            ,'level_moves', json(ifnull("form"."level_moves", '[]'))
             ,'evolution_moves', json(ifnull("form"."evolution_moves", '[]'))
             ,'egg_moves', json(ifnull("form"."egg_moves", '[]'))
             ,'machine_moves', json(ifnull("form"."machine_moves", '[]'))

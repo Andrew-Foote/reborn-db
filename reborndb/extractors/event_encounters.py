@@ -257,6 +257,9 @@ GIFT_RE = re.compile(
 
 EGG_RE = re.compile(r'(?P<poke_var>\w+)\s*=\s*Kernel\.pbGenerateEgg\s*\(\s*(?P<species>.*?)\s*\)')
 
+# missing some which just use pbAddPokemon
+# e.g. lotad in coral ward
+
 def extract():
     encounter_modifiers = parse_encounter_modifiers()
     rows = []
