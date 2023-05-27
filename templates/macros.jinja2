@@ -86,6 +86,48 @@
 	</figure>
 {% endmacro %}
 
+{% macro ev_table(evs, caption='') %}
+	<table class="stat-table">
+		{% if caption %}<caption>{{ caption }}</caption>{% endif %}
+		<tr>
+			<th></th>
+			{% for ev in evs %}
+				<th>
+					{% if ev.stat == 'HP' %}
+						{{ ev.stat }}
+					{% elif ev.stat == 'Attack' %}
+						<abbr title="Attack">Atk</abbr>
+					{% elif ev.stat == 'Defense' %}
+						<abbr title="Defense">Def</abbr>
+					{% elif ev.stat == 'Special Attack' %}
+						<abbr title="Special Attack">SpA</abbr>
+					{% elif ev.stat == 'Special Defense' %}
+						<abbr title="Special Defense">SpD</abbr>
+					{% elif ev.stat == 'Speed' %}
+						<abbr title="Speed">Spe</abbr>
+					{% else %}
+						💀ERROR💀ERROR💀ERROR💀
+					{% endif %}
+				</th>
+			{% endfor %}
+		</tr>
+		<tr>
+			<th>EVs</th>
+			{% for ev in evs %}
+				<td>
+					{% if ev.value >= 252 %}
+						<span class="good-stat">{{ ev.value }}</span>
+					{% elif ev.value <= 0 %}
+						<span class="bad-stat">{{ ev.value }}</span>
+					{% else %}
+						{{ ev.value }}
+					{% endif %}
+				</td>
+			{% endfor %}
+		</tr>
+	</table>
+{% endmacro %}
+
 {% macro stat_table(evs, ivs, stats, caption='') %}
 	<table class="stat-table">
 		{% if caption %}<caption>{{ caption }}</caption>{% endif %}

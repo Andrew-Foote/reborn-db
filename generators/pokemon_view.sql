@@ -98,6 +98,43 @@ with
             from "trainer_pokemon_v" as "tp"
             where "tp"."pokemon" = "form"."pokemon" and ("tp"."form" is null or "tp"."form" = "form"."name")
         ) as "appearances"
+        ,(
+            select json_group_array(json_object(
+                'nature', "bfset"."nature", 'item', "bfset"."item", 'ability', "bfset"."ability",
+                'moves', json("bfset"."moves"), 'evs', json("bfset"."evs")
+            ))
+            from (
+                select "nature"."name" as "nature", "item"."name" as "item", "ability"."name" as "ability"
+                ,(
+                    select json_group_array(json_object('id', "move"."id", 'name', "move"."name"))
+                    from (
+                        select "move"."id", "move"."name"
+                        from "battle_facility_set_move" as "set_move"
+                        join "move" on "move"."id" = "set_move"."move"
+                        where "set_move"."set" = "bfset"."id"
+                        order by "set_move"."index"
+                    ) as "move"
+                ) as "moves"
+                ,(
+                    select json_group_array(json_object('stat', "ev"."stat", 'value', "ev"."ev"))
+                    from (
+                        select "stat"."name" as "stat", "set_ev"."ev"
+                        from "battle_facility_set_ev" as "set_ev"
+                        join "stat" on "stat"."id" = "set_ev"."stat"
+                        where "set_ev"."set" = "bfset"."id"
+                        order by "stat"."order"
+                    ) as "ev"
+                ) as "evs"
+                from "battle_facility_set" as "bfset"
+                join "nature" on "nature"."id" = "bfset"."nature"
+                left join "item" on "item"."id" = "bfset"."item"
+                join "pokemon_ability" as "pa" on "pa"."pokemon" = "form"."pokemon" and "pa"."form" = "form"."name"
+                    and "pa"."index" = "bfset"."ability"
+                join "ability" on "ability"."id" = "pa"."ability"
+                where "bfset"."pokemon" = "form"."pokemon" and "bfset"."form" = "form"."name"
+                order by "bfset"."id"
+            ) as "bfset"
+        ) as "bfsets"
     from "pokemon_form" as "form"
     left join "pokemon_sprite" as "sprite" on (
      	"sprite"."pokemon" = "form"."pokemon" and "sprite"."form" = "form"."name"
@@ -550,6 +587,7 @@ join (
             ,'mega_evolution', json("form"."mega_evolution")
             ,'babies', json("form"."babies")
             ,'appearances', json("form"."appearances")
+            ,'bfsets', json("form"."bfsets")
         )) as "all"
     from "form_o" as "form"
     group by "form"."pokemon"

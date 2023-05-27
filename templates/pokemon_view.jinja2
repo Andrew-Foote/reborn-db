@@ -1,4 +1,4 @@
-{% from 'macros.jinja2' import evolution_diagram, type_icon, move_list, stat_table %}
+{% from 'macros.jinja2' import evolution_diagram, type_icon, move_list, stat_table, ev_table %}
 {% extends 'base.jinja2' %}
 
 {% block title %}
@@ -34,7 +34,10 @@
 	}
 
 	function selectTabFromHash(tabs) {
-	  const hashVal = window.location.hash.substr(1);	
+		const hashVal = window.location.hash.substr(1);	
+
+		if (hashVal[0] == '$') return;
+
 		let indexToSelect = 0;
 
 		for (let [i, tab] of tabs.entries()) {
@@ -156,7 +159,7 @@
 
 	</div>
 
-	<hr>
+	<hr style="margin-top: 0.6em; margin-bottom: 0.4em">
 	
 	{% if len(pokemon.forms) > 1 %}
 	<ul class="tabs" id="hash-tabs">
@@ -171,8 +174,22 @@
 
 		{% if len(pokemon.forms) > 1 %}
 		<section id="hash-tab-{{ form.name|slug }}">
-			<h2 class="tab">{{ form.name or 'Normal' }} Form</h2>
+			<h2 class="tab" style="margin-bottom: 0.1em; margin-top: 0.4em">{{ form.name or 'Normal' }} Form</h2>
 		{% endif %}
+
+		<p style="margin-top: 0.1em"><small>Jump to:
+			<a href="#${{ form.name }}/stats">Stats</a> &bull;
+			{% if form.evo_tree is not none and form.evo_tree[0].children %}
+				<a href="#$evolution">Evolution</a> &bull;
+			{% endif %}
+			<a href="#${{ form.name }}/moves">Moves</a> &bull;
+			<a href="#${{ form.name }}/encounters">Encounter rates</a> &bull;
+			{% if form.special_encounters %}
+				<a href="#${{ form.name }}/specialencs">Special encounters</a> &bull;
+			{% endif %}
+			<a href="#${{ form.name }}/appearances">Trainers</a> &bull;
+			<a href="#${{ form.name }}/bfsets">Battle facility sets</a>
+		</small></p>
 
 		<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
 			<figure style="margin-right: 0.4em">
@@ -309,7 +326,7 @@
 			{% endif %}
 		</table>
 
-		<section>
+		<section id="${{ form.name }}/stats">
 			<h3>Stats</h3>
 
 			<table class="data-table" style="width: 100%">
@@ -347,7 +364,7 @@
 		</section>
 
 		{% if form.evo_tree is not none and form.evo_tree[0].children %}
-		<section>
+		<section id="${{ form.name }}/evolution">
 			<h3>Evolution</h3>
 
 			<div class="evo-line">
@@ -359,7 +376,7 @@
 		{% endif %}
 
 		<section>
-			<h3>Moves</h3>
+			<h3 id="${{ form.name }}/moves">Moves</h3>
 
 			<div class="move-sections">
 				<div>
@@ -478,7 +495,7 @@
 		</section>
 
 		<section>
-			<h3>Encounter rates</h3>
+			<h3 id="${{ form.name }}/encounters">Encounter rates</h3>
 
 			{% if form.encounters %}
 			<table style="width: 70%; margin: auto">
@@ -510,7 +527,7 @@
 
 		{% if form.special_encounters %}
 		<section>
-			<h3>Special encounters</h3>
+			<h3 id="${{ form.name }}/specialencs">Special encounters</h3>
 
 			<table style="margin: auto">
 				<tr>
@@ -604,7 +621,7 @@
 		{% endif %}
 
 		<section>
-			<h3>Appearances in Trainer teams</h3>
+			<h3 id="${{ form.name }}/appearances">Appearances in Trainer teams</h3>
 
 			{% if form.appearances %}
 
@@ -662,6 +679,34 @@
 			{% endfor %}
 			{% else %}
 			<p>This Pokémon does not appear in any trainer teams.</p> 
+			{% endif %}
+		</section>
+
+		<section>
+			<h3 id="${{ form.name }}/bfsets">Appearances in battle facilities</h3>
+
+			{% if form.bfsets %}
+
+				{% for bfset in form.bfsets %}
+					<div style="display: flex; flex-direction: column; align-items: center;">
+						<div>
+							{% if bfset.item is none %}
+								No item;
+							{% else %}
+								Holding <a href="{{ url_base }}/item/{{ bfset.item|slug }}.html">{{ bfset.item }}</a>;
+							{% endif %}
+							<a href="{{ url_base }}/ability/{{ bfset.ability|slug }}.html">{{ bfset.ability }}</a>;
+							{{ bfset.nature }} nature
+						</div>
+						<div style="display: flex; align-items: center; justify-content: space-evenly;">
+							{{ move_list(bfset.moves, 'Moves') }}
+							{{ ev_table(bfset.evs, 'EVs') }}
+						</div>
+					</div>
+				{% endfor %}
+
+			{% else %}
+			<p>This Pokémon does not appear in any battle facility teams.</p>
 			{% endif %}
 		</section>
 

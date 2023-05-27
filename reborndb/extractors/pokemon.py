@@ -214,8 +214,9 @@ def extract():
 				ability_ids = [ability_id.strip() for ability_id in section.content['Abilities'].split(',')]
 				hidden_ability_id = section.content.get('HiddenAbility')
 
-				if id_ in ('PLUSLE', 'MINUN'): # these Pokémon have their hidden abilities incorrectly listed as second abilities
-					hidden_ability_id = ability_ids.pop()
+				# if id_ in ('PLUSLE', 'MINUN'): # these Pokémon have their hidden abilities incorrectly listed as second abilities
+				# 	hidden_ability_id = ability_ids.pop()
+				# update 27/05/2023 - nope, looks like the game just treats them as reg abiities
 
 			if 'WildHoldItems' in script_subsection:
 				wild_hold_items = [str(item).removeprefix('PBItems::') if item != '0' else None for item in script_subsection['WildHoldItems']]

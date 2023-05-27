@@ -13,6 +13,7 @@ extractor_names = [
 	'metadata',
 	'pokemon',
 	'pokemon_sprite',
+	'btpokemon',
 	'encounters',
 	'tm',
 	'trainertypes',

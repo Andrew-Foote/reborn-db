@@ -435,6 +435,8 @@ def postprocess_trainers(rows):
             id_, level, *row = row
 
             # corrections... there are a lot of these
+            # (note: due to difficulties like this, this code is no longer being used;
+            # we're just parsing trainers.dat directly without going through the PBS file)
             if current_trainer_id == ['Victoria', 'Victoria', 5] and current_pokemon_index == 2:
                 # Mienfoo's form index is set to 1, but Mienfoo only has 1 form
                 row[7] = ''
@@ -603,3 +605,4 @@ def postprocess_trainers(rows):
 
 LOADER_MAP['encounters'] = lambda name: postprocess_encounters(load_csv(name, decomment=False))
 LOADER_MAP['trainers'] = lambda name: postprocess_trainers(load_csv(name))
+LOADER_MAP['btpokemon'] = lambda name: load_csv(name, delimiter=';')

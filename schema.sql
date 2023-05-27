@@ -922,49 +922,65 @@ create table `nature` (
 ) without rowid;
 
 -- Pokémon sets for use in battle facilities.
--- Depends on `pokemon_form`, `item`, `nature` and `ability_slot`.
-create table `battle_facility_set` (
-	`id` integer primary key,
-	`pokemon` text not null,
-	`form` text not null,
-	`ability` integer not null,
-	`nature` text not null,
-	`item` text,
-	foreign key (`pokemon`, `form`) references `pokemon_form` (`pokemon`, `name`),
-	foreign key (`pokemon`, `form`, `ability`) references `pokemon_ability` (`pokemon`, `form`, `index`)
-	foreign key (`nature`) references `nature` (`id`),
-	foreign key (`item`) references `item` (`id`)
+-- Depends on "pokemon_form", "item", "nature" and "ability_slot".
+create table "battle_facility_set" (
+	"id" integer primary key,
+	"pokemon" text not null,
+	"form" text not null,
+	"ability" integer not null,
+	"nature" text not null,
+	"item" text,
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("pokemon", "form", "ability") references "pokemon_ability" ("pokemon", "form", "index")
+	foreign key ("nature") references "nature" ("id"),
+	foreign key ("item") references "item" ("id")
 );
 
 -- Pokémon move slots (first, second, third, fourth).
-create table `move_slot` (`index` integer primary key) without rowid;
+create table "move_slot" ("index" integer primary key) without rowid;
 
--- Determines what move a Pokémon set from `battle_facility_set` in a particular slot.
--- Depends on `battle_facility_set`, `move_slot` and `move`.
-create table `battle_facility_set_move` (
-	`set` integer,
-	`index` integer,
-	`move` text not null,
-	primary key (`set`, `index`),
-	foreign key (`set`) references `battle_facility_set` (`id`),
-	foreign key (`index`) references `move_slot` (`index`),
-	foreign key (`move`) references `move` (`id`)
+-- Determines what move a Pokémon set from "battle_facility_set" in a particular slot.
+-- Depends on "battle_facility_set", "move_slot" and "move".
+create table "battle_facility_set_move" (
+	"set" integer,
+	"index" integer,
+	"move" text not null,
+	primary key ("set", "index"),
+	foreign key ("set") references "battle_facility_set" ("id"),
+	foreign key ("index") references "move_slot" ("index"),
+	foreign key ("move") references "move" ("id")
 ) without rowid;
 
--- Unenforced constraint: each `battle_facility_set` must have at least one related
--- `battle_facility_set_move`.
+-- Unenforced constraint: each "battle_facility_set" must have at least one related
+-- "battle_facility_set_move".
 
 -- Stats that have EVs in them, for Pokémon sets from `battle_facility_set`.
 -- (The amounts are not specified; the Pokémon's 510 available EVs will be evenly distributed
 -- between the stats that are to have EVs in them as designated by this table.)
--- Depends on `battle_facility_set`, `stat`.
-create table `battle_facility_set_ev` (
-	`set` integer,
-	`stat` text,
-	primary key (`set`, `stat`),
-	foreign key (`set`) references `battle_facility_set` (`id`),
-	foreign key (`stat`) references `stat` (`id`)
+-- Depends on "battle_facility_set", "stat".
+create table "battle_facility_set_ev_stat" (
+	"set" integer,
+	"stat" text,
+	primary key ("set", "stat"),
+	foreign key ("set") references "battle_facility_set" ("id"),
+	foreign key ("stat") references "stat" ("id")
 ) without rowid;
+
+create view "battle_facility_set_ev" ("set", "stat", "ev") as
+	with "set" as (
+		select "set" as "id", count(*) as "stat_with_ev_count"
+		from "battle_facility_set_ev_stat"
+		group by "set"
+	)
+	select "bes"."set", "bes"."stat", min(252, 510 / "set"."stat_with_ev_count")
+	from "battle_facility_set_ev_stat" as "bes"
+	join "set" on "set"."id" = "bes"."set"
+	union
+	select "set"."id", "stat"."id", 0
+	from "battle_facility_set" as "set"
+	join "stat"
+	left join "battle_facility_set_ev_stat" as "bes" on "bes"."set" = "set"."id" and "bes"."stat" = "stat"."id"
+	where "bes"."stat" is null; 
 
 create table "trainer_type" (
 	"id" text primary key,
