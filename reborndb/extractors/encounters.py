@@ -1,7 +1,7 @@
 from fractions import Fraction as frac
 import itertools as it
 import re
-from slugify import slugify
+from reborndb.generate import slugify
 from reborndb import DB
 from reborndb import pbs
 from reborndb import script

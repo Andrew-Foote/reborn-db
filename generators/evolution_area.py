@@ -1,5 +1,5 @@
 import json
-from slugify import slugify
+from reborndb.slugify import slugify
 from reborndb import DB
 from reborndb import generate
 

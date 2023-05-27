@@ -5,18 +5,9 @@ import json
 from pathlib import Path
 import re
 import jinja2
-from slugify import slugify as _slugify
+from reborndb.slugify import slugify
 from reborndb import DB
 from reborndb import settings
-
-def slugify(x):
-    # fix for unown forms
-    if x == '!':
-        return 'EMARK'
-    elif x == '?':
-        return 'QMARK'
-
-    return _slugify(x)
 
 URL_BASE = '/reborn-db-site'
 
