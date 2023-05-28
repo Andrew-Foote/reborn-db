@@ -197,6 +197,9 @@ def iterscripts(cmds):
         elif cmd.short_type_name == 'Script':
             start_cmd = i
             script = cmd.line
+        elif cmd.short_type_name == 'ConditionalBranch' and cmd.short_subtype_name == 'Script':
+            start_cmd = i
+            script = cmd.expr
 
 def iterscriptlines(script):
     delimiter_stack = []
@@ -249,6 +252,14 @@ TRADE_RE = re.compile(
 
 GIFT_RE = re.compile(
     r'''(?P<poke_var>\w+)\s*=\s*PokeBattle_Pokemon.new\s*\(
+        \s*(?P<species>.*?)\s*,
+        \s*(?P<level>.*?)
+    \s*\)''',
+    re.X
+)
+
+GIFT_RE2 = re.compile(
+    r'''pbAddPokemon\s*\(
         \s*(?P<species>.*?)\s*,
         \s*(?P<level>.*?)
     \s*\)''',
@@ -372,9 +383,9 @@ def extract():
                 datum['species'] = parse_species(m.groupdict()['species'])
 
                 if datum['species'] == 'DARKRAI':
-                    print('>>>>>>>DARKRAI')
-                    print(script)
-                    print('DARKRAI<<<<<<<<')
+                    # print('>>>>>>>DARKRAI')
+                    # print(script)
+                    # print('DARKRAI<<<<<<<<')
                     continue # Ignore Shiv's fake Darkrai gift
 
                 print(f"{start_cmd}--{end_cmd}: {datum['species']}, gift (maybe trade)")
@@ -410,6 +421,19 @@ def extract():
 
                 add_rows(datum)
                 continue
+
+            m = re.search(GIFT_RE2, script)
+
+            if m is not None:
+                species = m.groupdict()['species']
+
+                if species != 'pbGet(16)': # fossil gift in spinel town --- handled separately
+                    datum['species'] = parse_species(species)
+                    print(f"{start_cmd}--{end_cmd}: {datum['species']}, gift")
+                    datum['level'] = m.groupdict()['level']
+                    datum['type'] = 'gift'
+                    add_rows(datum)
+                    continue
 
             m = re.search(TRADE_RE, script)
 
@@ -456,10 +480,10 @@ def extract():
         print(f'Common event {event.id_}')
         process_commands(event.list_, {'event_id': event.id_})
 
-    print(rows)
-    print(common_event_rows)
-    print(ot_rows)
-    print(move_rows)
+    # print(rows)
+    # print(common_event_rows)
+    # print(ot_rows)
+    # print(move_rows)
 
     for map_id, map_ in rpg_map.Map.load_all(): # [(133, rpg_map.Map.load(133))]
         print(f'Map {map_id}')
