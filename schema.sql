@@ -1,13 +1,16 @@
--- About IDs:
--- * If there is a natural composite primary key for a table, we use that rather than adding a
---   surrogate primary key.
--- * Otherwise, we prefer a human-readable ID, i.e. a name, as the primary key. We only use integer
---   primary keys for objects that aren't easily named.
--- * The PBS files mostly use a kind of name which is in all caps without any punctuation as an ID;
---   where they do this, they do the same.
--- * Sometimes the PBS files or the game scripts make use of numeric IDs, as well as names; in that
---   case we still store the numeric ID in a column on the table (usually named `code`) and give it
---   a unique index, since it's useful to keep track of it when interacting with those files.
+-- Notes on how this schema is designed, mostly for my own reference so I remember to follow
+-- them:
+--
+-- * Where possible I try to describe the meaning of a table with a "membership statement". This
+--   will be surrounded in square brackets and will involve references to the columns in curly
+--   brackets. When the values for a given row are substituted in place of the column references,
+--  the result is what it means for that row to be present in the table.
+--
+-- * IDs are preferentially textual (not numeric) so that they are meaningful on reading. All this
+--   data is essentially static so changes making the ID misleading isn't really a concern. A lot
+--   of things have textual IDs already assigned to them by Essentials. They often also have a
+--   numeric ID too; we will still store that numeric ID as a unique column in case it proves
+--   useful.
 
 -- Pokémon growth rates (these affect how a Pokémon's level is determined from its total EXP
 -- gained).
@@ -21,9 +24,9 @@ create table "growth_rate" (
 	,"latex_formula" text not null
 ) without rowid;
 
--- The total EXP required to attain each level from 0--100, for each growth rate. Note that for
--- levels 0--100, a formula is used instead.
-create table `level_exp` (
+-- [A Pokémon with growth rate {growth_rate} requires exactly {exp} EXP in total (including all the
+-- EXP required to attain previous levels) in order to reach level {level}.]
+create table "level_exp" (
 	"growth_rate" text
 	,"level" integer
 	,"exp" integer not null
@@ -31,7 +34,7 @@ create table `level_exp` (
 	,foreign key ("growth_rate") references "growth_rate" ("name")
 );
 
--- Unenforced constraint: a `level_exp` must exist for each `growth_rate` and each `level` from
+-- Unenforced constraint: a "level_exp" must exist for each "growth_rate" and each "level" from
 -- 0--100.
 
 -- Pokémon habitats (as recorded in the FireRed/LeafGreen Pokédex).
@@ -47,19 +50,19 @@ create table "pokemon" (
 	"id" text primary key
 	,"name" text not null unique
 	,"number" integer not null unique
-	,"category" text not null check (`category` != '')
-	,"base_exp" integer not null check (`base_exp` >= 0)
-	,`growth_rate` text not null
-	,`base_friendship` integer not null check (`base_friendship` >= 0 and `base_friendship` <= 255)
-	,`male_frequency` integer check (`male_frequency` >= 0 and `male_frequency` <= 1000) -- per 1000, NULL if genderless
-	,`hatch_steps` integer not null check (`hatch_steps` >= 0)
-	,`habitat` text
-	,`color` text not null
-	,`evolves_from` text -- The Pokémon it evolves from---there is always at most one such Pokémon.
-	,unique (`evolves_from`, `id`)
-	,foreign key (`growth_rate`) references `growth_rate` (`name`)
-	,foreign key (`habitat`) references `habitat` (`name`)
-	,foreign key (`evolves_from`) references `pokemon` (`id`)
+	,"category" text not null check ("category" != '')
+	,"base_exp" integer not null check ("base_exp" >= 0)
+	,"growth_rate" text not null
+	,"base_friendship" integer not null check ("base_friendship" >= 0 and "base_friendship" <= 255)
+	,"male_frequency" integer check ("male_frequency" >= 0 and "male_frequency" <= 1000) -- per 1000, NULL if genderless
+	,"hatch_steps" integer not null check ("hatch_steps" >= 0)
+	,"habitat" text
+	,"color" text not null
+	,"evolves_from" text -- The Pokémon it evolves from---there is always at most one such Pokémon.
+	,unique ("evolves_from", "id")
+	,foreign key ("growth_rate") references "growth_rate" ("name")
+	,foreign key ("habitat") references "habitat" ("name")
+	,foreign key ("evolves_from") references "pokemon" ("id")
 ) without rowid;
 
 -- Pokémon egg groups.
@@ -69,7 +72,7 @@ create table "egg_group" (
 	,"order" integer not null unique
 ) without rowid;
 
--- Pivot table between `pokemon` and `egg_group`.
+-- [{egg_group} is one of {pokemon}'s egg groups.]
 create table "pokemon_egg_group" (
 	"pokemon" text
 	,"egg_group" not null
@@ -80,6 +83,9 @@ create table "pokemon_egg_group" (
 
 create index "pokemon_egg_group_idx_egg_group" on "pokemon_egg_group" ("egg_group");
 
+-- [{evolution} is the stage {stage} evolution of the unevolved Pokémon {pokemon},
+-- with {evolves_from} as the previous Pokémon in the evolution chain. (Note:
+-- unevolved Pokémon are counted as the stage 0 evolutions of themselves.)]
 create view "pokemon_evolution_stage" ("pokemon", "evolution", "stage", "evolves_from") as
 with recursive "pokemon_evolution_stage" (
 	"pokemon", "evolution", "stage", "evolves_from"
@@ -116,7 +122,8 @@ create table "type" (
 	,foreign key ("damage_class") references "damage_class" ("name")
 ) without rowid;
 
--- Type effectiveness, for a move of a given type hitting a Pokémon of a single given type.
+-- [An {attacking_type} move hitting a Pokémon with the single type {defending_type} will
+-- have a damage multiplier of {multiplier}.]
 create table "type_effect" (
 	"attacking_type" text
 	,"defending_type" text
@@ -128,6 +135,9 @@ create table "type_effect" (
 
 create index "type_effect_idx_multiplier" on "type_effect" ("multiplier");
 
+-- [An {attacking_type} move hitting a Pokémon of type {defending_type1}/{defending_type2}
+-- will have a damage multiplier of {multiplier}. (If {defending_type2} is null, this includes
+-- the case where the defending Pokémon has a single type.)]
 create view "type_effect2" ("attacking_type", "defending_type1", "defending_type2", "multiplier")
 as select
 	"attacking_type",
@@ -382,8 +392,6 @@ create table "wild_held_item" (
 	foreign key ("item") references "item" ("id")
 ) without rowid;
 
--- Unenforced constraint: 
-
 -- The six primary stats (HP, Attack, Defense, Special Attack, Special Defense, Speed).
 create table `stat` (
 	`id` text primary key,
@@ -391,7 +399,7 @@ create table `stat` (
 	`order` integer not null
 ) without rowid;
 
--- Pokémon base stats.
+-- [{pokemon} ({form} form) has a base {stat} value of {value}.]
 create table `base_stat` (
 	`pokemon` text,
 	`form` text,
@@ -402,22 +410,22 @@ create table `base_stat` (
 	foreign key (`stat`) references `stat` (`id`)
 ) without rowid;
 
--- Pokémon EV yields.
-create table `ev_yield` (
-	`pokemon` text,
-	`form` text,
-	`stat` text,
-	`value` integer not null check (`value` >= 1 and `value` <= 3),
-	primary key (`pokemon`, `form`, `stat`),
-	foreign key (`pokemon`, `form`) references `pokemon_form` (`pokemon`, `name`),
-	foreign key (`stat`) references `stat` (`id`)
+-- [{pokemon} ({form} form) yields {value} EVs in {stat} when defeated.]
+create table "ev_yield" (
+	"pokemon" text,
+	"form" text,
+	"stat" text,
+	"value" integer not null check ("value" >= 1 and "value" <= 3),
+	primary key ("pokemon", "form", "stat"),
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("stat") references "stat" ("id")
 ) without rowid;
 
 -- Moves learned when a Pokémon reaches a particular level.
 create table "level_move" (
 	"pokemon" text,
 	"form" text,
-	"level" integer check (`level` >= 0), -- 0 = move learnt on evolution
+	"level" integer check ("level" >= 0), -- 0 = move learnt on evolution
 
 	-- when multiple moves are learnt at the same level, this column determines the order in which
 	-- they are learnt
@@ -506,15 +514,15 @@ create table "map" (
 	"id" integer primary key,
 	"name" text not null, -- name from the MapInfos.rxdata file (appears to reflect in-game name)
 	"pbs_name" text, -- name from the PBS metadata.txt file
-	"desc" text, -- hand-written description by me
+	"desc" text, -- hand-written description by me (actually absent for every map because i can't be bothered writing them)
 	"tileset" text,
 	"width" integer, "height" integer, -- in terms of tiles---technically derivable from the map data but the denormalization is convenient
 	"parent_id" integer, -- from MapInfos.rxdata, no in-game meaning but useful for organisation
 	"order" integer not null unique, -- from MapInfos.rxdata, no in-game meaning AFAIK
-	"expanded" integer not null check (`expanded` in (0, 1)), -- no idea what this means, but it's in MapInfos.rxdata
-	"scroll_x" integer not null, -- likewise, no idea
-	"scroll_y" integer not null, -- likewise, no idea
-	"region_id" integer, -- reborn only has region so this one's a bit moot
+	"expanded" integer not null check (`expanded` in (0, 1)), -- refers to transient UI state in RPG Maker XP so not very important
+	"scroll_x" integer not null, -- another transient UI state thing
+	"scroll_y" integer not null, -- another transient UI state thing
+	"region_id" integer, -- reborn only has one region so this one's a bit moot
 	"x" integer, "y" integer, -- x and y coordinates of the area within the region's Town Map
 	-- whether there's a pop-up showing the map name when the player enters
 	"has_location_signpost" integer not null check ("has_location_signpost" in (0, 1)),
@@ -536,9 +544,9 @@ create table "map" (
 	"trainer_win_music" text not null,
 	"data" blob not null, -- the map tile data
 	foreign key ("tileset") references "tileset" ("name"),
-	foreign key ("parent_id") references "map" ("id"), --- deferrable initially deferred,
-	foreign key ("sets_teleport_map") references "map" ("id"), -- deferrable initially deferred,
-	foreign key ("underwater_map") references "map" ("id") -- deferrable initially deferred
+	foreign key ("parent_id") references "map" ("id"),
+	foreign key ("sets_teleport_map") references "map" ("id"),
+	foreign key ("underwater_map") references "map" ("id")
 );
 
 create index "map_idx_parent_id" on "map" ("parent_id");
@@ -560,9 +568,9 @@ create table "map_bgs" (
 );
 
 -- Times of day (day, night or dusk---note that dusk is a sub-period of day).
-create table `time_of_day` (
-	`name` text primary key
-	,`desc` text not null
+create table "time_of_day" (
+	"name" text primary key
+	,"desc" text not null
 	,"order" integer not null unique
 	,"range_desc" text not null
 ) without rowid;
@@ -579,17 +587,17 @@ create table "weather" (
 
 -- The 'base method' for a evolving a Pokémon--either levelling up, using an item on it, or trading
 -- it. Further requirements are added to these base methods to encode a full evolution method.
-create table `evolution_base_method` (name text primary key) without rowid;
+create table "evolution_base_method" ("name" text primary key) without rowid;
 
-create table `evolution_method` (
-	`id` text primary key,
-	`pbs_name` text,
-	`base_method` text not null,
-	unique (`id`, `base_method`),
-	foreign key (`base_method`) references `evolution_base_method` (`name`)
+create table "evolution_method" (
+	"id" text primary key,
+	"pbs_name" text,
+	"base_method" text not null,
+	unique ("id", "base_method"),
+	foreign key ("base_method") references "evolution_base_method" ("name")
 ) without rowid;
 
-create table `evolution_requirement_kind` (`name` text primary key) without rowid;
+create table "evolution_requirement_kind" ("name" text primary key) without rowid;
 
 -- Evolution requirements. Each requirement represents an atomic proposition; they can be ANDed
 -- together by adding them to the same `evolution_method`, or they can be ORed together by adding
@@ -740,76 +748,6 @@ create table `evolution_requirement_weather` (
 	foreign key (`weather`) references `weather` (`name`)
 ) without rowid;
 
--- create view "evolution_requirement_displayold" ("method", "kind", "args") as
--- select "base"."method", "base"."kind", case
--- 	when "base"."kind" = 'level' then json_array("er_level"."level")
--- 	when "base"."kind" = 'item' then json_array("item"."name")
--- 	when "base"."kind" = 'held_item' then json_array("held_item"."name")
--- 	when "base"."kind" = 'friendship' then json_array()
--- 	when "base"."kind" = 'time'	then json_array("time"."desc")
--- 	when "base"."kind" = 'stat_cmp' then json_array("stat1"."name", "stat2"."name", "er_stat_cmp"."operator")
--- 	when "base"."kind" = 'coin_flip' then json_array("er_coin_flip"."value")
--- 	when "base"."kind" = 'leftover' then json_array()
--- 	when "base"."kind" = 'gender' then json_array("er_gender"."gender")
--- 	when "base"."kind" = 'teammate' then json_array("teammate"."name")
--- 	when "base"."kind" = 'move' then json_array("move"."name")
--- 	when "base"."kind" = 'map' then json_array("map"."id", "map"."name")
--- 	when "base"."kind" = 'trademate' then json_array("trademate"."name")
--- 	when "base"."kind" = 'teammate_type' then json_array("teammate_type"."name")
--- 	when "base"."kind" = 'cancel' then json_array()
--- 	when "base"."kind" = 'move_type' then json_array("move_type"."name")
--- 	when "base"."kind" = 'weather' then json_array("weather"."desc")
--- end
--- from "evolution_requirement" as "base"
--- left join "evolution_requirement_level" as "er_level" on "er_level"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_item" as "er_item"
--- 	join "item" on "item"."id" = "er_item"."item"
--- ) on "er_item"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_held_item" as "er_held_item"
--- 	join "item" as "held_item" on "held_item"."id" = "er_held_item"."item"
--- )  on "er_held_item"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_time" as "er_time" 
--- 	join "time_of_day" as "time" on "time"."name" = "er_time"."time"
--- ) on "er_time"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_stat_cmp" as "er_stat_cmp" 
--- 	join "stat" as "stat1" on "stat1"."id" = "er_stat_cmp"."stat1"
--- 	join "stat" as "stat2" on "stat2"."id" = "er_stat_cmp"."stat2"
--- ) on "er_stat_cmp"."method" = "base"."method"
--- left join "evolution_requirement_coin_flip" as "er_coin_flip" on "er_coin_flip"."method" = "base"."method"
--- left join "evolution_requirement_gender" as "er_gender" on "er_gender"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_teammate" as "er_teammate" 
--- 	join "pokemon" as "teammate" on "teammate"."id" = "er_teammate"."pokemon"
--- ) on "er_teammate"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_map" as "er_map"
--- 	join "map" on "map"."id" = "er_map"."map"
--- ) on "er_map"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_move" as "er_move" 
--- 	join "move" on "move"."id" = "er_move"."move"
--- ) on "er_move"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_trademate" as "er_trademate" 
--- 	join "pokemon" as "trademate" on "trademate"."id" = "er_trademate"."pokemon"
--- ) on "er_trademate"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_teammate_type" as "er_teammate_type" 
--- 	join "type" as "teammate_type" on "teammate_type"."id" = "er_teammate_type"."type"
--- ) on "er_teammate_type"."method" = "base"."method"
--- left join (
--- 	"evolution_requirement_move_type" as "er_move_type" 
--- 	join "type" as "move_type" on "move_type"."id" = "er_move_type"."type"
--- ) on "er_move_type"."method" = "base"."method"
--- left join ( 
--- 	"evolution_requirement_weather" as "er_weather" 
--- 	join "weather" as "weather" on "weather"."name" = "er_weather"."weather"
--- ) on "er_weather"."method" = "base"."method";
-
 create view "evolution_requirement_display" ("method", "kind", "args") as
 select "base"."method", "base"."kind", case
 	when "base"."kind" = 'level' then json_array("er_level"."level")
@@ -921,66 +859,8 @@ create table `nature` (
 	foreign key (`decreased_stat`) references `stat` (`id`)
 ) without rowid;
 
--- Pokémon sets for use in battle facilities.
--- Depends on "pokemon_form", "item", "nature" and "ability_slot".
-create table "battle_facility_set" (
-	"id" integer primary key,
-	"pokemon" text not null,
-	"form" text not null,
-	"ability" integer not null,
-	"nature" text not null,
-	"item" text,
-	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
-	foreign key ("pokemon", "form", "ability") references "pokemon_ability" ("pokemon", "form", "index")
-	foreign key ("nature") references "nature" ("id"),
-	foreign key ("item") references "item" ("id")
-);
-
 -- Pokémon move slots (first, second, third, fourth).
 create table "move_slot" ("index" integer primary key) without rowid;
-
--- Determines what move a Pokémon set from "battle_facility_set" in a particular slot.
--- Depends on "battle_facility_set", "move_slot" and "move".
-create table "battle_facility_set_move" (
-	"set" integer,
-	"index" integer,
-	"move" text not null,
-	primary key ("set", "index"),
-	foreign key ("set") references "battle_facility_set" ("id"),
-	foreign key ("index") references "move_slot" ("index"),
-	foreign key ("move") references "move" ("id")
-) without rowid;
-
--- Unenforced constraint: each "battle_facility_set" must have at least one related
--- "battle_facility_set_move".
-
--- Stats that have EVs in them, for Pokémon sets from `battle_facility_set`.
--- (The amounts are not specified; the Pokémon's 510 available EVs will be evenly distributed
--- between the stats that are to have EVs in them as designated by this table.)
--- Depends on "battle_facility_set", "stat".
-create table "battle_facility_set_ev_stat" (
-	"set" integer,
-	"stat" text,
-	primary key ("set", "stat"),
-	foreign key ("set") references "battle_facility_set" ("id"),
-	foreign key ("stat") references "stat" ("id")
-) without rowid;
-
-create view "battle_facility_set_ev" ("set", "stat", "ev") as
-	with "set" as (
-		select "set" as "id", count(*) as "stat_with_ev_count"
-		from "battle_facility_set_ev_stat"
-		group by "set"
-	)
-	select "bes"."set", "bes"."stat", min(252, 510 / "set"."stat_with_ev_count")
-	from "battle_facility_set_ev_stat" as "bes"
-	join "set" on "set"."id" = "bes"."set"
-	union
-	select "set"."id", "stat"."id", 0
-	from "battle_facility_set" as "set"
-	join "stat"
-	left join "battle_facility_set_ev_stat" as "bes" on "bes"."set" = "set"."id" and "bes"."stat" = "stat"."id"
-	where "bes"."stat" is null; 
 
 create table "trainer_type" (
 	"id" text primary key,
@@ -1167,12 +1047,13 @@ create view "trainer_pokemon_stat" (
 	join "nature" on "nature"."id" = "tp"."nature";
 
 create view "trainer_pokemon_v" (
-	"trainer_id", "trainer_sprite", "pokemon", "form", "nickname", "shiny", "level", "gender"
+	"trainer_id", "trainer_sprite", "index"
+	,"pokemon", "form", "nickname", "shiny", "level", "gender"
 	,"nature", "item", "friendship", "sprite", "abilities", "moves",
 	"evs", "ivs", "stats"
 ) as
 select
-	"trainer"."id", "trainer"."battle_sprite"
+	"trainer"."id", "trainer"."battle_sprite", "trainer_pokemon"."index"
 	,"trainer_pokemon"."pokemon", "trainer_pokemon"."form", "trainer_pokemon"."nickname"
 	,"trainer_pokemon"."shiny", "trainer_pokemon"."level", "trainer_pokemon"."gender"
 	,"nature"."name" as "nature","item"."name" as "item", "trainer_pokemon"."friendship"
@@ -1309,6 +1190,102 @@ join "pokemon_form" as "sprite_form" on (
 )
 left join "item" on "item"."id" = "trainer_pokemon"."item"
 where "trainer_pokemon"."form" is not null or "sprite_form"."order" = 0;
+
+create table "trainer_list" (
+	"id" integer primary key
+	,"trainers_file" text not null
+	,"pokemon_file" text not null
+	,"is_default" integer not null check ("is_default" in (0, 1))
+);
+
+create table "battle_facility_trainer" (
+	"list" integer
+	,"index" integer
+	,"type" text not null
+	,"name" text
+	,"begin_speech" text not null
+	,"lose_speech" text not null
+	,"win_speech" text not null
+	,primary key ("list", "index")
+	,foreign key ("list") references "trainer_list" ("id")
+	,foreign key ("type") references "trainer_type" ("id")
+	-- ,unique ("type", "name")
+) without rowid;
+
+create table "battle_facility_trainer_pokemon" (
+	"list" integer
+	,"trainer_index" integer
+	,"pokemon_index" integer
+	,"pokemon" text
+	,primary key ("list", "trainer_index", "pokemon_index")
+	,foreign key ("list", "trainer_index") references "battle_facility_trainer" ("list", "index")
+	,foreign key ("pokemon") references "pokemon" ("id")
+) without rowid;
+
+-- Pokémon sets for use in battle facilities.
+-- Depends on "pokemon_form", "item", "nature" and "ability_slot".
+create table "battle_facility_set" (
+	"list" integer
+	,"index" integer
+	,"pokemon" text not null
+	,"form" text not null
+	,"ability" integer not null
+	,"nature" text not null
+	,"item" text
+	,primary key ("list", "index")
+	,foreign key ("list") references "trainer_list" ("id")
+	,foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name")
+	,foreign key ("pokemon", "form", "ability") references "pokemon_ability" ("pokemon", "form", "index")
+	,foreign key ("nature") references "nature" ("id")
+	,foreign key ("item") references "item" ("id")
+) without rowid;
+
+-- Determines what move a Pokémon set from "battle_facility_set" in a particular slot.
+-- Depends on "battle_facility_set", "move_slot" and "move".
+create table "battle_facility_set_move" (
+	"list" integer
+	,"set_index" integer
+	,"move_index" integer
+	,"move" text not null
+	,primary key ("list", "set_index", "move_index")
+	,foreign key ("list", "set_index") references "battle_facility_set" ("list", "index")
+	,foreign key ("move_index") references "move_slot" ("index")
+	,foreign key ("move") references "move" ("id")
+) without rowid;
+
+-- Unenforced constraint: each "battle_facility_set" must have at least one related
+-- "battle_facility_set_move".
+
+-- Stats that have EVs in them, for Pokémon sets from `battle_facility_set`.
+-- (The amounts are not specified; the Pokémon's 510 available EVs will be evenly distributed
+-- between the stats that are to have EVs in them as designated by this table.)
+-- Depends on "battle_facility_set", "stat".
+create table "battle_facility_set_ev_stat" (
+	"list" integer
+	,"set_index" integer
+	,"stat" text
+	,primary key ("list", "set_index", "stat")
+	,foreign key ("list", "set_index") references "battle_facility_set" ("list", "index")
+	,foreign key ("stat") references "stat" ("id")
+) without rowid;
+
+create view "battle_facility_set_ev" ("list", "set_index", "stat", "ev") as
+	with "set" as (
+		select "list", "set_index" as "index", count(*) as "stat_with_ev_count"
+		from "battle_facility_set_ev_stat"
+		group by "list", "set_index"
+	)
+	select "bes"."list", "bes"."set_index", "bes"."stat", min(252, 510 / "set"."stat_with_ev_count")
+	from "battle_facility_set_ev_stat" as "bes"
+	join "set" on "set"."list" = "bes"."list" and "set"."index" = "bes"."set_index"
+	union
+	select "set"."list", "set"."index", "stat"."id", 0
+	from "battle_facility_set" as "set"
+	join "stat"
+	left join "battle_facility_set_ev_stat" as "bes"
+		on "bes"."list" = "set"."list" and "bes"."set_index" = "set"."index"
+		and "bes"."stat" = "stat"."id"
+	where "bes"."stat" is null; 
 
 create table "field_effect" (
 	"name" text primary key

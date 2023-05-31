@@ -1,0 +1,72 @@
+{% from 'macros.jinja2' import move_list, stat_table %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+{{ trainer.name }}
+{% endblock %}
+
+{% block content %}
+<section>
+
+<div class="backlinks">
+	<a href="{{ url_base }}/battle_facility_trainers.html">Battle Facility Trainer List</a>
+</div>
+
+<h1>{{ trainer.name }}</h1>
+
+<div style="display: flex; justify-content: space-between; margin-bottom: 1em">
+	<figure style="margin-left: 0.4em">
+		<img src="data:image/png;base64,{{ trainer.front_sprite }}" alt="">
+	</figure>
+
+	{% if trainer.back_sprite is not none %}
+		<figure style="margin-right: 0.4em">
+			<img src="data:image/png;base64,{{ trainer.back_sprite }}" alt="">
+		</figure>
+	{% endif %}
+</div>
+
+<section>
+	<h2>Potential team members</h2>
+
+	<p>Team members will be drawn randomly from this list, and their movesets will be chosen randomly from the available movesets.</p>
+
+	<div class="trainer-team">
+	{% for pokemon in trainer.pokemons %}			
+		<div style="display: flex; justify-content: space-evenly; margin-bottom: 1em">
+			<figure style="margin-right: 0.4em">
+				<a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html{% if pokemon.form is not none %}#{{ pokemon.form|slug }}{% endif %}">
+					<img
+						src="data:image/png;base64,{{ pokemon.sprite }}"
+						alt="{{ pokemon.name }}"
+					>
+				</a>
+				<figcaption><b>{{ pokemon.name }}</b></figcaption>
+			</figure>
+
+			<div style="display: flex; flex-direction: column">
+				{% for bfset in pokemon.sets %}
+					<div style="display: flex; flex-direction: column; align-items: center;">
+						<div>
+							{% if bfset.item is none %}
+								No item;
+							{% else %}
+								Holding <a href="{{ url_base }}/item/{{ bfset.item|slug }}.html">{{ bfset.item }}</a>;
+							{% endif %}
+							<a href="{{ url_base }}/ability/{{ bfset.ability|slug }}.html">{{ bfset.ability }}</a>;
+							{{ bfset.nature }} nature
+						</div>
+						<div style="display: flex; align-items: center; justify-content: space-evenly;">
+							{{ move_list(bfset.moves, 'Moves') }}
+							{{ ev_table(bfset.evs, 'EVs') }}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	{% endfor %}
+	</div>
+</section>
+
+</section>
+{% endblock %}

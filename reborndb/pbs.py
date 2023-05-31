@@ -121,7 +121,7 @@ def load_ini(name, *, parser_class=IniParser, encoding='utf-8'):
         parser.parse(f)
         return parser.result
 
-for name in ('types', 'gen8pokemon', 'pokemon', 'trainerlists'):
+for name in ('types', 'gen8pokemon', 'pokemon', 'trainerlists', 'bttrainers'):
     LOADER_MAP[name] = load_ini
 
 # latin1 because it contains some és in Pokémon encoded as e9

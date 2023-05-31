@@ -1,3 +1,5 @@
+# OBSOLETE use trainerlists.py instead
+
 # The `btpokemon.txt` file is a list of Pokémon sets used to populate teams in the Battle Tower and
 # similar facilities. To interpret it, I had to read the the `PokemonOrgBattle.rb` script, class
 # `PBPokemon`, method `fromInspected`.

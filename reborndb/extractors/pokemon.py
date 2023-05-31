@@ -179,7 +179,7 @@ def extract():
 			# assuming that's just a dupe rather than anything meaningufl?:
 			form_names = ['', 'PULSE']
 		elif id_ == 'STEELIX':
-			# Garguantuan Form (my own name for it; it's the form the Gargantuan Steelix has, although
+			# Gargantuan Form (my own name for it; it's the form the Gargantuan Steelix has, although
 			# it's basically identical to Mega Steelix except that it doesn't require Mega Evolution)
 			# isn't listed in MultipleForms.rb
 			form_names = ['', 'Mega', 'Gargantuan']
