@@ -106,7 +106,9 @@ with
             from (
                 select "nature"."name" as "nature", "item"."name" as "item", "ability"."name" as "ability"
                 ,(
-                    select json_group_array(json_object('id', "move"."id", 'name', "move"."name"))
+                    select json_group_array(json_object(
+                        'id', "move"."id", 'name', "move"."name"
+                    ))
                     from (
                         select "move"."id", "move"."name"
                         from "battle_facility_set_move" as "set_move"

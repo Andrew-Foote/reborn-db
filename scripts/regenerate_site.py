@@ -14,6 +14,7 @@ generator_names = (
 	'area_list', 'area_view',
 	'trainer_list', 'trainer_view',
 	'battle_facility_trainer_list',
+	'battle_facility_trainer_view',
 	'egg_group_list', 'growth_rate_list',
 	'evolution_area'
 )

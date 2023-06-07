@@ -72,14 +72,16 @@
 {% endif %}
 {% endmacro %}
 
-{% macro move_list(moves, caption='') %}
+{% macro move_list(moves, caption='', show_pp=true) %}
 	<figure class="move-list-fig">
 		{% if caption %}<figcaption>{{ caption }}</figcaption>{% endif %}
 		<ul class="move-list">
 			{% for move in moves %}
 				<li>
 					<a href="{{ url_base }}/move/{{ move.id }}.html">{{ move.name }}</a>
-					<span style="move-list-pp">({{ move.pp }} PP)</span>
+					{% if show_pp %}
+						<span style="move-list-pp">({{ move.pp }} PP)</span>
+					{% endif %}
 				</li>
 			{% endfor %}
 		</ul>

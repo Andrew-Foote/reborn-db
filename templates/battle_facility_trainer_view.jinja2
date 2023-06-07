@@ -1,4 +1,4 @@
-{% from 'macros.jinja2' import move_list, stat_table %}
+{% from 'macros.jinja2' import move_list, ev_table %}
 {% extends 'base.jinja2' %}
 
 {% block title %}
@@ -24,6 +24,25 @@
 			<img src="data:image/png;base64,{{ trainer.back_sprite }}" alt="">
 		</figure>
 	{% endif %}
+
+	<table class="data-table">
+		<tr>			
+			<th>Skill level</th>
+			<td>{{ trainer.skill }}</td>
+		</tr>
+		<tr>
+			<th>Begin speech</th>
+			<td>{{ trainer.begin_speech }}</td>
+		</tr>
+		<tr>
+			<th>Win speech</th>
+			<td>{{ trainer.win_speech }}</td>
+		</tr>
+		<tr>
+			<th>Lose speech</th>
+			<td>{{ trainer.lose_speech }}</td>
+		</tr>
+	</table>
 </div>
 
 <section>
@@ -45,7 +64,8 @@
 			</figure>
 
 			<div style="display: flex; flex-direction: column">
-				{% for bfset in pokemon.sets %}
+				{% set bfset = pokemon %}
+				{#   {% for bfset in pokemon.sets %} #}
 					<div style="display: flex; flex-direction: column; align-items: center;">
 						<div>
 							{% if bfset.item is none %}
@@ -53,7 +73,17 @@
 							{% else %}
 								Holding <a href="{{ url_base }}/item/{{ bfset.item|slug }}.html">{{ bfset.item }}</a>;
 							{% endif %}
-							<a href="{{ url_base }}/ability/{{ bfset.ability|slug }}.html">{{ bfset.ability }}</a>;
+							{#<a href="{{ url_base }}/ability/{{ bfset.ability|slug }}.html">{{ bfset.ability }}</a>;#}
+							{% if len(pokemon.abilities) == 1 %}
+								<a href="{{ url_base }}/ability/{{ pokemon.abilities.0.ability|slug }}.html">{{ pokemon.abilities.0.ability }}</a>;
+							{% else %}
+								{% for abilentry in pokemon.abilities %}
+									<b><a href="{{ url_base }}/pokemon/{{ pokemon.name|slug }}.html#{{ abilentry.form }}">{{ abilentry.form }}</a></b>:
+									<a href="{{ url_base }}/ability/{{ abilentry.ability|slug }}.html">{{ abilentry.ability }}</a>
+									<br>
+								{% endfor %}
+							{% endif %}
+
 							{{ bfset.nature }} nature
 						</div>
 						<div style="display: flex; align-items: center; justify-content: space-evenly;">
@@ -61,7 +91,7 @@
 							{{ ev_table(bfset.evs, 'EVs') }}
 						</div>
 					</div>
-				{% endfor %}
+				{# {% endfor %} #}
 			</div>
 		</div>
 	{% endfor %}
