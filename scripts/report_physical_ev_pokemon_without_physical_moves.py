@@ -2,7 +2,7 @@ import json
 import re
 from reborndb import DB, pbs, settings
 
-with open(settings.REBORN_DB_PATH / 'queries' / 'physical_pokemon_without_physical_moves.sql') as f:
+with open(settings.REBORN_DB_PATH / 'queries' / 'physical_ev_pokemon_without_physical_moves.sql') as f:
     query = f.read()
 
 results = DB.H.exec(query).fetchall()
@@ -24,9 +24,6 @@ for row in results:
     i = 0
 
     while i + 3 + index < len(csv):
-        # if csv[i] == 'MELOETTA':
-        #     print('BUNKUS@', f'"{csv[i + 1]}"', trainer_name, party_id_bit)
-
         if csv[i] == trainer_type and csv[i + 1] == f'{trainer_name}{party_id_bit}':
             j = i + 3 + index
             print(f'line {j}: {csv[j]}')
