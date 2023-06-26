@@ -82,7 +82,7 @@ def extract():
 	# note: we ignore gen8pokemon.txt, it appears to contain (rather confusingly) only data
 	# for pokemon up to gen 7, but is otherwise the same as this file
 	pbs_data = pbs.load('pokemon')
-	script_data = script.parse('MultipleForms.rb')
+	script_data = script.parse(script.get_path('MultipleForms.rb'))
 	rows = defaultdict(lambda: [])
 
 	for section in pbs_data:
@@ -487,7 +487,7 @@ def handle_evolutions():
 		]
 
 	pbs_data = pbs.load('pokemon')
-	script_data = script.parse('MultipleForms.rb')
+	script_data = script.parse(script.get_path('MultipleForms.rb'))
 	evolution_rows = defaultdict(lambda: [])
 	evo_methods_keyed_by_evo_id = defaultdict(lambda: [])
 	evo_methods_by_pbs_name = {}

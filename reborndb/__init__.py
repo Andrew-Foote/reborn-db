@@ -8,14 +8,15 @@ from reborndb.connection import Connection
 from reborndb import settings
 import textwrap
 
-def altconnect(db_path):
-    def handle_error(errcode, message):
-        errstr = apsw.mapping_result_codes[errcode & 255]
-        extended = errcode # & ~ 255 [was in the example in the APSW docs but seems to be wrong]
-        extended_errstr = apsw.mapping_extended_result_codes.get(extended, "")
-        print(f'SQLITE_LOG: {message} ({errcode}) {errstr} {extended_errstr}')
+def handle_error(errcode, message):
+    errstr = apsw.mapping_result_codes[errcode & 255]
+    extended = errcode # & ~ 255 [was in the example in the APSW docs but seems to be wrong]
+    extended_errstr = apsw.mapping_extended_result_codes.get(extended, "")
+    print(f'SQLITE_LOG: {message} ({errcode}) {errstr} {extended_errstr}')
 
-    apsw.config(apsw.SQLITE_CONFIG_LOG, handle_error)
+apsw.config(apsw.SQLITE_CONFIG_LOG, handle_error)
+
+def altconnect(db_path):
     return Connection(db_path)
 
 connection = None
@@ -29,13 +30,6 @@ def connect():
     global connection
 
     if connection is None:
-        def handle_error(errcode, message):
-            errstr = apsw.mapping_result_codes[errcode & 255]
-            extended = errcode # & ~ 255 [was in the example in the APSW docs but seems to be wrong]
-            extended_errstr = apsw.mapping_extended_result_codes.get(extended, "")
-            print(f'SQLITE_LOG: {message} ({errcode}) {errstr} {extended_errstr}')
-
-        apsw.config(apsw.SQLITE_CONFIG_LOG, handle_error)
         connection = Connection(settings.DB_PATH)
         connection.exec('pragma synchronous = off')
 

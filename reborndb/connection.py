@@ -52,9 +52,7 @@ class Connection:
 
     def exec11(self, query, params=None):
         """Execute an SQL query that returns a single row with a single column, and return the
-        value in the row.
-        
-        An error will be raised if the first row in the query result is """
+        value in the row. If no matching row can be found then None is returned."""
         
         for val, in self.exec(query, params): return val
 

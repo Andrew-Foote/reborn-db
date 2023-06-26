@@ -1,5 +1,5 @@
 # Parses the MultipleForms.rb script to obtain data on Pokémon form differences. Parsing a Ruby
-# script in full generality is tricky, but this script is mostly just hases and arrays, so for this
+# script in full generality is tricky, but this script is mostly just hashes and arrays, so for this
 # particular purpose we can get away with simply tokenizing it, ignoring any problematic parts, and
 # converting the tokens to JSON.
 
@@ -14,6 +14,7 @@ def lexer(*patterns):
 
 	def lex(source):
 		i = 0
+		line_i = 0
 
 		while i < len(source):
 			for pattern, callback in zip(patterns, callbacks):
@@ -22,16 +23,17 @@ def lexer(*patterns):
 				if m is not None:
 					yield from callback(*m.groups())
 					i = m.end()
+					line_i += m.group(0).count('\n')
 					break
 			else:
-				raise ValueError(f'input at index {i} does not match any pattern recognized by the lexer\n---\n{source[i:i + 25]}...\n---')
+				raise ValueError(f'input at line {line_i}, index {i} does not match any pattern recognized by the lexer\n---\n{source[i:i + 25]}...\n---')
 
 	return lex
 
 WHITESPACE = r'\s+'
 COMMENT = r'#[^\n]*'
 PROC = r'proc\{(.*?)\}' # fortunately none of the procs in the script have hash literals or blocks within them.
-NUMBER = r'(\d+(?:\.\d+)?)'
+NUMBER = r'(-?\d+(?:\.\d+)?)'
 STRING = r'("[^"]*")'
 IDENTIFIER = r'[:\$]?([a-zA-Z_][a-zA-Z_0-9]*[?!]?)'
 QUALIFIED_IDENTIFIER = IDENTIFIER + '::' + IDENTIFIER
@@ -62,8 +64,11 @@ def without_trailing_commas(tokens):
 		if not (token1 == ',' and token2 in (']', '}')):
 			yield token1
 
-def parse(script):
-	with open(REBORN_INSTALL_PATH / 'Scripts' / script, encoding='utf-8') as f:
+def get_path(script_name):
+	return REBORN_INSTALL_PATH / 'Scripts' / script
+
+def parse(path):
+	with open(path, encoding='utf-8') as f:
 		source = f.read()
 
 	tokens = without_trailing_commas(lex(source))

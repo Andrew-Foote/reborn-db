@@ -26,7 +26,7 @@ Create a virtual environment (replace `py` with whatever command you use to invo
 
      py -m venv env
 
-Install modules from requirements.txt (replace `env\Scripts\pip` with `env\bin\pip` if on Mac/Linux):
+Install modules from requirements.txt (replace `env\Scripts\pip` with `env/bin/pip` if on Mac/Linux):
 
      env\Scripts\pip install -r requirements.txt
 
