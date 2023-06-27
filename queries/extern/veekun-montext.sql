@@ -54,17 +54,21 @@ select json_group_object(
 						join "abilities" as "a" on "a"."id" = "pa"."ability_id"
 						where "pa"."pokemon_id" = "p"."id"
 					)
+					-- pokemon moves for all generations
+					-- (used to determine compatiblemoves)
 					,"pm" as (
 						select
 							"pmm"."identifier" as "method"
 							,"pm"."level"
 							,"pm"."order"
 							,replace(upper("m"."identifier"), '-', '') as "move"
+							,"vg"."identifier" as "version_group"
 						from "pokemon_moves" as "pm"
 						join "moves" as "m" on "m"."id" = "pm"."move_id"
 						join "pokemon_move_methods" as "pmm"
 							on "pmm"."id" = "pm"."pokemon_move_method_id"
-						where "pm"."pokemon_id" = "p"."id" and "pm"."version_group_id" = (select "id" from "usum")
+						join "version_groups" as "vg" on "vg"."id" = "pm"."version_group_id"
+						where "pm"."pokemon_id" = "p"."id"
 					)
 				select json_group_object("attr"."name", json("attr"."value"))
 				from (
@@ -134,11 +138,17 @@ select json_group_object(
 						,json_quote("ps"."base_happiness") as "value"
 					union
 					select
-						13 as "index", 'EggSteps' as "name", json_quote("ps"."egg_steps") as "value"
+						13 as "index", 'EggSteps' as "name"
+						,json_quote("ps"."egg_steps") as "value"
 					union
-					select 14 as "index", 'EggMoves' as "name", json_group_array("pm"."move") as "value"
+					select
+						14 as "index", 'EggMoves' as "name"
+						,json_group_array("pm"."move") as "value"
 					from (
-						select "pm"."move" from "pm" where "pm"."method" = 'egg' order by "pm"."move"
+						select "pm"."move" from "pm" where
+							"pm"."method" = 'egg'
+							and "pm"."version_group" = 'ultra-sun-ultra-moon'
+						order by "pm"."move"
 					) as "pm"
 					group by '' -- don't create empty list
 					union
@@ -146,7 +156,9 @@ select json_group_object(
 						json_array("pm"."level", "pm"."move")
 					) as "value"
 					from (
-						select "pm"."level", "pm"."move" from "pm" where "pm"."method" = 'level-up'
+						select "pm"."level", "pm"."move" from "pm" where
+							"pm"."method" = 'level-up'
+							and "pm"."version_group" = 'ultra-sun-ultra-moon'
 						order by "pm"."level", "pm"."order"
 					) as "pm"
 					union
@@ -154,12 +166,9 @@ select json_group_object(
 						16 as "index", 'compatiblemoves' as "name"
 						,json_group_array("pm"."move") as "value"
 					from (
-						select "pm"."move" from "pm" where "pm"."method" in ('tutor', 'machine')
+						select "pm"."move" from "pm" -- where "pm"."method" in ('tutor', 'machine')
 						order by "pm"."move"
 					) as "pm"
-					group by ''
-					-- union
-					-- select 17 as "index", 'moveexceptions' as "name", json_array()
 					union
 					select 18 as "index", 'Color' as "name", json_quote("ps"."color") as "value"
 					union
