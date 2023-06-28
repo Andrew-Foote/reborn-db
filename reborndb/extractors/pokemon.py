@@ -13,6 +13,16 @@ from reborndb import script
 
 # this one could do with some clean-up. 
 
+def is_form_battle_only(pokemon_id, form_name):
+	return (
+		(form_name != '' and pokemon_id in (
+			'CASTFORM', 'CHERRIM', 'DARMANITAN', 'MELOETTA', 'AEGISLASH',
+		))
+		or (pokemon_id == 'MINIOR' and form_name != 'Core')
+		or 'Mega' in form_name or 'Primal' in form_name
+		or 'PULSE' in form_name
+	)
+
 POKEMON_COUNT = 807 # Ignore Gen 8
 STATS = ('HP', 'ATK', 'DEF', 'SPD', 'SA', 'SD')
 
@@ -231,7 +241,8 @@ def extract():
 			form_row = {
 				'pokemon': id_, 'name': form_name, 'order': form_index,
 				'catch_rate': catch_rate, 'height': height, 'weight': weight,
-				'pokedex_entry': pokedex_entry, 'wild_always_held_item': wild_always_held_item
+				'pokedex_entry': pokedex_entry, 'wild_always_held_item': wild_always_held_item,
+				'battle_only': is_form_battle_only(id_, form_name)
 			}
 
 			# what is GetEvo? oh, it's an array of 3-arrays, each one containing the method code, "level" (really method arg) and evolved pokemon number (form?)

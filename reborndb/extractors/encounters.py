@@ -26,7 +26,7 @@ ENCOUNTER_TYPES = {
 }
 
 def get_form_map():
-    script_data = script.parse('MultipleForms.rb')
+    script_data = script.parse(script.get_path('MultipleForms.rb'))
     form_map = {}
 
     for pokemon, section in script_data.items():

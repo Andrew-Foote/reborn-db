@@ -54,8 +54,6 @@ select json_group_object(
 						join "abilities" as "a" on "a"."id" = "pa"."ability_id"
 						where "pa"."pokemon_id" = "p"."id"
 					)
-					-- pokemon moves for all generations
-					-- (used to determine compatiblemoves)
 					,"pm" as (
 						select
 							"pmm"."identifier" as "method"

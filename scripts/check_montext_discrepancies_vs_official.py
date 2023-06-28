@@ -26,6 +26,11 @@ PROPS_TO_IGNORE = (
     # ,'BaseEXP'
 )
 
+PROPS_TO_IGNORE_FOR_BATTLE_ONLY_FORMS = (
+    'GrowthRate', 'Happiness', 'EggSteps', 'EggMoves', 'Moveset', 'compatiblemoves',
+    'EggGroups'
+)
+
 IGNORE_HIDDEN_VS_REGULAR_ABILITIES = False
 
 TUTOR_OR_MACHINE_MOVES = set(DB.H.exec1('''
@@ -96,6 +101,14 @@ def normalize_reborn_form_name(pokemon_id, form_name):
 
     return form_name
 
+BATTLE_ONLY_FORMS = {
+    (pokemon_id, normalize_reborn_form_name(pokemon_id, form_name))
+    for pokemon_id, form_name
+    in DB.H.exec('''
+        select "pokemon", "name" from "pokemon_form" where "battle_only" = 1
+    ''')
+}
+
 def normalize_reborn_data(data):
     new_data = {}
 
@@ -115,6 +128,8 @@ def normalize_reborn_data(data):
 
             for prop_name, prop_value in form.items():
                 if prop_name in PROPS_TO_IGNORE:
+                    pass
+                elif (pokemon_id, form_name) in BATTLE_ONLY_FORMS and prop_name in PROPS_TO_IGNORE_FOR_BATTLE_ONLY_FORMS:
                     pass
                 elif prop_name in ('dexnum', 'BaseEXP', 'CatchRate', 'Happiness', 'EggSteps', 'Height', 'Weight'):
                     new_form[prop_name] = int(prop_value)
@@ -139,11 +154,7 @@ def normalize_reborn_data(data):
            
                     if pokemon_id == 'MEW':
                         # for mew all tutor/machine moves are presumed compatible
-                        presumed_compatible = set(DB.H.exec1('''
-                            select "move" from "tutor_move"
-                            union
-                            select "move" from "machine_move"
-                        '''))
+                        presumed_compatible = TUTOR_OR_MACHINE_MOVES
                     else:
                         presumed_compatible = PRESUMED_COMPATIBLE_MOVES
 
@@ -160,8 +171,10 @@ def normalize_reborn_data(data):
                 for prop_name, prop_value in new_form0.items():
                     if not (
                         prop_name in new_form
-                        # prop_name in PROPS_TO_IGNORE
-                        # or prop_name in ('HiddenAbilities', 'moveexceptions')
+                        or (
+                            (pokemon_id, form_name) in BATTLE_ONLY_FORMS
+                            and prop_name in PROPS_TO_IGNORE_FOR_BATTLE_ONLY_FORMS
+                        )
                         or (prop_name == 'Type2' and 'Type1' in form)
                     ):
                         new_form[prop_name] = prop_value
@@ -186,7 +199,9 @@ def normalize_veekun_data(data):
             new_pokemon[form_name] = new_form
 
             for prop_name, prop_value in form.items():
-                if prop_name == 'name':
+                if (pokemon_id, form_name) in BATTLE_ONLY_FORMS and prop_name in PROPS_TO_IGNORE_FOR_BATTLE_ONLY_FORMS:
+                    pass
+                elif prop_name == 'name':
                     new_form[prop_name] = prop_value[:-1] if prop_value[:-1] == 'NIDORAN' else prop_value
                 elif prop_name == 'kind':
                     new_form[prop_name] = prop_value.replace(' ', '')
@@ -220,16 +235,7 @@ def normalize_veekun_data(data):
                 else:
                     new_form[prop_name] = prop_value
 
-                # (see if this is still needed)
-                # unevolved mega forms have egg moves in the reborn data, but not in veekun
-                # --- but since mega forms can't be hatched anyway this is an irrelevant difference
-                # or form_name == 'mega'
-                # or pokemon_id == 'CASTFORM'
-
-
     return new_data
-
-
 
 ####################################
 ####################################

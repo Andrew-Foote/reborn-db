@@ -260,38 +260,39 @@ create table `item` (
 );
 
 -- Moves taught by TM(X)s.
-create table `machine_item` (
+create table "machine_item" (
 	"item" text primary key,
 	"pocket" text check ("pocket" = 'TMs & HMs'),
 	"type" text not null check ("type" in ('tm', 'tmx')),
 	"number" integer not null,
 	"move" text not null unique,
 	unique ("type", "number"),
-	foreign key (`item`, `pocket`) references `item` (`id`, `pocket`),
-	foreign key (`move`) references `move` (`id`)
+	foreign key ("item", "pocket") references "item" ("id", "pocket"),
+	foreign key ("move") references "move" ("id")
 ) without rowid;
 
 -- Pokémon forms.
-create table `pokemon_form` (
-	`pokemon` text,
-	`name` text,
-	`order` integer,
-	`wild_always_held_item` text not null, -- if the Pokémon doesn't always hold an item in the
+create table "pokemon_form" (
+	"pokemon" text,
+	"name" text,
+	"order" integer,
+	"wild_always_held_item" text not null, -- if the Pokémon doesn't always hold an item in the
 	                                       -- wild, this is set to the dummy item (with ID
 	                                       -- 'DUMMY'), which is a bit hacky but it allows us to
 	                                       -- set up the right constraint
 
 	                                       -- we should just use a partial unique index instead
 	-- catch rate is form-specific soley due to Minior
-	`catch_rate` integer not null check (`catch_rate` >= 0 and `catch_rate` <= 255),
-	`height` integer not null check (`height` >= 0), -- in centimetres
-	`weight` integer not null check (`weight` >= 0), -- in tenths of a kilogram (100g each)			
-	`pokedex_entry` text not null,
-	primary key (`pokemon`, `name`),
-	unique (`pokemon`, `order`),
-	unique ('pokemon', 'name', 'wild_always_held_item'),
-	foreign key (`pokemon`) references `pokemon` (`id`),
-	foreign key (`wild_always_held_item`) references `item` (`id`)
+	"catch_rate" integer not null check ("catch_rate" >= 0 and "catch_rate" <= 255),
+	"height" integer not null check ("height" >= 0), -- in centimetres
+	"weight" integer not null check ("weight" >= 0), -- in tenths of a kilogram (100g each)			
+	"pokedex_entry" text not null,
+	"battle_only" integer not null check ("battle_only" in (0, 1)) default 0,
+	primary key ("pokemon", "name"),
+	unique ("pokemon", "order"),
+	unique ("pokemon", "name", "wild_always_held_item"),
+	foreign key ("pokemon") references "pokemon" ("id"),
+	foreign key ("wild_always_held_item") references "item" ("id")
 ) without rowid;
 
 -- for each form we have a normal sprite, shiny sprite, back-normal, back-shiny

@@ -65,7 +65,7 @@ def without_trailing_commas(tokens):
 			yield token1
 
 def get_path(script_name):
-	return REBORN_INSTALL_PATH / 'Scripts' / script
+	return REBORN_INSTALL_PATH / 'Scripts' / script_name
 
 def parse(path):
 	with open(path, encoding='utf-8') as f:
