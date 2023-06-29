@@ -32,7 +32,7 @@ def lexer(*patterns):
 
 WHITESPACE = r'\s+'
 COMMENT = r'#[^\n]*'
-PROC = r'proc\{(.*?)\}' # fortunately none of the procs in the script have hash literals or blocks within them.
+PROC = r'proc\s*\{(.*?)\}' # fortunately none of the procs in the script have hash literals or blocks within them.
 NUMBER = r'(-?\d+(?:\.\d+)?)'
 STRING = r'("[^"]*")'
 IDENTIFIER = r'[:\$]?([a-zA-Z_][a-zA-Z_0-9]*[?!]?)'

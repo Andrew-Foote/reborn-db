@@ -1,6 +1,5 @@
 with
 	"en" as ( select "id" from "languages" where "identifier" = 'en' )
-	,"usum" as ( select "id" from "version_groups" where "identifier" = 'ultra-sun-ultra-moon' )
 select json_group_object(
 	replace(upper("ps"."identifier"), '-', '')
 	,(
@@ -67,6 +66,16 @@ select json_group_object(
 							on "pmm"."id" = "pm"."pokemon_move_method_id"
 						join "version_groups" as "vg" on "vg"."id" = "pm"."version_group_id"
 						where "pm"."pokemon_id" = "p"."id"
+					),
+					"pi" as (
+						select
+							"pi"."rarity",
+							replace(upper("i"."identifier"), '-', '') as "item"
+						from "pokemon_items" as "pi"
+						join "versions" as "v" on "v"."id" = "pi"."version_id"
+						join "items" as "i" on "i"."id" = "pi"."item_id"
+						where "pi"."pokemon_id" = "p"."id"
+						and "v"."identifier" = 'ultra-sun' -- no difference between using ultra-sun vs ultra-moon here, i checked
 					)
 				select json_group_object("attr"."name", json("attr"."value"))
 				from (
@@ -177,16 +186,27 @@ select json_group_object(
 						20 as "index", 'EggGroups' as "name",
 						json_group_array("peg"."name")
 					from ( select "peg"."name" from "peg" order by "peg"."id" ) as "peg"
-					-- union
-					-- select
-					-- 	20 as "index", 'EggGroups' as "name", json_array() as "value"
-					-- 	where not exists ( select * from "peg" )
 					union
 					select 21 as "index", 'Height' as "name", json_quote("p"."height") as "value"
 					union
 					select 22 as "index", 'Weight' as "name", json_quote("p"."weight") as "value"
 					union
 					select 23 as "index", 'kind' as "name", json_quote("ps"."species") as "value"
+					union
+					select
+						24 as "index", 'WildItemCommon' as "name"
+						,json_quote("pi"."item") as "value"
+					from "pi" where "pi"."rarity" in (100, 50)
+					union
+					select
+						24 as "index", 'WildItemUncommon' as "name"
+						,json_quote("pi"."item") as "value"
+					from "pi" where "pi"."rarity" in (100, 5)
+					union
+					select
+						24 as "index", 'WildItemRare' as "name"
+						,json_quote("pi"."item") as "value"
+					from "pi" where "pi"."rarity" in (100, 1)
 					order by "index"
 				) as "attr"
 			)

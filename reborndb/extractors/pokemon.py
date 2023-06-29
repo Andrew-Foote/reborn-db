@@ -16,7 +16,7 @@ from reborndb import script
 def is_form_battle_only(pokemon_id, form_name):
 	return (
 		(form_name != '' and pokemon_id in (
-			'CASTFORM', 'CHERRIM', 'DARMANITAN', 'MELOETTA', 'AEGISLASH',
+			'CASTFORM', 'CHERRIM', 'DARMANITAN', 'MELOETTA', 'AEGISLASH', 'MIMIKYU'
 		))
 		or (pokemon_id == 'MINIOR' and form_name != 'Core')
 		or 'Mega' in form_name or 'Primal' in form_name
