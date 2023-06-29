@@ -401,7 +401,10 @@ def run(game):
         print('----------------------------------------------')
 
         for prop_name, (prop_value, veekun_value) in discreps2.items():
-            print(prop_name)
+            if prop_name == 'WildItems':
+                print('WildItems(Common/Uncommon/Rare)')
+            else:
+                print(prop_name)
 
             if veekun_value is None:
                 print(f'  Reborn value: {prop_value}')
