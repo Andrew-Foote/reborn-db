@@ -2,7 +2,7 @@ import re
 from parsers.rpg import common_events as rpg_common_events
 from parsers.rpg import map as rpg_map
 from reborndb import DB, settings
-from parsers.rpg.basic import AssignType, SwitchState
+from parsers.rpg.basic import AssignType, Comparison, SwitchState
 
 # Rayquaza roaming is set in Settings.rb --- some other useful info there too
 
@@ -59,8 +59,8 @@ def process_line(poke_var, line, datum):
         datum['form'] = form_id
         return True
 
-    # this isn't working
-    m = re.match(fr'{poke_var}.iv\[(\d+)]\s*=\s*(\d+)', line)
+    # this isn't working (maybe it'll work now)
+    m = re.match(fr'{poke_var}.iv\[(\d+)\]\s*=\s*(\d+)', line)
 
     if m is not None:
         if 'iv' in datum:
@@ -163,15 +163,58 @@ def iterscripts(cmds):
     wild_mod_val = 0
     script = ''
     egg_trade = False
+    appendix = {}
+    appendix_cur_outcome = None
 
     for i, cmd in enumerate(cmds):
         if cmd.short_type_name == 'ContinueScript':
-            script += '\n' + cmd.line
+            if appendix_cur_outcome:
+                appendix[appendix_cur_outcome] += '\n' + cmd.line
+            else:
+                script += '\n' + cmd.line
             continue
 
+        if script and (
+            cmd.short_type_name == 'ControlVariables'
+            and 62 in range(cmd.var_id_lo, cmd.var_id_hi + 1)
+            and cmd.assign_type == AssignType.SUBSTITUTE
+            and cmd.operand_type_name == 'RandomNumberOperand'
+        ):
+            appendix = {outcome: '' for outcome in range(cmd.lb, cmd.ub + 1)}
+            continue
+
+        if appendix and (
+            cmd.short_type_name == 'ConditionalBranch'
+            and cmd.short_subtype_name == 'Variable'
+            and cmd.variable_id == 62
+            and not cmd.value_is_variable
+            and cmd.cmp == Comparison.EQ
+        ):
+            appendix_cur_outcome = cmd.value
+            print(cmd, appendix_cur_outcome)
+            print(appendix)
+            continue
+
+        if appendix_cur_outcome:
+            if appendix[appendix_cur_outcome]:
+                if cmd.short_type_name == 'Blank':
+                    continue
+                elif cmd.short_type_name == 'Else':
+                    appendix_cur_outcome = None
+                    print(cmd, appendix_cur_outcome)
+                    print(appendix)
+                    continue
+            elif cmd.short_type_name == 'Script':
+                appendix[appendix_cur_outcome] = cmd.line
+                print(cmd, appendix_cur_outcome)
+                print(appendix)
+                continue
+
         if script:
-            yield start_cmd, i, wild_mod_val, script, egg_trade
+            yield start_cmd, i, wild_mod_val, script, egg_trade, appendix
             script = ''
+            appendix = {}
+            appendix_cur_outcome = None
 
         if (
             cmd.short_type_name == 'ControlSwitches'
@@ -337,12 +380,136 @@ def extract():
         for stat_index, value in ivs.items():
             iv_rows.append((encounter_id, stat_index, value))
 
+    def apply_modifiers(modifiers, datum):
+        nonmovekeys = {k for m in modifiers for k in m.keys() if k != 'moves'}
+
+        for k in nonmovekeys:
+            assert len({m[k] for m in modifiers}) == 1, f'disparate values for key {k}; {modifiers}'
+
+        datum['moves'] = [m['moves'] for m in modifiers]
+
+        for k in nonmovekeys:
+            datum[k] = modifiers[0][k]
+
+    def parse_command_script(script, datum, wild_mod_val, egg_trade):
+        start_cmd = datum['start_cmd']
+        end_cmd = datum['end_cmd']
+
+        m = re.search(WILD_RE, script)
+
+        if m is not None:
+            #datum['repeatable'] = 'var_id' not in m.groupdict() # tropius doesn't have this but i think ame regards this as a bug (based on what she said on her stream)
+            datum['type'] = 'battle'
+            datum['species'] = parse_species(m.groupdict()['species'])
+            print(f"{start_cmd}--{end_cmd}: {datum['species']}, battle")
+            datum['level'] = m.groupdict()['level']
+
+            if wild_mod_val == 120: # tabula rasa unown
+                datum['form_note'] = TABULA_RASA_UNOWN_FORM_NOTE
+
+            return True
+
+        m = re.search(GIFT_RE, script)
+
+        if m is not None:
+            datum['species'] = parse_species(m.groupdict()['species'])
+
+            if datum['species'] == 'DARKRAI':
+                # print('>>>>>>>DARKRAI')
+                # print(script)
+                # print('DARKRAI<<<<<<<<')
+                return False # Ignore Shiv's fake Darkrai gift
+
+            print(f"{start_cmd}--{end_cmd}: {datum['species']}, gift (maybe trade)")
+            datum['level'] = m.groupdict()['level']
+            poke_var = m.groupdict()['poke_var']
+
+            for line in iterscriptlines(script[m.end():]):
+                line = line.strip()
+
+                if process_line(poke_var, line, datum):
+                    continue
+
+                m = re.match(fr'\s*pbStartTrade\s*\(\s*pbGet\(1\)\s*,\s*{poke_var}\s*,\s*"(?P<nickname>.*?)"\s*,\s*"(?P<ot>.*?)"\s*\)', line)
+
+                if m is not None:
+                    print('...is trade')
+                    datum['type'] = 'trade'
+                    datum['nickname'] = m.groupdict()['nickname']
+                    datum['ot'] = m.groupdict()['ot']
+                    datum['trainer_id'] = '$RANDOM'
+
+                    if egg_trade:
+                        datum['level'] = 0
+
+                    continue
+
+                if line == f'pbAddPokemon({poke_var})':
+                    datum['type'] = 'gift'
+                    print('...is gift')
+                    continue
+
+                assert False, f'unexpected line {line}; script:\n{script}'
+
+            return True
+
+        m = re.search(GIFT_RE2, script)
+
+        if m is not None:
+            species = m.groupdict()['species']
+
+            if species == 'pbGet(16)': # fossil gift in spinel town --- handled separately
+                return False
+            else:
+                datum['species'] = parse_species(species)
+                print(f"{start_cmd}--{end_cmd}: {datum['species']}, gift")
+                datum['level'] = m.groupdict()['level']
+                datum['type'] = 'gift'        
+                return True
+
+        m = re.search(TRADE_RE, script)
+
+        if m is not None:
+            datum['type'] = 'trade'
+            datum['species'] = parse_species(m.groupdict()['species'])
+            print(f"{start_cmd}--{end_cmd}: {datum['species']}, trade")
+            datum['nickname'] = m.groupdict()['nickname']
+            datum['ot'] = m.groupdict()['ot']
+            datum['trainer_id'] = '$RANDOM'
+
+            if egg_trade:
+                datum['level'] = 0
+
+            return True
+
+        m = re.search(EGG_RE, script)
+
+        if m is not None:
+            datum['species'] = parse_species(m.groupdict()['species'])
+            print(f"{start_cmd}--{end_cmd}: {datum['species']}, egg gift")
+            datum['level'] = 0
+            poke_var = m.groupdict()['poke_var']
+
+            for line in iterscriptlines(script[m.end():]):
+                if process_line(poke_var, line, datum):
+                    continue
+
+                if line == f'pbAddPokemonSilent({poke_var})':
+                    datum['type'] = 'gift'
+                    continue
+
+                assert False, f'unexpected line {line}; script:\n{script}'
+
+            return True
+
+        return False
+        
     def process_commands(cmds, base_datum):
-        for start_cmd, end_cmd, wild_mod_val, script, egg_trade in iterscripts(cmds):
-            # print('>>>>>>>>>>>')
-            # print(script)
-            # print('<<<<<<<<<<<')
-            # print()
+        for start_cmd, end_cmd, wild_mod_val, script, egg_trade, appendix in iterscripts(cmds):
+            print('>>>>>>>>>>>')
+            print(script)
+            print('<<<<<<<<<<<')
+            print()
 
             datum = base_datum.copy()
             datum['start_cmd'] = start_cmd
@@ -350,128 +517,38 @@ def extract():
 
             if isinstance(wild_mod_val, range):
                 modifiers = [encounter_modifiers[v] for v in wild_mod_val]
-                nonmovekeys = {k for m in modifiers for k in m.keys() if k != 'moves'}
-
-                for k in nonmovekeys:
-                    assert len({m[k] for m in modifiers}) == 1, f'disparate values for key {k}; {modifiers}'
-
-                datum['moves'] = [m['moves'] for m in modifiers]
+                apply_modifiers(modifiers, datum)
             elif wild_mod_val:
                 datum |= encounter_modifiers[wild_mod_val]
 
-            m = re.search(WILD_RE, script)
+            if parse_command_script(script, datum, wild_mod_val, egg_trade):
+                if appendix:
+                    modifiers = []
 
-            if m is not None:
-                #datum['repeatable'] = 'var_id' not in m.groupdict() # tropius doesn't have this but i think ame regards this as a bug (based on what she said on her stream)
-                datum['type'] = 'battle'
-                datum['species'] = parse_species(m.groupdict()['species'])
-                print(f"{start_cmd}--{end_cmd}: {datum['species']}, battle")
-                datum['level'] = m.groupdict()['level']
+                    for outcome, outcomescript in appendix.items():
+                        modifiers.append({})
+                        lines = list(iterscriptlines(outcomescript))
 
-                if wild_mod_val == 120: # tabula rasa unown
-                    datum['form_note'] = TABULA_RASA_UNOWN_FORM_NOTE
+                        if not lines:
+                            print('!!!!!!!!!!!!!!!!')
+                            print(start_cmd, end_cmd, wild_mod_val, egg_trade)
+                            print(script)
+                            print(appendix)
 
-                add_rows(datum)
-                continue
+                        m = re.match(r'(\w+)\s*=\s*pbGetPokemon\(1\)', lines[0])
 
-            m = re.search(GIFT_RE, script)
+                        if m is None:
+                            assert False, f'unexpected line: {line}; in appendix outcome {outcome}, script: \n{script}'
 
-            if m is not None:
-                datum['species'] = parse_species(m.groupdict()['species'])
+                        poke_var = m.group(1)
 
-                if datum['species'] == 'DARKRAI':
-                    # print('>>>>>>>DARKRAI')
-                    # print(script)
-                    # print('DARKRAI<<<<<<<<')
-                    continue # Ignore Shiv's fake Darkrai gift
+                        for line in lines[1:]:
+                            if not process_line(poke_var, line, modifiers[-1]):
+                                assert False, f'unexpected line: {line}; in appendix outcome {outcome}, script: \n{script}'
 
-                print(f"{start_cmd}--{end_cmd}: {datum['species']}, gift (maybe trade)")
-                datum['level'] = m.groupdict()['level']
-                poke_var = m.groupdict()['poke_var']
-
-                for line in iterscriptlines(script[m.end():]):
-                    line = line.strip()
-
-                    if process_line(poke_var, line, datum):
-                        continue
-
-                    m = re.match(fr'\s*pbStartTrade\s*\(\s*pbGet\(1\)\s*,\s*{poke_var}\s*,\s*"(?P<nickname>.*?)"\s*,\s*"(?P<ot>.*?)"\s*\)', line)
-
-                    if m is not None:
-                        print('...is trade')
-                        datum['type'] = 'trade'
-                        datum['nickname'] = m.groupdict()['nickname']
-                        datum['ot'] = m.groupdict()['ot']
-                        datum['trainer_id'] = '$RANDOM'
-
-                        if egg_trade:
-                            datum['level'] = 0
-
-                        continue
-
-                    if line == f'pbAddPokemon({poke_var})':
-                        datum['type'] = 'gift'
-                        print('...is gift')
-                        continue
-
-                    assert False, f'unexpected line {line}; script:\n{script}'
+                    apply_modifiers(modifiers, datum)
 
                 add_rows(datum)
-                continue
-
-            m = re.search(GIFT_RE2, script)
-
-            if m is not None:
-                species = m.groupdict()['species']
-
-                if species != 'pbGet(16)': # fossil gift in spinel town --- handled separately
-                    datum['species'] = parse_species(species)
-                    print(f"{start_cmd}--{end_cmd}: {datum['species']}, gift")
-                    datum['level'] = m.groupdict()['level']
-                    datum['type'] = 'gift'
-                    add_rows(datum)
-                    continue
-
-            m = re.search(TRADE_RE, script)
-
-            if m is not None:
-                datum['type'] = 'trade'
-                datum['species'] = parse_species(m.groupdict()['species'])
-                print(f"{start_cmd}--{end_cmd}: {datum['species']}, trade")
-                datum['nickname'] = m.groupdict()['nickname']
-                datum['ot'] = m.groupdict()['ot']
-                datum['trainer_id'] = '$RANDOM'
-
-                if egg_trade:
-                    datum['level'] = 0
-
-                add_rows(datum)                    
-                continue
-
-                # need to handle ones where pbGetPokemon(1) is used to modify the pokemon after
-                # it's placed in the party, e.g. Sunkern trade in Rhodochrine; will need to handle
-                # discontinuous scripts due to conditional branches
-
-            m = re.search(EGG_RE, script)
-
-            if m is not None:
-                datum['species'] = parse_species(m.groupdict()['species'])
-                print(f"{start_cmd}--{end_cmd}: {datum['species']}, egg gift")
-                datum['level'] = 0
-                poke_var = m.groupdict()['poke_var']
-
-                for line in iterscriptlines(script[m.end():]):
-                    if process_line(poke_var, line, datum):
-                        continue
-
-                    if line == f'pbAddPokemonSilent({poke_var})':
-                        datum['type'] = 'gift'
-                        continue
-
-                    assert False, f'unexpected line {line}; script:\n{script}'
-
-                add_rows(datum)
-                continue
 
     for event in rpg_common_events.load():
         print(f'Common event {event.id_}')

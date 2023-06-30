@@ -5,6 +5,8 @@
 #
 # when necessary. At some point I need to rework the build process to incorporate this step.
 
+# TODO: speed this up! And put the images in the database maybe.
+
 import io
 import itertools as it
 from PIL import Image
@@ -207,7 +209,7 @@ def save_map_tiles(map_id, mapdata, tilesets):
                 try:
                     tile = tiles[tile_id]
                 except IndexError:
-                    print(map_id, tile_id)
+                    print(map_id, tile_id) # idk why this happens
 
                 if tile is not None:
                     img.paste(tile, (x * 32, y * 32), tile)
