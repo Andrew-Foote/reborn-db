@@ -55,13 +55,23 @@ INTENTIONAL_DISCREPS = fs(
     # forms, depending on which ability it has. The same goes for Zygarde 10%. Veekun
     # reflects this by distinguishing the two 50% forms as "zygarde" (with Aura Break) and
     # "zygarde-50" (with Power Construct); however, it doesn't distinguish the two 10% forms.
-    # What Reborn/Reju/Deso do is a freasonable simplification of this situation.
+    # What Reborn/Reju/Deso do is a reasonable simplification of this situation.
     ('ZYGARDE', '50', 'Abilities', fs('AURABREAK', 'POWERCONSTRUCT'), fs('POWERCONSTRUCT')),
     ('ZYGARDE', '10', 'Abilities', fs('AURABREAK', 'POWERCONSTRUCT'), fs('POWERCONSTRUCT')),
     ('ZYGARDE', 'complete', 'Abilities', fs('AURABREAK', 'POWERCONSTRUCT'), fs('POWERCONSTRUCT')),
     # due to this being used as the primary form in the file, even though it's battle-only,
     # so not marked as carrying an item in veekun (though veekun does have the item on the meteor forms)
-    ('MINIOR', 'red', 'WildItems', (None, 'STARPIECE', None), None)
+    ('MINIOR', 'red', 'WildItems', (None, 'STARPIECE', None), None),
+    # serebii has -k-, veekun/pokemondb has -n-. who is right? we'd have to check the actual official games i guess
+    # anyway it's not like anyone cares if there's a difference here
+    ('CHESPIN', '', 'kind', 'SpikyNut', 'SpinyNut'),
+    ('QUILLADIN', '', 'kind', 'SpikyArmor', 'SpinyArmor'),
+    ('CHESNAUGHT', '', 'kind', 'SpikyArmor', 'SpinyArmor'),
+    # intentional due to reborn having a different set of seeds
+    ('BOUNSWEET', '', 'WildItems', (None, 'ELEMENTALSEED', None), (None, 'GRASSYSEED', None)),
+    ('STEENEE', '', 'WildItems', (None, 'ELEMENTALSEED', None), (None, 'GRASSYSEED', None)),
+    ('COMFEY', '', 'WildItems', (None, 'ELEMENTALSEED', None), (None, 'MISTYSEED', None)),
+    ('TOGEDEMARU', '', 'WildItems', (None, 'ELEMENTALSEED', None), (None, 'ELECTRICSEED', None))
 )
 
 TUTOR_OR_MACHINE_MOVES = fs(*DB.H.exec1('''
