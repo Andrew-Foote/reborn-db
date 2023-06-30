@@ -375,7 +375,7 @@ def extract():
                 for i, move in enumerate(set_):
                     move_rows.append((set_id, move, i))
 
-        ivs = datum.get('ivs', {})
+        ivs = datum.get('iv', {})
 
         for stat_index, value in ivs.items():
             iv_rows.append((encounter_id, stat_index, value))
