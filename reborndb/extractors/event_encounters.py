@@ -1,8 +1,9 @@
 import re
 from parsers.rpg import common_events as rpg_common_events
 from parsers.rpg import map as rpg_map
-from reborndb import DB, settings
 from parsers.rpg.basic import AssignType, Comparison, SwitchState
+from parsers.rpg.event_command import EventCommand_Script
+from reborndb import DB, settings
 
 # Rayquaza roaming is set in Settings.rb --- some other useful info there too
 
@@ -158,76 +159,105 @@ def parse_encounter_modifiers():
 
     return result
 
-def iterscripts(cmds):
+def cmds_with_unified_scripts(cmds):
+    new_cmds = []
+    script = None
+
+    for cmd in cmds:
+        if script is None:
+            if cmd.short_type_name == 'Script':
+                script = cmd.line
+            else:
+                yield cmd
+        else:
+            if cmd.short_type_name == 'ContinueScript':
+                script += '\n' + cmd.line
+            else:
+                yield EventCommand_Script(indent=cmd.indent, line=script)
+                script = None
+
+                if cmd.short_type_name == 'Script':
+                    script = cmd.line
+                else:
+                    yield cmd
+
+    if script is not None:
+        yield EventCommand_Script(indent=0, line=script)
+
+WILD_RE = re.compile(
+    r'''pbWildBattle\s*\(
+        \s*(?P<species>.*?)\s*,
+        \s*(?P<level>.*?)\s*
+        (?:,\s*(?P<var_id>.*?))?
+    \s*\)''',
+    re.X
+)
+
+TRADE_RE = re.compile(
+    r'''pbStartTrade\s*\(
+        \s*pbGet\(1\)\s*,
+        \s*(?P<species>.*?)\s*,
+        \s*"(?P<nickname>.*?)"\s*,
+        \s*"(?P<ot>.*?)"
+    \s*\)''',
+    re.X
+)
+
+TRADE_MOD_RE = re.compile(r'(?P<poke_var>\w+)\s*=\s*pbGetPokemon\(1\)')
+
+GIFT_RE = re.compile(
+    r'''(?P<poke_var>\w+)\s*=\s*PokeBattle_Pokemon.new\s*\(
+        \s*(?P<species>.*?)\s*,
+        \s*(?P<level>.*?)
+    \s*\)''',
+    re.X
+)
+
+GIFT_RE2 = re.compile(
+    r'''pbAddPokemon\s*\(
+        \s*(?P<species>.*?)\s*,
+        \s*(?P<level>.*?)
+    \s*\)''',
+    re.X
+)
+
+EGG_RE = re.compile(r'(?P<poke_var>\w+)\s*=\s*Kernel\.pbGenerateEgg\s*\(\s*(?P<species>.*?)\s*\)')
+
+INTERESTING_PATS = (WILD_RE, TRADE_RE, GIFT_RE, GIFT_RE2, EGG_RE)
+
+def script_is_interesting(script):
+    return any(re.search(pat, script) is not None for pat in INTERESTING_PATS)
+    
+def interesting_scripts(cmds):
     start_cmd = None
+    appendix_start_cmd = None
+
     wild_mod_val = 0
-    script = ''
     egg_trade = False
-    appendix = {}
+
+    script = ''
+    appendix = None
     appendix_cur_outcome = None
 
-    for i, cmd in enumerate(cmds):
-        if cmd.short_type_name == 'ContinueScript':
-            if appendix_cur_outcome:
-                appendix[appendix_cur_outcome] += '\n' + cmd.line
-            else:
-                script += '\n' + cmd.line
-            continue
-
-        if script and (
-            cmd.short_type_name == 'ControlVariables'
-            and 62 in range(cmd.var_id_lo, cmd.var_id_hi + 1)
-            and cmd.assign_type == AssignType.SUBSTITUTE
-            and cmd.operand_type_name == 'RandomNumberOperand'
-        ):
-            appendix = {outcome: '' for outcome in range(cmd.lb, cmd.ub + 1)}
-            continue
-
-        if appendix and (
-            cmd.short_type_name == 'ConditionalBranch'
-            and cmd.short_subtype_name == 'Variable'
-            and cmd.variable_id == 62
-            and not cmd.value_is_variable
-            and cmd.cmp == Comparison.EQ
-        ):
-            appendix_cur_outcome = cmd.value
-            print(cmd, appendix_cur_outcome)
-            print(appendix)
-            continue
-
-        if appendix_cur_outcome:
-            if appendix[appendix_cur_outcome]:
-                if cmd.short_type_name == 'Blank':
-                    continue
-                elif cmd.short_type_name == 'Else':
-                    appendix_cur_outcome = None
-                    print(cmd, appendix_cur_outcome)
-                    print(appendix)
-                    continue
-            elif cmd.short_type_name == 'Script':
-                appendix[appendix_cur_outcome] = cmd.line
-                print(cmd, appendix_cur_outcome)
-                print(appendix)
-                continue
+    def flush_script(i):
+        nonlocal script, appendix, appendix_cur_outcome
 
         if script:
             yield start_cmd, i, wild_mod_val, script, egg_trade, appendix
             script = ''
-            appendix = {}
+            appendix = None
             appendix_cur_outcome = None
 
+    i = 0
+
+    for i, cmd in enumerate(cmds_with_unified_scripts(cmds)):
         if (
-            cmd.short_type_name == 'ControlSwitches'
-            and 540 in range(cmd.switch_id_lo, cmd.switch_id_hi + 1)
-        ):
-            if cmd.state == SwitchState.ON:
-                egg_trade = True
-            else:
-                egg_trade = False
-        elif (
             cmd.short_type_name == 'ControlVariables'
             and 232 in range(cmd.var_id_lo, cmd.var_id_hi + 1)
         ):
+            yield from flush_script(i)   
+
+            # command changes wild_mod_val
             if cmd.assign_type == AssignType.SUBSTITUTE and cmd.operand_type_name == 'InvariantOperand':
                 wild_mod_val = cmd.value
             elif cmd.assign_type == AssignType.SUBSTITUTE and cmd.operand_type_name == 'RandomNumberOperand':
@@ -237,12 +267,80 @@ def iterscripts(cmds):
                 pass
             else:
                 assert False, cmd
-        elif cmd.short_type_name == 'Script':
-            start_cmd = i
-            script = cmd.line
-        elif cmd.short_type_name == 'ConditionalBranch' and cmd.short_subtype_name == 'Script':
-            start_cmd = i
-            script = cmd.expr
+        elif (
+            cmd.short_type_name == 'ControlSwitches'
+            and 540 in range(cmd.switch_id_lo, cmd.switch_id_hi + 1)
+        ):
+            yield from flush_script(i)
+
+            # command changes egg_trade
+            if cmd.state == SwitchState.ON:
+                egg_trade = True
+            else:
+                egg_trade = False
+        elif not script:
+            # haven't found a script yet
+            if (
+                cmd.short_type_name == 'Script'
+                and script_is_interesting(cmd.line)
+            ):
+                start_cmd = i
+                script = cmd.line
+            elif (
+                cmd.short_type_name == 'ConditionalBranch'
+                and cmd.short_subtype_name == 'Script'
+                and script_is_interesting(cmd.expr)
+            ):
+                start_cmd = i
+                script = cmd.expr
+        elif script and appendix is None:
+            # is there an appendix?
+            if cmd.short_type_name == 'Script' and re.search(TRADE_MOD_RE, cmd.line) is not None:
+                # yes but it's just an extra script
+                appendix = cmd.line
+                yield from flush_script(i + 1)
+            elif (
+                cmd.short_type_name == 'ControlVariables'
+                and 62 in range(cmd.var_id_lo, cmd.var_id_hi + 1)
+                and cmd.assign_type == AssignType.SUBSTITUTE
+                and cmd.operand_type_name == 'RandomNumberOperand'
+            ):
+                appendix_start_cmd = i
+                appendix = {outcome: '' for outcome in range(cmd.lb, cmd.ub + 1)}
+            else:
+                # no there isn't
+                yield from flush_script(i)
+        elif appendix is not None and appendix_cur_outcome is None:
+            if (
+                cmd.short_type_name == 'ConditionalBranch'
+                and cmd.short_subtype_name == 'Variable'
+                and cmd.variable_id == 62
+                and not cmd.value_is_variable
+                and cmd.cmp == Comparison.EQ
+            ):
+                appendix_cur_outcome = cmd.value
+            else: 
+                print(f'cancelling appendix: {appendix}')
+                print(f'because: expected conditionalbranch, got {cmd}')
+                appendix = None
+                yield from flush_script(appendix_start_cmd)
+        elif appendix_cur_outcome is not None and not appendix[appendix_cur_outcome]:
+            if cmd.short_type_name == 'Script':
+                appendix[appendix_cur_outcome] = cmd.line
+            else:
+                print(f'cancelling appendix: {appendix}')
+                print(f'because: expected script, got {cmd}')
+                appendix = None
+                yield from flush_script(appendix_start_cmd)
+        elif appendix_cur_outcome is not None and appendix[appendix_cur_outcome]:
+            if cmd.short_type_name == 'Blank':
+                pass
+            elif cmd.short_type_name == 'Else':
+                appendix_cur_outcome = None
+            else: # cmd.short_type_name == 'ConditionalBranchEnd':
+                yield from flush_script(i)
+
+    yield from flush_script(i)
 
 def iterscriptlines(script):
     delimiter_stack = []
@@ -273,43 +371,6 @@ def iterscriptlines(script):
 
     if line:
         yield line
-
-WILD_RE = re.compile(
-    r'''pbWildBattle\s*\(
-        \s*(?P<species>.*?)\s*,
-        \s*(?P<level>.*?)\s*
-        (?:,\s*(?P<var_id>.*?))?
-    \s*\)''',
-    re.X
-)
-
-TRADE_RE = re.compile(
-    r'''pbStartTrade\s*\(
-        \s*pbGet\(1\)\s*,
-        \s*(?P<species>.*?)\s*,
-        \s*"(?P<nickname>.*?)"\s*,
-        \s*"(?P<ot>.*?)"
-    \s*\)''',
-    re.X
-)
-
-GIFT_RE = re.compile(
-    r'''(?P<poke_var>\w+)\s*=\s*PokeBattle_Pokemon.new\s*\(
-        \s*(?P<species>.*?)\s*,
-        \s*(?P<level>.*?)
-    \s*\)''',
-    re.X
-)
-
-GIFT_RE2 = re.compile(
-    r'''pbAddPokemon\s*\(
-        \s*(?P<species>.*?)\s*,
-        \s*(?P<level>.*?)
-    \s*\)''',
-    re.X
-)
-
-EGG_RE = re.compile(r'(?P<poke_var>\w+)\s*=\s*Kernel\.pbGenerateEgg\s*\(\s*(?P<species>.*?)\s*\)')
 
 def extract():
     encounter_modifiers = parse_encounter_modifiers()
@@ -391,7 +452,7 @@ def extract():
         for k in nonmovekeys:
             datum[k] = modifiers[0][k]
 
-    def parse_command_script(script, datum, wild_mod_val, egg_trade):
+    def parse_command_script(script, datum, wild_mod_val, egg_trade, appendix):
         start_cmd = datum['start_cmd']
         end_cmd = datum['end_cmd']
 
@@ -480,6 +541,17 @@ def extract():
             if egg_trade:
                 datum['level'] = 0
 
+            if appendix and isinstance(appendix, str):
+                m = re.search(TRADE_MOD_RE, appendix)
+                assert m is not None, appendix
+                poke_var = m.groupdict()['poke_var']
+
+                for line in iterscriptlines(appendix[m.end():]):
+                    if process_line(poke_var, line, datum):
+                        continue
+
+                    assert False, f'unexpected line {line}; script:\n{script}'
+
             return True
 
         m = re.search(EGG_RE, script)
@@ -505,11 +577,12 @@ def extract():
         return False
         
     def process_commands(cmds, base_datum):
-        for start_cmd, end_cmd, wild_mod_val, script, egg_trade, appendix in iterscripts(cmds):
-            print('>>>>>>>>>>>')
+        for start_cmd, end_cmd, wild_mod_val, script, egg_trade, appendix in interesting_scripts(cmds):
+            print('>>>>>>>>>>>', wild_mod_val, egg_trade)
             print(script)
             print('<<<<<<<<<<<')
-            print()
+            print(appendix)
+            print('~~~~~~~~~~~')
 
             datum = base_datum.copy()
             datum['start_cmd'] = start_cmd
@@ -521,20 +594,13 @@ def extract():
             elif wild_mod_val:
                 datum |= encounter_modifiers[wild_mod_val]
 
-            if parse_command_script(script, datum, wild_mod_val, egg_trade):
-                if appendix:
+            if parse_command_script(script, datum, wild_mod_val, egg_trade, appendix):
+                if appendix and isinstance(appendix, dict):
                     modifiers = []
 
                     for outcome, outcomescript in appendix.items():
                         modifiers.append({})
                         lines = list(iterscriptlines(outcomescript))
-
-                        if not lines:
-                            print('!!!!!!!!!!!!!!!!')
-                            print(start_cmd, end_cmd, wild_mod_val, egg_trade)
-                            print(script)
-                            print(appendix)
-
                         m = re.match(r'(\w+)\s*=\s*pbGetPokemon\(1\)', lines[0])
 
                         if m is None:
@@ -559,11 +625,19 @@ def extract():
     # print(ot_rows)
     # print(move_rows)
 
-    for map_id, map_ in rpg_map.Map.load_all(): # [(133, rpg_map.Map.load(133))]
+    for map_id, map_ in rpg_map.Map.load_all():
+    # for map_id, map_ in [
+    #     #(353, rpg_map.Map.load(353)),
+    #     #(11, rpg_map.Map.load(11)),
+    #     #(153, rpg_map.Map.load(153)),
+    #     #(412, rpg_map.Map.load(412)), # absol isn't picking up the wildmod
+    #     (154, rpg_map.Map.load(154)) # mime jr isn't getting all its moves
+    # ]:
         print(f'Map {map_id}')
 
         for event_id, event in map_.events.items():
             for page_number, page in enumerate(event.pages):
+                #print(f'MAP {map_id}, EVENT {event_id}, PAGE {page_number}')
                 process_commands(page.list_, {'map_id': map_id, 'event_id': event_id, 'event_page': page_number})
 
     with DB.H.transaction(foreign_keys_enabled=False):
@@ -586,6 +660,15 @@ def extract():
             rows
         )
 
+        DB.H.exec(f'drop table if exists "event_encounter_iv_raw"')
+
+        DB.H.dump_as_table(
+            'event_encounter_iv_raw',
+            ('encounter', 'stat', 'value'),
+            iv_rows
+        )
+
+    with DB.H.transaction():
         DB.H.exec('''
             insert into "event_encounter" (
                 "id", "start_event_command", "end_event_command", "pokemon", "form", "level", "type",
@@ -601,54 +684,53 @@ def extract():
             )
         ''')
 
+    with DB.H.transaction():
         DB.H.bulk_insert(
             'encounter_common_event',
             ('encounter', 'event'),
             common_event_rows
         )
 
+    with DB.H.transaction():
         DB.H.bulk_insert(
             'encounter_map_event',
             ('encounter', 'map', 'event', 'event_page'),
             map_event_rows
         )
 
+    with DB.H.transaction():
         DB.H.bulk_insert(
             'event_encounter_form_note',
             ('encounter', 'note'),
             form_note_rows
         )
 
+    with DB.H.transaction():
         DB.H.bulk_insert(
             'event_encounter_ot',
             ('encounter', 'ot', 'trainer_id'),
             ot_rows
         )
 
+    with DB.H.transaction():
         DB.H.bulk_insert(
             'event_encounter_extra_move_set',
             ('id', 'encounter'),
             set_rows
         )
 
+    with DB.H.transaction():
         DB.H.bulk_insert(
             'event_encounter_move',
             ('set', 'move', 'index'),
             move_rows
         )
 
-        DB.H.exec(f'drop table if exists "event_encounter_iv_raw"')
-
-        DB.H.dump_as_table(
-            'event_encounter_iv_raw',
-            ('encounter', 'stat', 'value'),
-            iv_rows
-        )
-
+    with DB.H.transaction():
         DB.H.exec('''
             insert into "event_encounter_iv" ("encounter", "stat", "value")
             select
-                "raw"."encounter", "raw"."stat", "stat"."id"
+                "raw"."encounter", "stat"."id", "raw"."value"
             from "event_encounter_iv_raw" as "raw"
             join "stat" on "stat"."order" = "raw"."stat"
         ''')

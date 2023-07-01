@@ -5,7 +5,7 @@ from reborndb import settings
 
 def run():
     #DB.H.close()
-	sys.argv[1:] = ('--directory', str(settings.REBORN_DB_PATH))
+	sys.argv[1:] = ('--directory', str(settings.REBORN_DB_PATH), '--bind', '127.0.0.1')
 	runpy.run_module('http.server', {'sys': sys}, '__main__')
 
 if __name__ == '__main__':

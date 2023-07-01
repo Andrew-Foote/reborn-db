@@ -50,6 +50,10 @@ def run():
 	if os.environ.get('FULL'):
 		extractor_names.append('event_encounters')
 		extractor_names.append('map_data')
+	elif os.environ.get('EVENT_ENCOUNTERS'):
+		extractor_names.append('event_encounters')
+	elif os.environ.get('MAP_DATA'):
+		extractor_names.append('map_data')
 	
 	print('Creating schema... ', end='')
 	with DB.H.transaction(): DB.H.execscript('schema.sql')
