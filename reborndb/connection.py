@@ -6,6 +6,7 @@ class Connection:
         self.apsw = apsw.Connection(str(db_path))
         self.exec('pragma foreign_keys = 1')
         
+        # i don't remember why i commented this out#
 #    def close(self):
 #        self.analyze()
 #        self.apsw.close()

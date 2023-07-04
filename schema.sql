@@ -394,21 +394,21 @@ create table "wild_held_item" (
 ) without rowid;
 
 -- The six primary stats (HP, Attack, Defense, Special Attack, Special Defense, Speed).
-create table `stat` (
-	`id` text primary key,
-	`name` text not null unique,
-	`order` integer not null
+create table "stat" (
+	"id" text primary key,
+	"name" text not null unique,
+	"order" integer not null
 ) without rowid;
 
 -- [{pokemon} ({form} form) has a base {stat} value of {value}.]
-create table `base_stat` (
-	`pokemon` text,
-	`form` text,
-	`stat` text,
-	`value` integer not null check (`value` >= 0 and `value` <= 255),
-	primary key (`pokemon`, `form`, `stat`),
-	foreign key (`pokemon`, `form`) references `pokemon_form` (`pokemon`, `name`),
-	foreign key (`stat`) references `stat` (`id`)
+create table "base_stat" (
+	"pokemon" text,
+	"form" text,
+	"stat" text,
+	"value" integer not null check ("value" >= 0 and "value" <= 255),
+	primary key ("pokemon", "form", "stat"),
+	foreign key ("pokemon", "form") references "pokemon_form" ("pokemon", "name"),
+	foreign key ("stat") references "stat" ("id")
 ) without rowid;
 
 -- [{pokemon} ({form} form) yields {value} EVs in {stat} when defeated.]

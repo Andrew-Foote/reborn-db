@@ -463,7 +463,10 @@ values
 ('ARCEUS', 'Normal', 'It will be in this form when not holding a Plate item or a type-specific Z-Crystal.'),
 ('ARCEUS', 'Flying', 'It will be in this form when holding a <a href="/item/sky-plate.html">Sky Plate</a> or <a href="/item/flyinium-z.html">Flyinium Z</a>.');
 
--- this is a view really, but need to ensure it's materialized for performance
+---------------------------------------------------------------------------------------------------
+-- Materialized Views
+---------------------------------------------------------------------------------------------------
+
 create table "pokemon_evolution_schemes" as
 	select
 		"pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form"

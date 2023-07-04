@@ -1,39 +1,36 @@
-BUGS
-- Ditto event IVs not included
+TODO LIST (roughly sorted by priority)
 
-TODO LIST
-
-- Clear up all the tons of dead code in this project
-- Put event commands in the database
-- We need a Ctrl+Fable extract of all event scripts (Event YEET script?)
-- Add info to event encounters about location on the map + required switches/variables/etc.
-- Find out what determines the order of trainers in the debug menu, since it seems to be different from the pbs_order
-- Add links to growth rates/egg moves lists on home page
-- Bag pocket names in items table should reflect the names given in Settings.rb (pbPocketNames)
-- Rename reborn/script.py to multiple_forms_script.py or something
-- Parse settings for rayquaza info, etc.
-- Make event encounter script able to parse more complex conditions (e.g. the egg gift in Rhodochrine Jungle)
+- Make encounters page nicer (e.g. allow grouping by Pokémon, collapsing levels)
 - Parse map events for item locations
 - Parse map events for trainer locations
-- Extract Battle Tower info (btpokemon.txt)
-- Display info about trainer sets, [done] Battle Tower sets on Pokémon page, to give reader an idea of possible movesets; maybe also some kind of "moveset builder"
+- Add info to event encounters about location on the map + required switches/variables/etc.
 - Display wild Pokémon movesets on map pages [done], maybe also highlight Field Effect-changing moves where relevant (e.g. Noivern/Tailwind in Chrysolia Spring Sauna)
-- Info about how to change between forms (already done for Mega Evolutions)
-- Have a way to identify forms as "battle only" (so we don't show e.g. that Mega-Lucario eggs hatch into Mega-Lucario)
-- Make encounters page nicer (e.g. allow grouping by Pokémon, collapsing levels)
-- Formulate and test a build process
-- FIgure out how autotiles work and use that to improve the map pictures
-- Add panoramas to map pictures
 - Egg move parents
+- Info about how to change between forms (already done for Mega Evolutions)
+- Parse settings for rayquaza info, etc.
+- Add panoramas to map pictures
+- Have a way to identify forms as "battle only" (so we don't show e.g. that Mega-Lucario eggs hatch into Mega-Lucario)
+  - we do have that flag now but need to make some use of it
+- FIgure out how autotiles work and use that to improve the map pictures
+- Put event commands in the database
+- Find out what determines the order of trainers in the debug menu, since it seems to be different from the pbs_order
+- Formulate and test a build process
+- Rename reborn/script.py to multiple_forms_script.py or something
+- Make event encounter script able to parse more complex conditions (e.g. the egg gift in Rhodochrine Jungle)
+  - should be done, though it's quite likely there'll still be some stuff missing
+- Clear up all the tons of dead code in this project
+    - mostly done, maybe still a bit left that i'm indecisive about
+- We need a Ctrl+Fable extract of all event scripts (Event YEET script?)
+    - I found the game's event text dump functionality (accessible via debug) so this isn't really needed
 
 MAYBE:
 
 - Fix Pokémon with one regular ability / one Hidden Ability being displayed as if they have two regular abilities (though, seems like this is just how it is in the PBS files? I don't think the regular/hidden distinction actually has any relevance in Reborn anyway)
   - Yep, checked in-game, if you use an ability capsule on Raikou with Pressure you don't see the "(H)" after Inner Focus. So this is accurate, just an instance where Essentials/Reborn is slightly different (albeit not meaningfully different) from the official games
 - Figure out how Hidden Power works for trainer Pokémon. Is it really just random?
-- Make the ordering of evolution areas consistent, so it's not changing every time we do an unrelated change to the site
-    i think it is already?
 - OK, I think the time has come to start identifying which parts of the DB/site we need to regenerate rather than just regenerating everything with every change
+  - nah, it's ok for a while longer
 - The whole evolution requirements stuff should be redone. Sometimes EAV is what you need
+  - nah, think it's ok now
 - Shouldn't the Peridot Ward Joltik have Cross Poison as an egg move?
   - Nope, wiki is wrong here, there is an entry for it in PokemonEncounterModifiers, using 32 as the WildMod value, but WildMod actually never gets set to 32, so it doesn't happen. also verified with my save file, i got joltik through the event and no cross poison. devs probably forgot to set the WildMOd?

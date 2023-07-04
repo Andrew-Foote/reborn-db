@@ -1,9 +1,3 @@
-# To run this script:
-#   - Make sure the current working directory is the project root (the directory named `reborn-db`)
-#   - Use the command
-# 
-#       `env\Scripts\python -m pbs_extractors.items`
-
 # The `items.txt` CSV has 11 (EDIT: 10) columns:
 # - Column 1 contains a number for identifying the item.
 # - Column 2 contains the uppercase ID of the item.

@@ -1,3 +1,5 @@
+# dep of apsw_ext.py, can be deleted when that is deleted
+
 def placeholders_table(data):
 	rows = []
 

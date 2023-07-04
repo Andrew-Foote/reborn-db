@@ -1,9 +1,3 @@
-# To run this script:
-#   - Make sure the current working directory is the project root (the directory named `reborn-db`)
-#   - Use the command
-# 
-#       `env\Scripts\python -m pbs_extractors.metadata
-
 from parsers import marshal
 from reborndb import DB
 from reborndb import settings

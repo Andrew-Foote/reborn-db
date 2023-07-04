@@ -1,3 +1,5 @@
+# borrowed from someone on stackoverflow iirc...
+
 from collections.abc import Mapping, Iterable
 from dataclasses import is_dataclass, fields
 

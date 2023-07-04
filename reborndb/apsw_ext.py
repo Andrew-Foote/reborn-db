@@ -1,3 +1,8 @@
+# superseded by connection.py
+# i'm just keeping this around because of the bulk insert error binary searching stuff
+# which i might want to incorporate into connection.py at some point
+
+
 import apsw
 import base64
 from fractions import Fraction as frac
