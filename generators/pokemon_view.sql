@@ -28,6 +28,7 @@ with
         ,"form"."catch_rate"
         ,"form"."height"
         ,"form"."weight"
+        ,"form"."battle_only"
         ,case when "type2"."id" is null
             then json_array("type1"."name")
             else json_array("type1"."name", "type2"."name")
@@ -560,6 +561,7 @@ join (
             ,'order', "form"."order"
             ,'pokedex_entry', "form"."pokedex_entry"
             ,'catch_rate', "form"."catch_rate"
+            ,'battle_only', "form"."battle_only"
             ,'height_m', "form"."height" / 100.0
             ,'height_feet', cast(round("form"."height" * 0.3937 / 12) as int)
             ,'height_inches', cast(round(mod("form"."height" * 0.3937, 12)) as int)
