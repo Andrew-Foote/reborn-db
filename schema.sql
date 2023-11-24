@@ -12,97 +12,9 @@
 --   numeric ID too; we will still store that numeric ID as a unique column in case it proves
 --   useful.
 
--- Pokémon growth rates (these affect how a Pokémon's level is determined from its total EXP
--- gained).
-create table "growth_rate" (
-	"name" text primary key
-	,"pbs_name" text not null unique
-	,"order" integer not null unique
-	-- The formula is used for calculating the total EXP required to attain each level,
-	-- but only for levels greater than 100.
-	,"python_formula" text not null 
-	,"latex_formula" text not null
-) without rowid;
-
--- [A Pokémon with growth rate {growth_rate} requires exactly {exp} EXP in total (including all the
--- EXP required to attain previous levels) in order to reach level {level}.]
-create table "level_exp" (
-	"growth_rate" text
-	,"level" integer
-	,"exp" integer not null
-	,primary key ("growth_rate", "level")
-	,foreign key ("growth_rate") references "growth_rate" ("name")
-);
-
--- Unenforced constraint: a "level_exp" must exist for each "growth_rate" and each "level" from
--- 0--100.
-
--- Pokémon habitats (as recorded in the FireRed/LeafGreen Pokédex).
-create table "habitat" (
-	"name" text primary key
-	,"pbs_name" text not null unique
-	,"order" integer not null unique
-) without rowid;
-
--- Pokémon (non-form-specific data). Note that all Pokémon have at least one form (a Pokémon with
--- no form differences is one that has only one form).
-create table "pokemon" (
-	"id" text primary key
-	,"name" text not null unique
-	,"number" integer not null unique
-	,"category" text not null check ("category" != '')
-	,"base_exp" integer not null check ("base_exp" >= 0)
-	,"growth_rate" text not null
-	,"base_friendship" integer not null check ("base_friendship" >= 0 and "base_friendship" <= 255)
-	,"male_frequency" integer check ("male_frequency" >= 0 and "male_frequency" <= 1000) -- per 1000, NULL if genderless
-	,"hatch_steps" integer not null check ("hatch_steps" >= 0)
-	,"habitat" text
-	,"color" text not null
-	,"evolves_from" text -- The Pokémon it evolves from---there is always at most one such Pokémon.
-	,unique ("evolves_from", "id")
-	,foreign key ("growth_rate") references "growth_rate" ("name")
-	,foreign key ("habitat") references "habitat" ("name")
-	,foreign key ("evolves_from") references "pokemon" ("id")
-) without rowid;
-
--- Pokémon egg groups.
-create table "egg_group" (
-	"name" text primary key
-	,"pbs_name" text not null unique
-	,"order" integer not null unique
-) without rowid;
-
--- [{egg_group} is one of {pokemon}'s egg groups.]
-create table "pokemon_egg_group" (
-	"pokemon" text
-	,"egg_group" not null
-	,primary key ("pokemon", "egg_group")
-	,foreign key ("pokemon") references "pokemon" ("id")
-	,foreign key ("egg_group") references "egg_group" ("name")
-) without rowid;
-
-create index "pokemon_egg_group_idx_egg_group" on "pokemon_egg_group" ("egg_group");
-
--- [{evolution} is the stage {stage} evolution of the unevolved Pokémon {pokemon},
--- with {evolves_from} as the previous Pokémon in the evolution chain. (Note:
--- unevolved Pokémon are counted as the stage 0 evolutions of themselves.)]
-create view "pokemon_evolution_stage" ("pokemon", "evolution", "stage", "evolves_from") as
-with recursive "pokemon_evolution_stage" (
-	"pokemon", "evolution", "stage", "evolves_from"
-) as (
-	select "id", "id", 0, null from "pokemon" where "evolves_from" is null
-	union all
-	select
-		"pokemon"."id"
-		,"evolves_to"."id"
-		,"pokemon_evolution_stage"."stage" + 1
-		,"evolution"."id"
-	from "pokemon_evolution_stage"
-	join "pokemon" on "pokemon"."id" = "pokemon_evolution_stage"."pokemon"
-	join "pokemon" as "evolution" on "evolution"."id" = "pokemon_evolution_stage"."evolution"
-	join "pokemon" as "evolves_to" on "evolves_to"."evolves_from" = "evolution"."id"
-)
-select * from "pokemon_evolution_stage";
+-------------------
+-- POKÉMON TYPES --
+-------------------
 
 -- Move damage classes (physical, special, or status).
 create table "damage_class" (
@@ -161,6 +73,10 @@ select * from (
 )
 where "multiplier" != 1;
 
+-------------------
+-- POKÉMON MOVES --
+-------------------
+
 -- Move 'functions', which are just values that determine what additional effects a move has,
 -- besides the defaults determined by its other attrbutes (e.g. status effects, stat changes).
 -- Each move has exactly one function.
@@ -212,6 +128,10 @@ create table `move_flag_set` (
 	foreign key (`move`) references `move` (`id`),
 	foreign key (`flag`) references `move_flag` (`code`)
 ) without rowid;
+
+-----------
+-- ITEMS --
+-----------
 
 -- Bag pockets.
 create table `pocket` (
@@ -271,6 +191,102 @@ create table "machine_item" (
 	foreign key ("move") references "move" ("id")
 ) without rowid;
 
+----------------------------------
+-- POKÉMON AND THEIR ATTRIBUTES --
+----------------------------------
+
+-- Pokémon growth rates (these affect how a Pokémon's level is determined from its total EXP
+-- gained).
+create table "growth_rate" (
+	"name" text primary key
+	,"pbs_name" text not null unique
+	,"order" integer not null unique
+	-- The formula is used for calculating the total EXP required to attain each level,
+	-- but only for levels greater than 100.
+	,"python_formula" text not null 
+	,"latex_formula" text not null
+) without rowid;
+
+-- [A Pokémon with growth rate {growth_rate} requires exactly {exp} EXP in total (including all the
+-- EXP required to attain previous levels) in order to reach level {level}.]
+create table "level_exp" (
+	"growth_rate" text
+	,"level" integer
+	,"exp" integer not null
+	,primary key ("growth_rate", "level")
+	,foreign key ("growth_rate") references "growth_rate" ("name")
+);
+
+-- Unenforced constraint: a "level_exp" must exist for each "growth_rate" and each "level" from
+-- 0--100.
+
+-- Pokémon habitats (as recorded in the FireRed/LeafGreen Pokédex).
+create table "habitat" (
+	"name" text primary key
+	,"pbs_name" text not null unique
+	,"order" integer not null unique
+) without rowid;
+
+-- Pokémon (non-form-specific data). Note that all Pokémon have at least one form (a Pokémon with
+-- no form differences is one that has only one form).
+create table "pokemon" (
+	"id" text primary key
+	,"name" text not null unique
+	,"number" integer not null unique
+	,"category" text not null check ("category" != '')
+	,"base_exp" integer not null check ("base_exp" >= 0)
+	,"growth_rate" text not null
+	,"base_friendship" integer not null check ("base_friendship" >= 0 and "base_friendship" <= 255)
+	,"male_frequency" integer check ("male_frequency" >= 0 and "male_frequency" <= 1000) -- per 1000, NULL if genderless
+	,"hatch_steps" integer not null check ("hatch_steps" >= 0)
+	,"habitat" text
+	,"color" text not null
+	,"evolves_from" text -- The Pokémon it evolves from---there is always at most one such Pokémon.
+	,unique ("evolves_from", "id")
+	,foreign key ("growth_rate") references "growth_rate" ("name")
+	,foreign key ("habitat") references "habitat" ("name")
+	,foreign key ("evolves_from") references "pokemon" ("id")
+) without rowid;
+
+-- [{evolution} is the stage {stage} evolution of the unevolved Pokémon {pokemon},
+-- with {evolves_from} as the previous Pokémon in the evolution chain. (Note:
+-- unevolved Pokémon are counted as the stage 0 evolutions of themselves.)]
+create view "pokemon_evolution_stage" ("pokemon", "evolution", "stage", "evolves_from") as
+with recursive "pokemon_evolution_stage" (
+	"pokemon", "evolution", "stage", "evolves_from"
+) as (
+	select "id", "id", 0, null from "pokemon" where "evolves_from" is null
+	union all
+	select
+		"pokemon"."id"
+		,"evolves_to"."id"
+		,"pokemon_evolution_stage"."stage" + 1
+		,"evolution"."id"
+	from "pokemon_evolution_stage"
+	join "pokemon" on "pokemon"."id" = "pokemon_evolution_stage"."pokemon"
+	join "pokemon" as "evolution" on "evolution"."id" = "pokemon_evolution_stage"."evolution"
+	join "pokemon" as "evolves_to" on "evolves_to"."evolves_from" = "evolution"."id"
+)
+select * from "pokemon_evolution_stage";
+
+-- Pokémon egg groups.
+create table "egg_group" (
+	"name" text primary key
+	,"pbs_name" text not null unique
+	,"order" integer not null unique
+) without rowid;
+
+-- [{egg_group} is one of {pokemon}'s egg groups.]
+create table "pokemon_egg_group" (
+	"pokemon" text
+	,"egg_group" not null
+	,primary key ("pokemon", "egg_group")
+	,foreign key ("pokemon") references "pokemon" ("id")
+	,foreign key ("egg_group") references "egg_group" ("name")
+) without rowid;
+
+create index "pokemon_egg_group_idx_egg_group" on "pokemon_egg_group" ("egg_group");
+
 -- Pokémon forms.
 create table "pokemon_form" (
 	"pokemon" text,
@@ -319,9 +335,10 @@ create table "pokemon_sprite" (
 	foreign key ("gender") references "gender" ("name")
 );
 
--- Unenforced constraint: each form must have, at least, normal (non-shiny) sprites of front, back, icon1 and icon2
--- types.
--- Unenforced constraint: a sprite can only have non-null gender if the linked Pokémon is not genderless.
+-- Unenforced constraint: each form must have, at least, normal (non-shiny) sprites of front, 
+-- back, icon1 and icon2 types.
+-- Unenforced constraint: a sprite can only have non-null gender if the linked Pokémon is not 
+-- genderless.
 
 -- Pokémon type slots (first, second).
 create table "type_slot" ("index" integer primary key) without rowid;
@@ -510,7 +527,10 @@ left join "pokemon_move" as "evo_move" on (
 )
 where "evo_move"."move" is null;
 
--- Overworld maps.
+-----------------------------
+-- AREAS IN THE GAME WORLD --
+-----------------------------
+
 create table "map" (
 	"id" integer primary key,
 	"name" text not null, -- name from the MapInfos.rxdata file (appears to reflect in-game name)
@@ -567,6 +587,54 @@ create table "map_bgs" (
 	"pitch" integer not null,
 	foreign key ("map") references "map" ("id")
 );
+
+create table "field_effect" (
+	"name" text primary key
+	,"code" integer unique not null
+	,"backdrop" text unique not null
+) without rowid;
+
+create table "tileset_file" (
+	"name" text primary key,
+	"content" blob not null
+) without rowid;
+
+create table "panorama" (
+	"name" text primary key,
+	"image" blob not null
+) without rowid;
+
+create table "tileset" (
+	"name" text primary key,
+	"id" integer not null unique,
+	"file" text not null,
+	"panorama" text,
+	-- ignore panorama hue, fog settings, battleback settings
+	-- since these are the same for all tilesets in reborn
+	"passages" blob not null,
+	"priorities" blob not null,
+	"terrain_tags" blob not null,
+	foreign key ("file") references "tileset_file" ("name"),
+	foreign key ("panorama") references "panorama" ("name")
+) without rowid;
+
+create table "autotile" (
+	"name" text primary key,
+	"image" blob not null
+) without rowid;
+
+create table "tileset_autotile" (
+	"tileset" text,
+	"index" integer check ("index" >= 0 and "index" < 7),
+	"autotile" text,
+	primary key ("tileset", "index"),
+	foreign key ("tileset") references "tileset" ("name"),
+	foreign key ("autotile") references "autotile" ("name")
+) without rowid;
+
+-------------------------------
+-- POKÉMON EVOLUTION METHODS --
+-------------------------------
 
 -- Times of day (day, night or dusk---note that dusk is a sub-period of day).
 create table "time_of_day" (
@@ -848,6 +916,10 @@ from "pokemon_form" as "form";
 -- 	) as "em" on "em"."id" = "pem"."method"
 -- 	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
 
+--------------------------------------
+-- ATTRIBUTES OF INDIVIDUAL POKÉMON --
+--------------------------------------
+
 -- Pokémon natures.
 create table `nature` (
 	`increased_stat` text,
@@ -862,6 +934,10 @@ create table `nature` (
 
 -- Pokémon move slots (first, second, third, fourth).
 create table "move_slot" ("index" integer primary key) without rowid;
+
+----------------------
+-- POKÉMON TRAINERS --
+----------------------
 
 create table "trainer_type" (
 	"id" text primary key,
@@ -1288,52 +1364,12 @@ create view "battle_facility_set_ev" ("list", "set_index", "stat", "ev") as
 		and "bes"."stat" = "stat"."id"
 	where "bes"."stat" is null; 
 
-create table "field_effect" (
-	"name" text primary key
-	,"code" integer unique not null
-	,"backdrop" text unique not null
-) without rowid;
+------------
+-- EVENTS --
+------------
 
 create table "game_switch" ("id" integer primary key, "name" text not null);
 create table "game_variable" ("id" integer primary key, "name" text not null);
-
-create table "tileset_file" (
-	"name" text primary key,
-	"content" blob not null
-) without rowid;
-
-create table "panorama" (
-	"name" text primary key,
-	"image" blob not null
-) without rowid;
-
-create table "tileset" (
-	"name" text primary key,
-	"id" integer not null unique,
-	"file" text not null,
-	"panorama" text,
-	-- ignore panorama hue, fog settings, battleback settings
-	-- since these are the same for all tilesets in reborn
-	"passages" blob not null,
-	"priorities" blob not null,
-	"terrain_tags" blob not null,
-	foreign key ("file") references "tileset_file" ("name"),
-	foreign key ("panorama") references "panorama" ("name")
-) without rowid;
-
-create table "autotile" (
-	"name" text primary key,
-	"image" blob not null
-) without rowid;
-
-create table "tileset_autotile" (
-	"tileset" text,
-	"index" integer check ("index" >= 0 and "index" < 7),
-	"autotile" text,
-	primary key ("tileset", "index"),
-	foreign key ("tileset") references "tileset" ("name"),
-	foreign key ("autotile") references "autotile" ("name")
-) without rowid;
 
 create table "direction" ("name" text primary key, "code" integer not null unique) without rowid;
 insert into "direction" ("name", "code")
@@ -1387,6 +1423,10 @@ create table "common_event" (
 	foreign key ("trigger") references "common_event_trigger" ("name"),
 	foreign key ("switch") references "game_switch" ("id")
 );
+
+------------------------
+-- POKÉMON ENCOUNTERS --
+------------------------
 
 -- The three types of terrain on a map, which are distinguished with respect to encounter rates
 -- (grass, cave and water).
