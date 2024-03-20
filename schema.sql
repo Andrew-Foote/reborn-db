@@ -481,7 +481,9 @@ create table "machine_move" (
 
 create index "machine_move_idx_move" on "machine_move" ("move");
 
--- Moves learnable from Move Tutors.
+-- Moves learnable from Move Tutors. (As listed in the tm.txt PBS file. This includes some moves 
+-- for which there isn't actually an existing move tutor NPC in-game, so that they are effectively 
+-- not learnable.)
 create table "tutor_move" (
 	"pokemon" text,
 	"form" text,
@@ -492,6 +494,12 @@ create table "tutor_move" (
 ) without rowid;
 
 create index "tutor_move_idx_move" on "tutor_move" ("move");
+
+-- Moves for which there is an actually existing move tutor NPC in the game.
+create table "tutorable_move" (
+	"move" text,
+	primary key ("move")
+) without rowid;
 
 create table "move_learn_method" (
 	"name" text primary key,

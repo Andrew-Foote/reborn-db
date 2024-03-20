@@ -313,6 +313,7 @@ with
             select "tutor_move"."pokemon", "tutor_move"."form", "move"."id", "move"."name"
             from "tutor_move"
             join "move" on "move"."id" = "tutor_move"."move"
+            join "tutorable_move" as "tutmove" on "tutmove"."move" = "move"."id"
             order by "tutor_move"."pokemon", "tutor_move"."form", "move"."name"
         ) as "tutor_move"
         group by "tutor_move"."pokemon", "tutor_move"."form"

@@ -50,11 +50,14 @@ select "move"."id", json_object(
 	  		"tutor_move"."pokemon" = "pokemon"."id" and "tutor_move"."form" = "form"."name"
 	  		and "tutor_move"."move" = "move"."id"
 	  	)
+		left join "tutorable_move" on (
+			"tutorable_move"."move" = "move"."id"
+		)
 	  	where (
 	  		"level_move"."move" is not null
 	  		or "egg_move"."move" is not null
 	  		or "machine_move"."move" is not null
-	  		or "tutor_move"."move" is not null
+	  		or ("tutor_move"."move" is not null and "tutorable_move"."move" is not null)
 	  	)
 		  order by "pokemon"."number", "form"."order"
 	  ) as "learner"
