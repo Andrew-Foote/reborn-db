@@ -98,176 +98,185 @@ create table "event_page_character" (
 
 -- Too many command types, resorting to EAV schema
 
--- create table "parameter_type" ("name" text primary key) without rowid;
--- insert into "parameter_type" ("name")
--- values
--- ('integer'),
--- ('real'),
--- ('text'),
--- ('game_switch'),
--- ('game_variable'),
--- ('direction'),
--- ('audio');
+create table "parameter_type" ("name" text primary key) without rowid;
+insert into "parameter_type" ("name")
+values
+('integer'),
+('real'),
+('text'),
+('array[text]'),
+('game_switch'),
+('game_variable'),
+('direction'),
+('cancel_type'),
+('audio');
 
--- ---------------------------------------------------------------------------------------------------
--- -- Move commands
--- ---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- Move commands
+---------------------------------------------------------------------------------------------------
 
--- create table "move_command_type" ("name" text primary key, "code" integer not null unique);
+create table "move_command_type" ("name" text primary key, "code" integer not null unique);
 
--- insert into "move_command_type" ("name", "code")
--- values
--- ('blank', 0), ('move down', 1), ('move left', 2), ('move right', 3), ('move up', 4),
--- ('move lower left', 5), ('move lower right', 6), ('move upper left', 7), ('move upper right', 8),
--- ('move at random', 9), ('move towards player', 10), ('move away from player', 11),
--- ('step forward', 12), ('step backward', 13), ('jump', 14), ('wait', 15),
--- ('turn down', 16), ('turn left', 17), ('turn right', 18), ('turn up', 19),
--- ('turn 90° right', 20), ('turn 90° left', 21), ('turn 180°', 22), ('turn 90° right or left', 23),
--- ('turn at random', 24), ('turn towards player', 25), ('turn away from player', 26),
--- ('turn switch on', 27), ('turn switch off', 28), ('change speed', 29), ('change frequency', 30),
--- ('turn move animation on', 31), ('turn move animation off', 32),
--- ('turn stop animation on', 33), ('turn stop animation off', 34),
--- ('fix direction', 35), ('unfix direction', 36),
--- ('allow movement through obstacles', 37), ('prevent movement through obstacles', 38),
--- ('turn always on top on', 39), ('turn always on top off', 40),
--- ('change graphic', 41), ('change opacity', 42), ('change blend type', 43),
--- ('play sound effect', 44), ('run script', 45);
+insert into "move_command_type" ("name", "code")
+values
+('blank', 0), ('move down', 1), ('move left', 2), ('move right', 3), ('move up', 4),
+('move lower left', 5), ('move lower right', 6), ('move upper left', 7), ('move upper right', 8),
+('move at random', 9), ('move towards player', 10), ('move away from player', 11),
+('step forward', 12), ('step backward', 13), ('jump', 14), ('wait', 15),
+('turn down', 16), ('turn left', 17), ('turn right', 18), ('turn up', 19),
+('turn 90° right', 20), ('turn 90° left', 21), ('turn 180°', 22), ('turn 90° right or left', 23),
+('turn at random', 24), ('turn towards player', 25), ('turn away from player', 26),
+('turn switch on', 27), ('turn switch off', 28), ('change speed', 29), ('change frequency', 30),
+('turn move animation on', 31), ('turn move animation off', 32),
+('turn stop animation on', 33), ('turn stop animation off', 34),
+('fix direction', 35), ('unfix direction', 36),
+('allow movement through obstacles', 37), ('prevent movement through obstacles', 38),
+('turn always on top on', 39), ('turn always on top off', 40),
+('change graphic', 41), ('change opacity', 42), ('change blend type', 43),
+('play sound effect', 44), ('run script', 45);
 
--- create table "move_command_parameter" (
--- 	"command_type" text,
--- 	"name" text,
--- 	"type" text not null,
--- 	primary key ("command_type", "name"),
--- 	foreign key ("command_type") references "move_command_type" ("name"),
--- 	foreign key ("type") references "parameter_type" ("name")
--- ) without rowid;
+create table "move_command_parameter" (
+	"command_type" text,
+	"name" text,
+	"type" text not null,
+	primary key ("command_type", "name"),
+	foreign key ("command_type") references "move_command_type" ("name"),
+	foreign key ("type") references "parameter_type" ("name")
+) without rowid;
 
--- insert into "move_command_parameter" ("command_type", "name", "type")
--- values
--- ('jump', 'x', 'integer'),
--- ('jump', 'y', 'integer'),
--- ('wait', 'count', 'integer'),
--- ('turn switch on', 'switch', 'switch'),
--- ('turn switch off', 'switch', 'switch'),
--- ('change speed', 'speed', 'integer'),
--- ('change frequency', 'frequency', 'integer'),
--- ('change graphic', 'character_name', 'string'),
--- ('change graphic', 'character_hue', 'integer'),
--- ('change graphic', 'direction', 'direction'),
--- ('change graphic', 'pattern', 'integer'),
--- ('change opacity', 'opacity', 'integer'),
--- ('change blend type', 'blend_type', 'integer'),
--- ('play sound effect', 'audio', 'audio'),
--- ('run script', 'line', 'string');
+insert into "move_command_parameter" ("command_type", "name", "type")
+values
+('jump', 'x', 'integer'),
+('jump', 'y', 'integer'),
+('wait', 'count', 'integer'),
+('turn switch on', 'switch', 'game_switch'),
+('turn switch off', 'switch', 'game_switch'),
+('change speed', 'speed', 'integer'),
+('change frequency', 'frequency', 'integer'),
+('change graphic', 'character_name', 'text'),
+('change graphic', 'character_hue', 'integer'),
+('change graphic', 'direction', 'direction'),
+('change graphic', 'pattern', 'integer'),
+('change opacity', 'opacity', 'integer'),
+('change blend type', 'blend_type', 'integer'),
+('play sound effect', 'audio', 'audio'),
+('run script', 'line', 'text');
 
--- create table "move_command_argument" (
--- 	"command" integer,
--- 	"command_type" text
--- 	"parameter" text,
--- 	"type" text not null,
--- 	"value",
--- 	primary key ("command", "command_type", "parameter"),
--- 	foreign key ("command", "command_type") references "move_command" ("id", "type"),
--- 	foreign key ("command_type", "parameter") references "move_command_parameter" ("command_type", "name")
--- ) without rowid;
+create table "move_command" (
+	"id" integer primary key,
+	"type" text not null,
+	foreign key ("type") references "move_command_type" ("name")
+);
 
--- create table "move_command" (
--- 	"id" integer primary key,
--- 	"type" text not null,
--- 	foreign key ("type") references "move_command_type" ("name")
--- );
+create table "move_command_argument" (
+	"command" integer,
+	"command_type" text
+	"parameter" text,
+	"type" text not null,
+	"value",
+	primary key ("command", "command_type", "parameter"),
+	foreign key ("command", "command_type") references "move_command" ("id", "type"),
+	foreign key ("command_type", "parameter") references "move_command_parameter" ("command_type", "name")
+) without rowid;
 
--- create table "event_page_move_command" (
--- 	"map_id" integer,
--- 	"event_id" integer,
--- 	"page_number" integer,
--- 	"command_number" integer,	
--- 	"command" integer not null,
--- 	primary key ("map_id", "event_id", "page_number", "command_number"),
--- 	foreign key ("map_id", "event_id", "page_number") references "event_page" ("map_id", "event_id", "page_number"),
--- 	foreign key ("command") references "move_command" ("id")
--- ) without rowid;
+create table "event_page_move_command" (
+	"map_id" integer,
+	"event_id" integer,
+	"page_number" integer,
+	"command_number" integer,	
+	"command" integer not null,
+	primary key ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("map_id", "event_id", "page_number") references "event_page" ("map_id", "event_id", "page_number"),
+	foreign key ("command") references "move_command" ("id")
+) without rowid;
 
--- ---------------------------------------------------------------------------------------------------
--- -- Event commands
--- ---------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- Event commands
+---------------------------------------------------------------------------------------------------
 
--- create table "event_command_type" ("name" text primary key, "code" integer not null unique);
+create table "event_command_type" ("name" text primary key, "code" integer not null unique);
 
--- insert into "event_command_type" ("name", "code")
--- values
--- ('blank', 0), ('show text', 101), ('show choices', 102), ('input number', 103),
--- ('change text options', 104), 
+insert into "event_command_type" ("name", "code")
+values
+('blank', 0), ('show text', 101), ('show choices', 102), ('input number', 103),
+('change text options', 104), 
+('get input from button press', 105),
+('wait', 106),
+('comment', 108),
+('conditional branch', 111),
 
+('move down', 1), ('move left', 2), ('move right', 3), ('move up', 4),
+('move lower left', 5), ('move lower right', 6), ('move upper left', 7), ('move upper right', 8),
+('move at random', 9), ('move towards player', 10), ('move away from player', 11),
+('step forward', 12), ('step backward', 13), ('jump', 14), ('wait', 15),
+('turn down', 16), ('turn left', 17), ('turn right', 18), ('turn up', 19),
+('turn 90° right', 20), ('turn 90° left', 21), ('turn 180°', 22), ('turn 90° right or left', 23),
+('turn at random', 24), ('turn towards player', 25), ('turn away from player', 26),
+('turn switch on', 27), ('turn switch off', 28), ('change speed', 29), ('change frequency', 30),
+('turn move animation on', 31), ('turn move animation off', 32),
+('turn stop animation on', 33), ('turn stop animation off', 34),
+('fix direction', 35), ('unfix direction', 36),
+('allow movement through obstacles', 37), ('prevent movement through obstacles', 38),
+('turn always on top on', 39), ('turn always on top off', 40),
+('change graphic', 41), ('change opacity', 42), ('change blend type', 43),
+('play sound effect', 44), ('run script', 45);
 
--- ('move down', 1), ('move left', 2), ('move right', 3), ('move up', 4),
--- ('move lower left', 5), ('move lower right', 6), ('move upper left', 7), ('move upper right', 8),
--- ('move at random', 9), ('move towards player', 10), ('move away from player', 11),
--- ('step forward', 12), ('step backward', 13), ('jump', 14), ('wait', 15),
--- ('turn down', 16), ('turn left', 17), ('turn right', 18), ('turn up', 19),
--- ('turn 90° right', 20), ('turn 90° left', 21), ('turn 180°', 22), ('turn 90° right or left', 23),
--- ('turn at random', 24), ('turn towards player', 25), ('turn away from player', 26),
--- ('turn switch on', 27), ('turn switch off', 28), ('change speed', 29), ('change frequency', 30),
--- ('turn move animation on', 31), ('turn move animation off', 32),
--- ('turn stop animation on', 33), ('turn stop animation off', 34),
--- ('fix direction', 35), ('unfix direction', 36),
--- ('allow movement through obstacles', 37), ('prevent movement through obstacles', 38),
--- ('turn always on top on', 39), ('turn always on top off', 40),
--- ('change graphic', 41), ('change opacity', 42), ('change blend type', 43),
--- ('play sound effect', 44), ('run script', 45);
+create table "event_command_parameter" (
+	"command_type" text,
+	"name" text,
+	"type" text not null,
+	primary key ("command_type", "name"),
+	foreign key ("command_type") references "event_command_type" ("name"),
+	foreign key ("type") references "parameter_type" ("name")
+) without rowid;
 
--- create table "event_command_parameter" (
--- 	"command_type" text,
--- 	"name" text,
--- 	"type" text not null,
--- 	primary key ("command_type", "name"),
--- 	foreign key ("command_type") references "event_command_type" ("name"),
--- 	foreign key ("type") references "parameter_type" ("name")
--- ) without rowid;
+insert into "event_command_parameter" ("command_type", "name", "type")
+values
+('show text', 'text', 'string'),
+('show choices', 'choices', 'array[string]'),
+('show choices', 'cancel_type', 'cancel_type'),
 
--- insert into "event_command_parameter" ("command_type", "name", "type")
--- values
--- ('jump', 'x', 'integer'),
--- ('jump', 'y', 'integer'),
--- ('wait', 'count', 'integer'),
--- ('turn switch on', 'switch', 'switch'),
--- ('turn switch off', 'switch', 'switch'),
--- ('change speed', 'speed', 'integer'),
--- ('change frequency', 'frequency', 'integer'),
--- ('change graphic', 'character_name', 'string'),
--- ('change graphic', 'character_hue', 'integer'),
--- ('change graphic', 'direction', 'direction'),
--- ('change graphic', 'pattern', 'integer'),
--- ('change opacity', 'opacity', 'integer'),
--- ('change blend type', 'blend_type', 'integer'),
--- ('play sound effect', 'audio', 'audio'),
--- ('run script', 'line', 'string');
+('jump', 'x', 'integer'),
+('jump', 'y', 'integer'),
+('wait', 'count', 'integer'),
+('turn switch on', 'switch', 'switch'),
+('turn switch off', 'switch', 'switch'),
+('change speed', 'speed', 'integer'),
+('change frequency', 'frequency', 'integer'),
+('change graphic', 'character_name', 'string'),
+('change graphic', 'character_hue', 'integer'),
+('change graphic', 'direction', 'direction'),
+('change graphic', 'pattern', 'integer'),
+('change opacity', 'opacity', 'integer'),
+('change blend type', 'blend_type', 'integer'),
+('play sound effect', 'audio', 'audio'),
+('run script', 'line', 'string');
 
--- create table "event_command_argument" (
--- 	"command" integer,
--- 	"command_type" text
--- 	"parameter" text,
--- 	"type" text not null,
--- 	"value",
--- 	primary key ("command", "command_type", "parameter"),
--- 	foreign key ("command", "command_type") references "event_command" ("id", "type"),
--- 	foreign key ("command_type", "parameter") references "event_command_parameter" ("command_type", "name")
--- ) without rowid;
+create table "event_command_argument" (
+	"command" integer,
+	"command_type" text
+	"parameter" text,
+	"type" text not null,
+	"value",
+	primary key ("command", "command_type", "parameter"),
+	foreign key ("command", "command_type") references "event_command" ("id", "type"),
+	foreign key ("command_type", "parameter") references "event_command_parameter" ("command_type", "name")
+) without rowid;
 
--- create table "event_command" (
--- 	"id" integer primary key,
--- 	"type" text not null,
--- 	foreign key ("type") references "event_command_type" ("name")
--- );
+create table "event_command" (
+	"id" integer primary key,
+	"type" text not null,
+	foreign key ("type") references "event_command_type" ("name")
+);
 
--- create table "event_page_command" (
--- 	"map_id" integer,
--- 	"event_id" integer,
--- 	"page_number" integer,
--- 	"command_number" integer,
--- 	"indent" integer,
--- 	"command" integer not null,
--- 	primary key ("map_id", "event_id", "page_number", "command_number"),
--- 	foreign key ("map_id", "event_id", "page_number") references "event_page" ("map_id", "event_id", "page_number"),
--- 	foreign key ("command") references "event_command" ("id")
--- ) without rowid;
+create table "event_page_command" (
+	"map_id" integer,
+	"event_id" integer,
+	"page_number" integer,
+	"command_number" integer,
+	"indent" integer,
+	"command" integer not null,
+	primary key ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("map_id", "event_id", "page_number") references "event_page" ("map_id", "event_id", "page_number"),
+	foreign key ("command") references "event_command" ("id")
+) without rowid;

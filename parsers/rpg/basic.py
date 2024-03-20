@@ -186,7 +186,7 @@ class Table:
                 f'Table object at ref {ref} has {dimcount} dimensions, expected '
                 f'{expected_dimcount}'
             )
-
+ 
         # Next come three more 32-bit signed integers giving the size of each dimension, in number
         # of tiles. Order is width, height, depth. If the number of dimensions is less than 3 then
         # the remaining dimensions will be 1.
