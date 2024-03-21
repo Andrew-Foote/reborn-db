@@ -440,7 +440,7 @@ MAP_SETTING_TYPES = {
 def make_changemapsettings_getter(params_with_lookups):
     @classmethod
     def get(cls, graph, ref, *arg_refs, **inst_vars):
-        param_count = len(params_with_lookups)
+        param_count = len(params_withgi_lookups)
         arg_count = len(arg_refs)
         
         if param_count != arg_count:

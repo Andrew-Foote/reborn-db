@@ -204,6 +204,8 @@ values
 ('wait', 106),
 ('comment', 108),
 ('conditional branch', 111),
+('loop', 112),
+('break loop', 113),
 
 ('move down', 1), ('move left', 2), ('move right', 3), ('move up', 4),
 ('move lower left', 5), ('move lower right', 6), ('move upper left', 7), ('move upper right', 8),
