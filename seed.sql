@@ -670,7 +670,7 @@ values
 ('Special', 1),
 ('Status', 2);
 
-insert into `move_function` (`code`, `desc`)
+insert into "move_function" ("code", "desc")
 values
 ('000', 'No additional effect.'),
 ('001', 'Does absolutely nothing.'),
@@ -1049,7 +1049,7 @@ values
 ('187', 'Life Dew'),
 ('188', 'Obstruct');
 
-insert into `move_target` (`code`, `desc`)
+insert into "move_target" ("code", "desc")
 values
 ('00', 'Single target'),
 ('01', 'No target'),
@@ -1065,7 +1065,7 @@ values
 ('400', 'Single opponent'),
 ('800', 'Single opponent directly opposite user');
 
-insert into `move_flag` (`code`, `desc`)
+insert into "move_flag" ("code", "desc")
 values
 ('a', 'Makes physical contact'),
 ('b', 'Can be protected against by Protect/Detect'),
@@ -1093,7 +1093,7 @@ values
 ('Battle Items', 7),
 ('Key Items', 8);
 
-insert into `item_out_battle_usability` (`name`, `code`, `desc`)
+insert into "item_out_battle_usability" ("name", "code", "desc")
 values
 ('None', 0, 'Cannot be used outside of battle.'),
 ('PokemonOnce', 1, 'Can be used outside of battle on a Pokémon in the party. Is consumed on use.'),
@@ -1102,7 +1102,7 @@ values
 ('HM', 4, 'Can be used outside of battle to teache a move to a Pokémon in the party. Is not consumed on use.'),
 ('PokemonReusable', 5, 'Can be used outside of battle on a Pokémon in the party. Is not consumed on use.');
 
-insert into `item_in_battle_usability` (`name`, `code`, `desc`)
+insert into "item_in_battle_usability" ("name", "code", "desc")
 values
 ('None', 0, 'Cannot be used in battle.'),
 ('PokemonOnce', 1, 'Can be used in battle on a Pokémon in the party. Is consumed on use.'),
@@ -1110,7 +1110,7 @@ values
 ('PokemonReusable', 3, 'Can be used in battle on a Pokémon in the party. Is not consumed on use.'),
 ('DirectReusable', 4, 'Can be used in battle. Is used directly, without requiring the user to select a Pokémon in the party. Is not consumed on use.');
 
-insert into `item_type` (`name`, `code`)
+insert into "item_type" ("name", "code")
 values
 ('Other', 0),
 ('Mail', 1),
@@ -1179,13 +1179,13 @@ values
 ('HeavyRain', 'heavy rain',2),
 ('Blizzard', 'a blizzard', 6);
 
-insert into `evolution_base_method` (`name`)
+insert into "evolution_base_method" ("name")
 values
 ('level'),
 ('item'),
 ('trade');
 
-insert into `evolution_requirement_kind` (`name`)
+insert into "evolution_requirement_kind" ("name")
 values
 ('level'),
 ('item'),
@@ -1211,7 +1211,7 @@ values
 ('Cave', 1),
 ('Water', 2);
 
-insert into `encounter_method` (`name`, `order`, `desc`)
+insert into "encounter_method" ("name", "order", "desc")
 values
 ('Land', 0, 'Grass'),
 ('LandMorning', 1, 'Grass (morning)'),
@@ -1304,86 +1304,3 @@ values
 ,(35, 'New World', 'NewWorld')
 ,(36, 'Inverse Field', 'Inverse')
 ,(37, 'Psychic Terrain', 'Psychic');
-
--- Copy the spreadsheet at
--- https://docs.google.com/spreadsheets/d/1ZaS7Vs-CWfFojVxeii8D7S4GbZWlwcNspb7zQkqMmUk/edit#gid=0
--- for now; eventually we will derive the list from the map data
-insert into "tutorable_move" ("move")
-values
-('MAGICCOAT'),
-('MAGICROOM'),
-('WONDERROOM'),
-('TELEKINESIS'),
-('IRONDEFENSE'),
-('SNORE'),
-('BIND'),
-('SPITE'),
-('SNATCH'),
-('HELPINGHAND'),
-('ALLYSWITCH'),
-('AFTERYOU'),
-('GRAVITY'),
-('MAGNETRISE'),
-('BLOCK'),
-('WORRYSEED'),
-('GIGADRAIN'),
-('WATERPLEDGE'),
-('FIREPLEDGE'),
-('GRASSPLEDGE'),
-('GASTROACID'),
-('RECYCLE'),
-('ENDEAVOUR'),
-('PAINSPLIT'),
-('VOLTTACKLE'),
-('ROLEPLAY'),
-('COVET'),
-('ELECTROWEB'),
-('SKYATTACK'),
-('TRICK'),
-('DEFOG'),
-('LASERFOCUS'),
-('SKILLSWAP'),
-('WATERPULSE'),
-('LASTRESORT'),
-('SUPERFANG'),
-('SHOCKWAVE'),
-('HEADBUTT'),
-('BOUNCE'),
-('HEALBELL'),
-('BUGBITE'),
-('DUALCHOP'),
-('THUNDERPUNCH'),
-('FIREPUNCH'),
-('ICEPUNCH'),
-('UPROAR'),
-('HYPERVOICE'),
-('STOMPINGTANTRUM'),
-('LOWKICK'),
-('IRONTAIL'),
-('FOCUSPUNCH'),
-('DRILLRUN'),
-('SYNTHESIS'),
-('KNOCKOFF'),
-('IRONHEAD'),
-('LIQUIDATION'),
-('AQUATAIL'),
-('ICYWIND'),
-('SIGNALBEAM'),
-('THROATCHOP'),
-('DRAINPUNCH'),
-('TAILWIND'),
-('ZENHEADBUTT'),
-('STEALTHROCK'),
-('GUNKSHOT'),
-('DRAGONPULSE'),
-('SEEDBOMB'),
-('FOULPLAY'),
-('SUPERPOWER'),
-('EARTHPOWER'),
-('OUTRAGE'),
-('HEATWAVE'),
-('HYDROCANNON'),
-('BLASTBURN'),
-('FRENZYPLANT'),
-('DRACOMETEOR'),
-('CELEBRATE');

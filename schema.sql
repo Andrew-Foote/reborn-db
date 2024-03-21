@@ -498,7 +498,8 @@ create index "tutor_move_idx_move" on "tutor_move" ("move");
 -- Moves for which there is an actually existing move tutor NPC in the game.
 create table "tutorable_move" (
 	"move" text,
-	primary key ("move")
+	primary key ("move"),
+	foreign key ("move") references "move" ("id")	
 ) without rowid;
 
 create table "move_learn_method" (
