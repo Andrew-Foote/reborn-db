@@ -118,6 +118,7 @@ def extract():
         tile_rows = []
         character_rows = []
         move_route_rows = []
+        move_command_rows = []
 
         for map_id, mapdata in chonk:
             print(f'map {map_id}')
@@ -168,6 +169,14 @@ def extract():
                             page.graphic.opacity, page.graphic.blend_type
                         ))
 
+                    for i, cmd in enumerate(page.move_route.list_):
+                        cmd_type = CMD_TYPES[cmd.code]
+                        args = cmd.parameters
+
+                        move_route_rows.append((
+                            *page_id, i, cmd_id, (cmd_type, params)
+                        ))
+
             save_map_tiles(map_id, mapdata, tilesets)
 
         with DB.H.transaction(foreign_keys_enabled=False):
@@ -189,6 +198,12 @@ def extract():
             DB.H.bulk_insert('event_page_self_switch_condition', (*page_id_cols, 'switch'), self_switch_rows)
             DB.H.bulk_insert('event_page_tile', (*page_id_cols, 'tile'), tile_rows)
             DB.H.bulk_insert('event_page_character', (*page_id_cols, 'character_name', 'character_hue', 'direction', 'pattern', 'opacity', 'blend_type'), character_rows)
+            
+            DB.H.bulk_insert(
+                'event_page_move_command',
+                (*page_id_cols, 'command_number', 'command'),
+                move_route_rows
+            )
 
     with DB.H.transaction():
         DB.H.dump_as_table( 'marshal_mapdata', ('map_id', 'tileset', 'width', 'height', 'data',
