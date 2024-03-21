@@ -1,38 +1,48 @@
 from contextlib import contextmanager
+from pathlib import Path
+from typing import Callable, Iterator
 import apsw
 
+Collation = Callable[[str, str], int]
+
 class Connection:
-    def __init__(self, db_path):
+    def __init__(self, db_path: Path) -> None:
         self.apsw = apsw.Connection(str(db_path))
         self.exec('pragma foreign_keys = 1')
         
         # i don't remember why i commented this out#
-#    def close(self):
-#        self.analyze()
-#        self.apsw.close()
+    def close(self, analysis_limit: int) -> None:
+       self.analyze(analysis_limit)
+       self.apsw.close()
 
-    def register_function(self, name, argcount, deterministic):
-        def decorator(callback):
-            self.apsw.createscalarfunction(name, callback, argcount, deterministic=deterministic)
+    def register_function(
+        self, name: str, argcount: int, deterministic: bool
+    ) -> Callable[[apsw.ScalarProtocol], apsw.ScalarProtocol]:
+    
+        def decorator(callback: apsw.ScalarProtocol) -> apsw.ScalarProtocol:
+            self.apsw.create_scalar_function(name, callback, argcount, deterministic=deterministic)
             return callback
 
         return decorator
 
-    def register_aggregate(self, name, argcount=-1):
-        def decorator(callback):
-            self.apsw.createaggregatefunction(name, callback, argcount)
+    def register_aggregate(
+        self, name: str, argcount: int=-1
+    ) -> Callable[[apsw.AggregateFactory], apsw.AggregateFactory]:
+        
+        def decorator(callback: apsw.AggregateFactory) -> apsw.AggregateFactory:
+            self.apsw.create_aggregate_function(name, callback, argcount)
+            return callback
+
+        return decorator
+    
+    def register_collation(self, name: str) -> Callable[[Collation], Collation]:
+        def decorator(callback: Collation) -> Collation:
+            self.apsw.create_collation(name, callback)
             return callback
 
         return decorator
 
-    def register_collation(self, name):
-        def decorator(callback):
-            self.apsw.createcollation(name, callback)
-            return callback
-
-        return decorator
-
-    def exec(self, query, params=None):
+    def exec(self, query: str, params: apsw.Bindings | None=None) -> apsw.Cursor:
         """Execute an SQL query on the database using a fresh cursor.
 
         As far as I can tell, there is no appreciable performance benefit to reusing cursors
@@ -40,29 +50,29 @@ class Connection:
         exist."""
         return self.apsw.cursor().execute(query, params)
 
-    def execscript(self, path, params=None):
+    def execscript(self, path: Path, params: apsw.Bindings | None=None) -> apsw.Cursor:
         with open(path, encoding='utf-8') as f:
             return self.exec(f.read(), params)
 
-    def exec1(self, query, params=None):
+    def exec1(self, query: str, params: apsw.Bindings | None=None) -> Iterator[apsw.SQLiteValue]:
         """Execute an SQL query that returns rows with one column each, and return an iterator over
         the column values.
         
         Raises an error if a row has more than one column, when that row is encountered."""
         for val, in self.exec(query, params): yield val
 
-    def exec11(self, query, params=None):
+    def exec11(self, query: str, params: apsw.Bindings | None=None) -> apsw.SQLiteValue:
         """Execute an SQL query that returns a single row with a single column, and return the
         value in the row. If no matching row can be found then None is returned."""
         
         for val, in self.exec(query, params): return val
 
-    def analyze(self, limit):
+    def analyze(self, limit: int) -> None:
         self.exec(f'pragma analysis_limit = {limit}')
         self.exec('pragma optimize')
 
     @contextmanager
-    def transaction(self, *, foreign_keys_enabled=None):
+    def transaction(self, *, foreign_keys_enabled: bool | None=None) -> Iterator[None]:
         """Return a context manager that will begin a transaction on entry and end it on exit.
         
         If the user wants to temporarily disable foreign keys for the duration of the transaction
@@ -83,10 +93,14 @@ class Connection:
         with self.apsw:
             yield None
 
-        if foreign_keys_enabled is not None and foreign_keys_already_enabled != foreign_keys_enabled:
+        if (
+            foreign_keys_enabled is not None
+            and foreign_keys_already_enabled is not None
+            and foreign_keys_already_enabled != foreign_keys_enabled
+        ):
             self.exec(f'pragma foreign_keys = {int(foreign_keys_already_enabled)}')
 
-    def dropall(self, exceptions=()):
+    def dropall(self, exceptions: tuple[str, ...]=()) -> None:
         """Drop all tables and views, resetting the database to an empty state. (Indexes and
         triggers will automatically be deleted when their parent tables are deleted.)
         
@@ -119,10 +133,18 @@ class Connection:
             # No need to delete indexes and triggers separately; they get deleted along with their
             # parent tables.
 
-    def quote(self, name):
+    def quote(self, name: str) -> str:
         return f'"{name}"'
 
-    def bulk_insert(self, table, columns, data, *, debug=False):
+    def bulk_insert(
+        self,
+        table: str,
+        columns: tuple[str, ...] | None,
+        data: tuple[tuple[str, ...], ...],
+        *,
+        debug: bool=False
+    ) -> None:
+        
         """Do a bulk insert into a table of data given in a simple row-by-row format.
 
         This method will execute one query per row, so make sure to call it within a transaction to
@@ -141,7 +163,13 @@ class Connection:
             if debug: print(query, row)
             self.exec(query, row)
 
-    def dump_as_table(self, name, columns, data):
+    def dump_as_table(
+        self,
+        name: str,
+        columns: tuple[str, ...] | None,
+        data: tuple[tuple[str, ...], ...]
+    ) -> None:
+        
         if columns is None:
             numcols = len(data[0])
             columns = tuple(f'col{i}' for i in range(numcols))

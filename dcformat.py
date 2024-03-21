@@ -1,16 +1,18 @@
+from typing import Any
+
 # borrowed from someone on stackoverflow iirc...
 
 from collections.abc import Mapping, Iterable
 from dataclasses import is_dataclass, fields
 
-def pretty_print(obj, indent=4):
+def pretty_print(obj: object, indent: int=4) -> None:
     """
     Pretty prints a (possibly deeply-nested) dataclass.
     Each new block will be indented by `indent` spaces (default is 4).
     """
     print(stringify(obj, indent))
 
-def stringify(obj, indent=4, _indents=0, parent_ids=()):
+def stringify(obj: object, indent: int=4, _indents: int=0, parent_ids: tuple[int, ...]=()) -> str:
     if (
         isinstance(obj, (str, bytes))
         or (
@@ -22,8 +24,8 @@ def stringify(obj, indent=4, _indents=0, parent_ids=()):
 
     obj_id = id(obj)
 
-    #if obj_id in parent_ids:
-        #return f'<cycle to {obj_id}>'
+    if obj_id in parent_ids:
+        return f'<cycle to {obj_id}>'
 
     parent_ids = (*parent_ids, obj_id)        
 
@@ -39,16 +41,20 @@ def stringify(obj, indent=4, _indents=0, parent_ids=()):
 
     elif isinstance(obj, Mapping):
         if isinstance(obj, dict):
-            start, end = '{}'
+            start = '{'
+            end = '}'
 
         body = '\n'.join(
             f'{next_indent}{stringify(key, indent, _indents + 1, parent_ids)}: '
             f'{stringify(value, indent, _indents + 1, parent_ids)},' for key, value in obj.items()
         )
 
-    else:  # is Iterable
+    else:
+        assert isinstance(obj, Iterable)
+
         if isinstance(obj, list):
-            start, end = '[]'
+            start = '['
+            end = ']'
         elif isinstance(obj, tuple):
             start = '('
 
