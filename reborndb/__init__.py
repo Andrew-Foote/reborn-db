@@ -1,8 +1,11 @@
+
+from __future__ import annotations
 import atexit
 import base64
 from fractions import Fraction as frac
 import json
 from pathlib import Path
+from typing import Callable, TypedDict
 import apsw
 from reborndb.connection import Connection
 from reborndb import settings
@@ -18,7 +21,10 @@ apsw.config(apsw.SQLITE_CONFIG_LOG, handle_error)
 def altconnect(db_path: Path):
     return Connection(db_path)
 
-connection = None
+connection: Connection | None = None
+
+Json = None | bool | int | float | str | list['Json'] | dict[str, 'Json']
+ScuffedTree = TypedDict('ScuffedTree', {'node': Json, 'children': list['ScuffedTree']})
 
 def connect() -> Connection:
     """Return the database connection, creating it if necessary.
@@ -42,6 +48,9 @@ def connect() -> Connection:
         @connection.register_function('is_frac', 1, True)
         def sql_function_is_frac(x: apsw.SQLiteValue) -> int:
             """Check whether a value is a fraction."""
+            if not isinstance(x, (int, float, str)):
+                return 0
+
             try:
                 frac(x)
             except ValueError:
@@ -51,26 +60,31 @@ def connect() -> Connection:
 
         @connection.register_function('frac2real', 1, True)
         def sql_function_frac2real(x: apsw.SQLiteValue) -> float:
+            assert isinstance(x, (int, float, str))
             return float(frac(x))
 
         @connection.register_function('frac_mul', 2, True)
         def sql_function_frac_mul(x: apsw.SQLiteValue, y: apsw.SQLiteValue) -> str:
             """Multiply two fractions."""
+            assert isinstance(x, (int, float, str))
+            assert isinstance(y, (int, float, str))
             return str(frac(x) * frac(y))
 
         @connection.register_function('frac_div', 2, True)
         def sql_function_frac_div(x: apsw.SQLiteValue, y: apsw.SQLiteValue) -> str:
             """Divide two fractions."""
+            assert isinstance(x, (int, float, str))
+            assert isinstance(y, (int, float, str))
             return str(frac(x) / frac(y))
             
         @connection.register_aggregate('frac_sum', 1)
         def sql_aggregate_frac_sum() -> tuple[
-            frac, apsw.AggregateStep, apsw.AggregateFinal
+            frac, Callable[[list[frac], int], None], Callable[[list[frac]], str]
         ]:
             
             result = [frac(0)]
         
-            def step(result: frac, val: int) -> None:
+            def step(result: list[frac], val: int) -> None:
                 result[0] += frac(val)
             
             return frac(0), step, lambda result: str(result[0])
@@ -78,16 +92,21 @@ def connect() -> Connection:
         @connection.register_collation('frac')
         def sql_collation_frac(x: str, y: str) -> int:
             """Compare two fractions."""
+            assert isinstance(x, (int, float, str))
+            assert isinstance(y, (int, float, str))
             return (frac(x) > frac(y)) - (frac(x) < frac(y))
 
         @connection.register_function('base64', 1, True)
-        def sql_function_base64(blob: str | None) -> str | None:
+        def sql_function_base64(blob: apsw.SQLiteValue) -> str | None:
             """Encode a blob as base64."""
+            assert blob is None or isinstance(blob, bytes))
             return None if blob is None else base64.b64encode(blob).decode('ascii')
 
         @connection.register_aggregate('df2tree')
         def sql_aggregate_df2tree() -> tuple[
-            apsw.AggregateT, apsw.AggregateStep, apsw.AggregateFinal
+            list[list[ScuffedTree]],
+            Callable[[list[list[ScuffedTree]], apsw.SQLiteValue, apsw.SQLiteValue], None],
+            Callable[[list[list[ScuffedTree]]], str]
         ]:
 
             """Group a set of rows representing nodes into a JSON tree structure.
@@ -99,8 +118,13 @@ def connect() -> Connection:
             The tree will have a structure like
 
               [{"node": ..., "children": [{"node": ...}, ...]}, ...]"""
+            
+            def step(
+                subtrees: list[list[ScuffedTree]], level: apsw.SQLiteValue, node: apsw.SQLiteValue
+            ) -> None:
+                assert isinstance(level, int)
+                assert isinstance(node, str)
 
-            def step(subtrees: apsw.AggregateT, level: apsw.SQLiteValue, node: apsw.SQLiteValue) -> None:
                 if level < len(subtrees):
                     subtree = []
                     subtrees[level + 1:] = [subtree]

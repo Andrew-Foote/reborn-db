@@ -1,6 +1,7 @@
 import io
 import json
 import math
+from typing import Iterator
 import numpy as np
 from PIL import Image
 from reborndb import DB
@@ -9,19 +10,22 @@ from reborndb import DB
 # might be conveneitn for experimentation
 # map 205 is also nice and small, 20 by 25
 
-def load_array(bytes_):
+def load_array(bytes_: bytes) -> np.ndarray:
 	stream = io.BytesIO()
 	stream.write(bytes_)
 	stream.seek(0)
 	return np.load(stream)
 
-def load_image(bytes_):
+def load_image(bytes_: bytes) -> Image.Image:
 	stream = io.BytesIO()
 	stream.write(bytes_)
 	stream.seek(0)
 	return Image.open(stream)
 
-def split_image(img, width_per_part, height_per_part):
+def split_image(
+	img: Image.Image, width_per_part: int, height_per_part: int
+) -> Iterator[tuple[int, int, Image.Image]]:
+	
 	for x in range(0, img.width, width_per_part):
 		for y in range(0, img.height, height_per_part):
 			cropped = img.crop((x, y, x + width_per_part, y + height_per_part))
@@ -33,7 +37,7 @@ def split_image(img, width_per_part, height_per_part):
 # 8 * 48 = 384; the first 384 tile IDs are devoted to autotiles.
 # Remaining IDs cover non-autotiles.
 
-def map_image(map_id):
+def map_image(map_id: int) -> Image.Image:
 	(tileset_name, tileset_bytes, data_bytes), = DB.H.exec('''
 		select
 			"tileset"."name", "tileset_file"."content", "map"."data"
@@ -53,7 +57,7 @@ def map_image(map_id):
 	tileset = load_image(tileset_bytes)
 	data = load_array(data_bytes)
 
-	tilemap = [None] * (384 + 8 * math.ceil(tileset.height / 32))
+	tilemap: list[Image.Image | None] = [None] * (384 + 8 * math.ceil(tileset.height / 32))
 	print(f'{len(tilemap)} tiles')
 
 	# add autotiles to tilemap

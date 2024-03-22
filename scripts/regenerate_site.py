@@ -1,6 +1,7 @@
 import importlib
 from pathlib import Path
 import shutil
+import types
 from reborndb import settings
 
 generator_names = (
@@ -19,11 +20,15 @@ generator_names = (
 	'evolution_area'
 )
 
-generators = [importlib.import_module(f'.{name}', 'generators') for name in generator_names]
+generators: list[types.ModuleType] = [
+	importlib.import_module(f'.{name}', 'generators') for name in generator_names
+]
 
-NONGENERATED_SUBPATHS = [settings.SITE_PATH / sp for sp in ('.git', '.gitignore', 'db.sqlite', 'style.css', 'js', 'img')]
+NONGENERATED_SUBPATHS: list[Path] = [
+	settings.SITE_PATH / sp for sp in ('.git', '.gitignore', 'db.sqlite', 'style.css', 'js', 'img')
+]
 
-def run():
+def run() -> None:
 	# remove any files we don't need any more
 	assert settings.SITE_PATH.is_dir()
 
