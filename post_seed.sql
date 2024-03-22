@@ -464,6 +464,93 @@ values
 ('ARCEUS', 'Flying', 'It will be in this form when holding a <a href="/item/sky-plate.html">Sky Plate</a> or <a href="/item/flyinium-z.html">Flyinium Z</a>.');
 
 ---------------------------------------------------------------------------------------------------
+-- Tutorable Moves
+---------------------------------------------------------------------------------------------------
+
+-- Copy the spreadsheet at
+-- https://docs.google.com/spreadsheets/d/1ZaS7Vs-CWfFojVxeii8D7S4GbZWlwcNspb7zQkqMmUk/edit#gid=0
+-- for now; eventually we will derive the list from the map data
+insert into "tutorable_move" ("move")
+values
+('MAGICCOAT'),
+('MAGICROOM'),
+('WONDERROOM'),
+('TELEKINESIS'),
+('IRONDEFENSE'),
+('SNORE'),
+('BIND'),
+('SPITE'),
+('SNATCH'),
+('HELPINGHAND'),
+('ALLYSWITCH'),
+('AFTERYOU'),
+('GRAVITY'),
+('MAGNETRISE'),
+('BLOCK'),
+('WORRYSEED'),
+('GIGADRAIN'),
+('WATERPLEDGE'),
+('FIREPLEDGE'),
+('GRASSPLEDGE'),
+('GASTROACID'),
+('RECYCLE'),
+('ENDEAVOR'),
+('PAINSPLIT'),
+('VOLTTACKLE'),
+('ROLEPLAY'),
+('COVET'),
+('ELECTROWEB'),
+('SKYATTACK'),
+('TRICK'),
+('DEFOG'),
+('LASERFOCUS'),
+('SKILLSWAP'),
+('WATERPULSE'),
+('LASTRESORT'),
+('SUPERFANG'),
+('SHOCKWAVE'),
+('HEADBUTT'),
+('BOUNCE'),
+('HEALBELL'),
+('BUGBITE'),
+('DUALCHOP'),
+('THUNDERPUNCH'),
+('FIREPUNCH'),
+('ICEPUNCH'),
+('UPROAR'),
+('HYPERVOICE'),
+('STOMPINGTANTRUM'),
+('LOWKICK'),
+('IRONTAIL'),
+('FOCUSPUNCH'),
+('DRILLRUN'),
+('SYNTHESIS'),
+('KNOCKOFF'),
+('IRONHEAD'),
+('LIQUIDATION'),
+('AQUATAIL'),
+('ICYWIND'),
+('SIGNALBEAM'),
+('THROATCHOP'),
+('DRAINPUNCH'),
+('TAILWIND'),
+('ZENHEADBUTT'),
+('STEALTHROCK'),
+('GUNKSHOT'),
+('DRAGONPULSE'),
+('SEEDBOMB'),
+('FOULPLAY'),
+('SUPERPOWER'),
+('EARTHPOWER'),
+('OUTRAGE'),
+('HEATWAVE'),
+('HYDROCANNON'),
+('BLASTBURN'),
+('FRENZYPLANT'),
+('DRACOMETEOR'),
+('CELEBRATE');
+
+---------------------------------------------------------------------------------------------------
 -- Materialized Views
 ---------------------------------------------------------------------------------------------------
 

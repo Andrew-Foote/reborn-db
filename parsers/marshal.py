@@ -750,7 +750,7 @@ class Loader:
             sign = {'+': 1, '-': -1}[chr(self.read_byte())]
             word_length = self.read_long()
             
-            ref = self.graph.add(RubyBignum(int.from_bytes(
+            ref = self.graph.add(RubyBignum(sign * int.from_bytes(
                 self.read_bytes(word_length * 2), 'little', signed=True
             )))
 
