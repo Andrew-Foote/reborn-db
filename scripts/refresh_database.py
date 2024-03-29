@@ -53,7 +53,8 @@ def run():
 	elif os.environ.get('EVENT_ENCOUNTERS'):
 		extractor_names.append('event_encounters')
 	elif os.environ.get('MAP_DATA'):
-		extractor_names.append('map_data')
+		metadata_index = extractor_names.index('metadata')
+		extractor_names.insert(metadata_index, 'map_data')
 	
 	print('Creating schema... ', end='')
 	with DB.H.transaction(): DB.H.execscript('schema.sql')

@@ -440,7 +440,7 @@ MAP_SETTING_TYPES = {
 def make_changemapsettings_getter(params_with_lookups):
     @classmethod
     def get(cls, graph, ref, *arg_refs, **inst_vars):
-        param_count = len(params_withgi_lookups)
+        param_count = len(params_with_lookups)
         arg_count = len(arg_refs)
         
         if param_count != arg_count:
@@ -475,3 +475,21 @@ for subcode, (name, *params_with_lookups) in MAP_SETTING_TYPES.items():
             'get': make_changemapsettings_getter(params_with_lookups)
         }
     )
+
+COMMAND_TYPES_AND_SUBTYPES = {}
+
+for cmdtype_code, cmdtype in COMMAND_TYPES.items():
+    cmdtype_name, *params = cmdtype
+    COMMAND_TYPES_AND_SUBTYPES[cmdtype_code, 0] = cmdtype_name, '', *params
+
+for cmdtype_code, cmdtype in CONDITIONAL_BRANCH_TYPES.items():
+    cmdtype_name, *params = cmdtype
+    COMMAND_TYPES_AND_SUBTYPES[111, cmdtype_code] = 'ConditionalBranch', cmdtype_name, *params
+
+for cmdtype_code, cmdtype in OPERAND_TYPES.items():
+    cmdtype_name, *params = cmdtype
+    COMMAND_TYPES_AND_SUBTYPES[122, cmdtype_code] = 'ControlVariables', cmdtype_name, *params
+
+for cmdtype_code, cmdtype in MAP_SETTING_TYPES.items():
+    cmdtype_name, *params = cmdtype
+    COMMAND_TYPES_AND_SUBTYPES[204, cmdtype_code] = 'ChangeMapSettings', cmdtype_name, *params

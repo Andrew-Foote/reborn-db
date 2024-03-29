@@ -4,6 +4,9 @@ import apsw
 class Connection:
     def __init__(self, db_path):
         self.apsw = apsw.Connection(str(db_path))
+        self.apsw.enable_load_extension(True)
+        self.apsw.load_extension('C:/programs/sqlean/define')
+        self.apsw.load_extension('C:/programs/sqlean/regexp')
         self.exec('pragma foreign_keys = 1')
         
         # i don't remember why i commented this out#
@@ -149,3 +152,6 @@ class Connection:
         collist = ', '.join(map(self.quote, columns))
         self.exec('create table {} ({})'.format(name, collist))
         self.bulk_insert(name, columns, data)
+
+    def last_insert_rowid(self):
+        return self.apsw.last_insert_rowid()
