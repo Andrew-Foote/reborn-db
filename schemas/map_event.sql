@@ -371,6 +371,16 @@ create table "event_command" (
 	foreign key ("type", "subtype") references "event_command_subtype" ("command_type", "name")
 ) without rowid;
 
+create table "common_event_command" (
+	"common_event_id" integer,
+	"command_number" integer,
+	"indent" integer,
+	"command" integer not null,
+	primary key ("common_event_id", "command_number"),
+	foreign key ("common_event_id") references "common_event" ("id"),
+	foreign key ("command") references "event_command" ("id")
+);
+
 create table "event_page_command" (
 	"map_id" integer,
 	"event_id" integer,
@@ -632,53 +642,16 @@ create table "event_command_bound_type_argument" (
 	foreign key ("bound_type") references "bound_type" ("name")
 ) without rowid;
 
--- insert into "event_command_type" ("name", "code")
--- values
--- ('blank', 0), ('show text', 101), ('show choices', 102), ('input number', 103),
--- ('change text options', 104), 
--- ('get input from button press', 105),
--- ('wait', 106),
--- ('comment', 108),
--- ('conditional branch', 111),
--- ('loop', 112),
--- ('break loop', 113),
+----------------------------------------------------------------------------------------------------
+-- Views
+----------------------------------------------------------------------------------------------------
 
--- ('move down', 1), ('move left', 2), ('move right', 3), ('move up', 4),
--- ('move lower left', 5), ('move lower right', 6), ('move upper left', 7), ('move upper right', 8),
--- ('move at random', 9), ('move towards player', 10), ('move away from player', 11),
--- ('step forward', 12), ('step backward', 13), ('jump', 14), ('wait', 15),
--- ('turn down', 16), ('turn left', 17), ('turn right', 18), ('turn up', 19),
--- ('turn 90° right', 20), ('turn 90° left', 21), ('turn 180°', 22), ('turn 90° right or left', 23),
--- ('turn at random', 24), ('turn towards player', 25), ('turn away from player', 26),
--- ('turn switch on', 27), ('turn switch off', 28), ('change speed', 29), ('change frequency', 30),
--- ('turn move animation on', 31), ('turn move animation off', 32),
--- ('turn stop animation on', 33), ('turn stop animation off', 34),
--- ('fix direction', 35), ('unfix direction', 36),
--- ('allow movement through obstacles', 37), ('prevent movement through obstacles', 38),
--- ('turn always on top on', 39), ('turn always on top off', 40),
--- ('change graphic', 41), ('change opacity', 42), ('change blend type', 43),
--- ('play sound effect', 44), ('run script', 45);
-
-
-
--- insert into "event_command_parameter" ("command_type", "name", "type")
--- values
--- ('show text', 'text', 'string'),
--- ('show choices', 'choices', 'array[string]'),
--- ('show choices', 'cancel_type', 'cancel_type'),
-
--- ('jump', 'x', 'integer'),
--- ('jump', 'y', 'integer'),
--- ('wait', 'count', 'integer'),
--- ('turn switch on', 'switch', 'switch'),
--- ('turn switch off', 'switch', 'switch'),
--- ('change speed', 'speed', 'integer'),
--- ('change frequency', 'frequency', 'integer'),
--- ('change graphic', 'character_name', 'string'),
--- ('change graphic', 'character_hue', 'integer'),
--- ('change graphic', 'direction', 'direction'),
--- ('change graphic', 'pattern', 'integer'),
--- ('change opacity', 'opacity', 'integer'),
--- ('change blend type', 'blend_type', 'integer'),
--- ('play sound effect', 'audio', 'audio'),
--- ('run script', 'line', 'string');
+create view "move_tutor_teach_move_command" ("move", "command")
+as select
+	regexp_capture("arg"."value", '^pbMoveTutorChoose\(PBMoves::(\w+)\)$', 1),
+	"arg"."command"
+from "event_command_text_argument" as "arg"
+where "arg"."command_type" = 'Script'
+and "arg"."command_subtype" = ''
+and "arg"."parameter" = 'line'
+and "arg"."value" like "pbMoveTutorChoose(%"
