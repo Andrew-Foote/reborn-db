@@ -16,7 +16,8 @@ generator_names = (
 	'battle_facility_trainer_list',
 	'battle_facility_trainer_view',
 	'egg_group_list', 'growth_rate_list',
-	'evolution_area'
+	'evolution_area',
+	'move_tutor_list',
 )
 
 generators = [importlib.import_module(f'.{name}', 'generators') for name in generator_names]

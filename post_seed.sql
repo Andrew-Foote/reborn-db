@@ -477,6 +477,9 @@ and "arg"."command_subtype" = 'Script'
 and "arg"."parameter" = 'expr'
 and "arg"."value" like "pbMoveTutorChoose(%";
 
+create view "tutorable_move" ("move") as
+select distinct "move" from "tutor_move_teach_command";
+
 create view "tutor_move_item_cost" (
 	"move", "item", "quantity", "command1", "command2",
 	"map_id", "event_id", "page_number", "command1_number"
@@ -555,6 +558,41 @@ where "arg"."command_type" = 'Script'
 and "arg"."command_subtype" = ''
 and "arg"."parameter" = 'line'
 and "arg"."value" like "addTutorMove(%";
+
+create view "move_tutor_v" (
+	"move", "cost_is_monetary", "cost_quantity", "cost_item", "sprite", "map"
+) as
+select
+	"tcmd"."move",
+	case when "mcost"."amount" is null then 0 else 1 end,
+	coalesce("icost"."quantity", "mcost"."amount"),
+	"icost"."item",
+	"char_img"."content",
+	"epcmd"."map_id"
+from "tutor_move_teach_command" as "tcmd"
+join "event_page_command" as "epcmd" on "epcmd"."command" = "tcmd"."command"
+join "event_page_character" as "epchar" on (
+	"epchar"."map_id" = "epcmd"."map_id"
+	and "epchar"."event_id" = "epcmd"."event_id"
+	and "epchar"."page_number" = "epcmd"."page_number"
+)
+join "character_image" as "char_img" on (
+	"char_img"."filename" = "epchar"."character_name"
+	and "char_img"."direction" = "epchar"."direction"
+	and "char_img"."pattern" = "epchar"."pattern"
+)
+left join "tutor_move_item_cost" as "icost" on (
+	"icost"."map_id" = "epcmd"."map_id"
+	and "icost"."event_id" = "epcmd"."event_id"
+	and "icost"."page_number" = "epcmd"."page_number"
+	and "icost"."move" = "tcmd"."move"
+)
+left join "tutor_move_money_cost" as "mcost" on (
+	"mcost"."map_id" = "epcmd"."map_id"
+	and "mcost"."event_id" = "epcmd"."event_id"
+	and "mcost"."page_number" = "epcmd"."page_number"
+	and "mcost"."move" = "tcmd"."move"
+);
 
 ---------------------------------------------------------------------------------------------------
 -- Materialized Views
