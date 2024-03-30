@@ -100,10 +100,12 @@ def chonks():
 
 def extract():
     with DB.H.transaction():
+        DB.H.exec('drop table if exists "event_command_weather_argument"')
         DB.H.exec('drop table if exists "event_command_bound_type_argument"')
         DB.H.exec('drop table if exists "event_command_comparison_argument"')
         DB.H.exec('drop table if exists "event_command_move_route_argument_move_command"')
         DB.H.exec('drop table if exists "event_command_move_route_argument"')
+        DB.H.exec('drop table if exists "event_command_move_command_argument"')
         DB.H.exec('drop table if exists "event_command_appoint_type_argument"')
         DB.H.exec('drop table if exists "event_command_diff_type_argument"')
         DB.H.exec('drop table if exists "event_command_switch_state_argument"')
@@ -118,6 +120,7 @@ def extract():
         DB.H.exec('drop table if exists "event_command_text_argument"')
         DB.H.exec('drop table if exists "event_command_integer_argument"')
         DB.H.exec('drop table if exists "event_page_command"')
+        DB.H.exec('drop table if exists "common_event_command"')
         DB.H.exec('drop table if exists "event_command"')
         DB.H.exec('drop table if exists "event_command_parameter"')
         DB.H.exec('drop table if exists "event_command_subtype"')

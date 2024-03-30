@@ -463,6 +463,99 @@ values
 ('ARCEUS', 'Normal', 'It will be in this form when not holding a Plate item or a type-specific Z-Crystal.'),
 ('ARCEUS', 'Flying', 'It will be in this form when holding a <a href="/item/sky-plate.html">Sky Plate</a> or <a href="/item/flyinium-z.html">Flyinium Z</a>.');
 
+----------------------------------------------------------------------------------------------------
+-- Views
+----------------------------------------------------------------------------------------------------
+
+create view "tutor_move_teach_command" ("move", "command") as
+select
+	regexp_capture("arg"."value", '^pbMoveTutorChoose\(PBMoves::(\w+)\)$', 1),
+	"arg"."command"
+from "event_command_text_argument" as "arg"
+where "arg"."command_type" = 'ConditionalBranch'
+and "arg"."command_subtype" = 'Script'
+and "arg"."parameter" = 'expr'
+and "arg"."value" like "pbMoveTutorChoose(%";
+
+create view "tutor_move_item_cost" (
+	"move", "item", "quantity", "command1", "command2",
+	"map_id", "event_id", "page_number", "command1_number"
+) as
+select
+	regexp_capture("arg"."value", '^addTutorMove\(PBMoves::(\w+)\)$', 1),
+	regexp_capture("arg0"."value", '^PBItems::(\w+),(\d+)\)$', 1),
+	regexp_capture("arg0"."value", '^PBItems::(\w+),(\d+)\)$', 2),
+	"arg0"."command",
+	"arg"."command",
+	"epc"."map_id",
+	"epc"."event_id",
+	"epc"."page_number",
+	"epc"."command_number"
+from "event_command_text_argument" as "arg"
+join "event_page_command" as "epc" on "epc"."command" = "arg"."command"
+join "event_page_command" as "epc0" on (
+	"epc0"."map_id" = "epc"."map_id"
+	and "epc0"."event_id" = "epc"."event_id"
+	and "epc0"."page_number" = "epc"."page_number"
+	and "epc0"."command_number" = "epc"."command_number" - 1
+)
+join "event_command_text_argument" as "arg0" on (
+	"arg0"."command" = "epc0"."command"
+	and "arg0"."command_type" = 'ContinueScript'
+	and "arg0"."command_subtype" = ''
+	and "arg0"."parameter" = 'line'
+)
+where "arg"."command_type" = 'Script'
+and "arg"."command_subtype" = ''
+and "arg"."parameter" = 'line'
+and "arg"."value" like "addTutorMove(%";
+
+create view "tutor_move_money_cost" (
+	"move", "amount", "command1", "command2",
+	"map_id", "event_id", "page_number", "command1_number"
+) as
+select
+	regexp_capture("arg"."value", '^addTutorMove\(PBMoves::(\w+)\)$', 1),
+	"arg0"."value",
+	"arg0"."command",
+	"arg"."command",
+	"epc"."map_id",
+	"epc"."event_id",
+	"epc"."page_number",
+	"epc"."command_number"
+from "event_command_text_argument" as "arg"
+join "event_page_command" as "epc" on "epc"."command" = "arg"."command"
+join "event_page_command" as "epc0" on (
+	"epc0"."map_id" = "epc"."map_id"
+	and "epc0"."event_id" = "epc"."event_id"
+	and "epc0"."page_number" = "epc"."page_number"
+	and "epc0"."command_number" = "epc"."command_number" - 1
+)
+join "event_command_integer_argument" as "arg0" on (
+	"arg0"."command" = "epc0"."command"
+	and "arg0"."command_type" = 'ChangeGold'
+	and "arg0"."command_subtype" = ''
+	and "arg0"."parameter" = 'amount'
+)
+join "event_command_bool_argument" as "arg0_withvar" on (
+	"arg0_withvar"."command" = "epc0"."command"
+	and "arg0_withvar"."command_type" = 'ChangeGold'
+	and "arg0_withvar"."command_subtype" = ''
+	and "arg0_withvar"."parameter" = 'with_variable'
+	and "arg0_withvar"."value" = 0
+)
+join "event_command_diff_type_argument" as "arg0_difftype" on (
+	"arg0_difftype"."command" = "epc0"."command"
+	and "arg0_difftype"."command_type" = 'ChangeGold'
+	and "arg0_difftype"."command_subtype" = ''
+	and "arg0_difftype"."parameter" = 'diff_type'
+	and "arg0_difftype"."diff_type" = 'decrease'
+)
+where "arg"."command_type" = 'Script'
+and "arg"."command_subtype" = ''
+and "arg"."parameter" = 'line'
+and "arg"."value" like "addTutorMove(%";
+
 ---------------------------------------------------------------------------------------------------
 -- Materialized Views
 ---------------------------------------------------------------------------------------------------

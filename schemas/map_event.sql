@@ -177,6 +177,15 @@ values
 ('middle', 1),
 ('bottom', 2);
 
+drop table if exists "rpg_weather";
+create table "rpg_weather" ("name" text primary key, "code" integer not null unique) without rowid;
+insert into "rpg_weather" ("name", "code")
+values
+('none', 0),
+('rain', 1),
+('storm', 2),
+('snow', 3);
+
 ---------------------------------------------------------------------------------------------------
 -- Move commands
 ---------------------------------------------------------------------------------------------------
@@ -586,6 +595,21 @@ create table "event_command_appoint_type_argument" (
 	foreign key ("appoint_type") references "appoint_type" ("name")
 ) without rowid;
 
+create table "event_command_move_command_argument" (
+	"command" integer,
+	"command_type" text not null,
+	"command_subtype" text not null,
+	"parameter" text,
+	"type" text not null check ("type" = 'move_command'),
+	"move_command" integer not null,
+	primary key ("command", "parameter"),
+	foreign key ("command", "command_type", "command_subtype")
+		references "event_command" ("id", "type", "subtype"),
+	foreign key ("command_type", "command_subtype", "parameter", "type")
+		references "event_command_parameter" ("command_type", "command_subtype", "name", "type"),
+	foreign key ("move_command") references "move_command" ("id")
+) without rowid;
+
 create table "event_command_move_route_argument" (
 	"command" integer,
 	"command_type" text not null,
@@ -642,16 +666,17 @@ create table "event_command_bound_type_argument" (
 	foreign key ("bound_type") references "bound_type" ("name")
 ) without rowid;
 
-----------------------------------------------------------------------------------------------------
--- Views
-----------------------------------------------------------------------------------------------------
-
-create view "move_tutor_teach_move_command" ("move", "command")
-as select
-	regexp_capture("arg"."value", '^pbMoveTutorChoose\(PBMoves::(\w+)\)$', 1),
-	"arg"."command"
-from "event_command_text_argument" as "arg"
-where "arg"."command_type" = 'Script'
-and "arg"."command_subtype" = ''
-and "arg"."parameter" = 'line'
-and "arg"."value" like "pbMoveTutorChoose(%"
+create table "event_command_weather_argument" (
+	"command" integer,
+	"command_type" text not null,
+	"command_subtype" text not null,
+	"parameter" text,
+	"type" text not null check ("type" = 'weather'),
+	"weather" text not null,
+	primary key ("command", "parameter"),
+	foreign key ("command", "command_type", "command_subtype")
+		references "event_command" ("id", "type", "subtype"),
+	foreign key ("command_type", "command_subtype", "parameter", "type")
+		references "event_command_parameter" ("command_type", "command_subtype", "name", "type"),
+	foreign key ("weather") references "rpg_weather" ("name")
+) without rowid;

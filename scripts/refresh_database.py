@@ -5,7 +5,6 @@ from reborndb import DB
 extractor_names = [
 	'switches_and_variables',
 	'tilesets',
-	'common_events',
 	'metadata',
 	'types',
 	'abilities',
@@ -19,6 +18,7 @@ extractor_names = [
 	'trainertypes',
 	'trainers',
 	'trainerlists',
+	'graphics',
 ]
 
 #extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]
@@ -71,16 +71,19 @@ EXCEPTIONS = [
 	'event_command_audio_file_argument',
 	'event_command_direction_argument',
 	'event_command_choices_array_argument',
+	'event_command_tone_argument',
 	'event_command_color_argument',
 	'event_command_cancel_type_argument',
 	'event_command_text_position_argument',
 	'event_command_switch_state_argument',
 	'event_command_diff_type_argument',
 	'event_command_appoint_type_argument',
+	'event_command_move_command_argument',
 	'event_command_move_route_argument',
 	'event_command_move_route_argument_move_command',
 	'event_command_comparison_argument',
 	'event_command_bound_type_argument',
+	'event_command_weather_argument',
 ]
 
 def run():
@@ -92,8 +95,9 @@ def run():
 	elif os.environ.get('EVENT_ENCOUNTERS'):
 		extractor_names.append('event_encounters')
 	elif os.environ.get('MAP_DATA'):
-		i = extractor_names.index('common_events')
-		extractor_names.insert(i, 'map_data')
+		i = extractor_names.index('metadata')
+		extractor_names.insert(i, 'common_events')
+		extractor_names.insert(i + 1, 'map_data')
 	
 	print('Creating schema... ', end='')
 	with DB.H.transaction(): DB.H.execscript('schema.sql')

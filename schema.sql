@@ -1432,6 +1432,15 @@ create table "common_event" (
 	foreign key ("switch") references "game_switch" ("id")
 );
 
+create table "character_image" (
+	"filename" text,
+	"direction" text check ("direction" != 'none'),
+	"pattern" integer check ("pattern" between 0 and 3),
+	"content" blob not null,
+	primary key ("filename", "direction", "pattern"),
+	foreign key ("direction") references "direction" ("name")
+);
+
 ------------------------
 -- POKÉMON ENCOUNTERS --
 ------------------------

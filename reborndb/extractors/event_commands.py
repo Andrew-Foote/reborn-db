@@ -3,8 +3,17 @@ from parsers.rpg import move_route, event_command
 from reborndb import DB
 from scripts.populate_event_command_type_tables import type_from_getter
 
-move_command_ids = it.count()
-event_command_ids = it.count()
+def move_command_ids_gen():
+    cur_max = DB.H.exec11('select max("id") from "move_command"') or -1
+    yield from it.count(cur_max + 1)
+
+move_command_ids = move_command_ids_gen()
+
+def event_command_ids_gen():
+    cur_max = DB.H.exec11('select max("id") from "event_command"') or -1
+    yield from it.count(cur_max + 1)
+
+event_command_ids = event_command_ids_gen()
 
 def unpack_move_command(cmd):
     cmd_type, *params = move_route.COMMAND_TYPES[cmd.code]
@@ -44,7 +53,7 @@ def unpack_event_command(cmd):
 def create_move_command(cmd_type, args):
     cmd_id = next(move_command_ids)
     DB.H.exec('insert into "move_command" ("id", "type") values (?, ?)', (cmd_id, cmd_type,))
-    #print('create_move_command', cmd_type, args)
+    print('create_move_command', cmd_id, cmd_type, args)
 
     for param, arg, arg_type in args:
         match arg_type:
@@ -73,8 +82,13 @@ def create_move_command(cmd_type, args):
 
 def create_event_command(cmd_type, cmd_subtype, args):
     cmd_id = next(event_command_ids)
-    DB.H.exec('insert into "event_command" ("id", "type", "subtype") values (?, ?, ?)', (cmd_id, cmd_type, cmd_subtype))
-    #print('create_event_command', cmd_type, cmd_subtype, args)
+    
+    DB.H.exec(
+        'insert into "event_command" ("id", "type", "subtype") values (?, ?, ?)',
+        (cmd_id, cmd_type, cmd_subtype)
+    )
+
+    print('create_event_command', cmd_id, cmd_type, cmd_subtype, args)
 
     for param, arg, arg_type in args:
         match arg_type:
@@ -158,6 +172,19 @@ def create_event_command(cmd_type, cmd_subtype, args):
                     'insert into "event_command_bound_type_argument" ("command", "command_type", "command_subtype", "parameter", "type", "bound_type") values (?, ?, ?, ?, ?, ?)',
                     (cmd_id, cmd_type, cmd_subtype, param, arg_type, arg.name.lower())
                 )
+            case 'weather':
+                DB.H.exec(
+                    'insert into "event_command_weather_argument" ("command", "command_type", "command_subtype", "parameter", "type", "weather") values (?, ?, ?, ?, ?, ?)',
+                    (cmd_id, cmd_type, cmd_subtype, param, arg_type, arg.name.lower())
+                )
+            case 'move_command':                
+                move_cmd_type, move_cmd_args = unpack_move_command(arg)
+                move_cmd_id = create_move_command(move_cmd_type, move_cmd_args)
+
+                DB.H.exec(
+                    'insert into "event_command_move_command_argument" ("command", "command_type", "command_subtype", "parameter", "type", "move_command") values (?, ?, ?, ?, ?, ?)',
+                    (cmd_id, cmd_type, cmd_subtype, param, arg_type, move_cmd_id)
+                )
             case 'move_route':
                 DB.H.exec(
                     'insert into "event_command_move_route_argument" ("command", "command_type", "command_subtype", "parameter", "type", "repeat", "skippable") values (?, ?, ?, ?, ?, ?, ?)',
@@ -171,5 +198,7 @@ def create_event_command(cmd_type, cmd_subtype, args):
                     DB.H.exec(
                         'insert into "event_command_move_route_argument_move_command" ("event_command", "parameter", "move_command_number", "move_command") values (?, ?, ?, ?)', (cmd_id, param, move_cmd_i, move_cmd_id)
                     )
+            case _:
+                raise ValueError(f'unrecognized arg type {arg_type}')    
 
     return cmd_id
