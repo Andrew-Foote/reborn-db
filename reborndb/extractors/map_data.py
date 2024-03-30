@@ -8,12 +8,16 @@
 # TODO: speed this up! And put the images in the database maybe.
 
 import io
-import itertools as it
 from PIL import Image
 import numpy as np
 from parsers.rpg.map import Map
-from parsers.rpg import tilesets
 from reborndb import DB, settings
+from scripts import populate_event_command_type_tables
+
+from reborndb.extractors.event_commands import (
+    unpack_move_command, unpack_event_command,
+    create_move_command, create_event_command
+)
 
 def load_image(bytes_):
     stream = io.BytesIO()
@@ -96,6 +100,41 @@ def chonks():
 
 def extract():
     with DB.H.transaction():
+        DB.H.exec('drop table if exists "event_command_weather_argument"')
+        DB.H.exec('drop table if exists "event_command_bound_type_argument"')
+        DB.H.exec('drop table if exists "event_command_comparison_argument"')
+        DB.H.exec('drop table if exists "event_command_move_route_argument_move_command"')
+        DB.H.exec('drop table if exists "event_command_move_route_argument"')
+        DB.H.exec('drop table if exists "event_command_move_command_argument"')
+        DB.H.exec('drop table if exists "event_command_appoint_type_argument"')
+        DB.H.exec('drop table if exists "event_command_diff_type_argument"')
+        DB.H.exec('drop table if exists "event_command_switch_state_argument"')
+        DB.H.exec('drop table if exists "event_command_text_position_argument"')
+        DB.H.exec('drop table if exists "event_command_cancel_type_argument"')
+        DB.H.exec('drop table if exists "event_command_color_argument"')
+        DB.H.exec('drop table if exists "event_command_tone_argument"')
+        DB.H.exec('drop table if exists "event_command_choices_array_argument"')
+        DB.H.exec('drop table if exists "event_command_direction_argument"')
+        DB.H.exec('drop table if exists "event_command_audio_file_argument"')
+        DB.H.exec('drop table if exists "event_command_bool_argument"')
+        DB.H.exec('drop table if exists "event_command_text_argument"')
+        DB.H.exec('drop table if exists "event_command_integer_argument"')
+        DB.H.exec('drop table if exists "event_page_command"')
+        DB.H.exec('drop table if exists "common_event_command"')
+        DB.H.exec('drop table if exists "event_command"')
+        DB.H.exec('drop table if exists "event_command_parameter"')
+        DB.H.exec('drop table if exists "event_command_subtype"')
+        DB.H.exec('drop table if exists "event_command_type"')
+        DB.H.exec('drop table if exists "move_command_integer_argument"')
+        DB.H.exec('drop table if exists "move_command_direction_argument"')
+        DB.H.exec('drop table if exists "move_command_audio_file_argument"')
+        DB.H.exec('drop table if exists "move_command_text_argument"')
+        DB.H.exec('drop table if exists "move_command_integer_argument"')
+        DB.H.exec('drop table if exists "event_page_move_command"')
+        DB.H.exec('drop table if exists "move_command"')
+        DB.H.exec('drop table if exists "move_command_parameter"')
+        DB.H.exec('drop table if exists "move_command_type"')
+        DB.H.exec('drop table if exists "parameter_type"')
         DB.H.exec('drop table if exists "event_page_character"')
         DB.H.exec('drop table if exists "event_page_tile"')
         DB.H.exec('drop table if exists "event_page_self_switch_condition"')
@@ -105,6 +144,7 @@ def extract():
         DB.H.exec('drop table if exists "map_event"')
         DB.H.exec('drop table if exists "marshal_mapdata"')
         DB.H.execscript('schemas/map_event.sql')
+        populate_event_command_type_tables.run()
         tilesets = load_tilesets()
 
     rows = []
@@ -117,7 +157,8 @@ def extract():
         self_switch_rows = []
         tile_rows = []
         character_rows = []
-        move_route_rows = []
+        move_command_data = []
+        event_command_data = []
 
         for map_id, mapdata in chonk:
             print(f'map {map_id}')
@@ -168,6 +209,18 @@ def extract():
                             page.graphic.opacity, page.graphic.blend_type
                         ))
 
+                    for i, cmd in enumerate(page.move_route.list_):
+                        cmd_type, args = unpack_move_command(cmd)
+                        move_command_data.append((*page_id, i, (cmd_type, args)))
+
+                    for i, cmd in enumerate(page.list_):
+                        cmd_type, cmd_subtype, indent, args = unpack_event_command(cmd)
+
+                        event_command_data.append((
+                            *page_id, i,
+                            (cmd_type, cmd_subtype, indent, args)
+                        ))
+
             save_map_tiles(map_id, mapdata, tilesets)
 
         with DB.H.transaction(foreign_keys_enabled=False):
@@ -189,6 +242,35 @@ def extract():
             DB.H.bulk_insert('event_page_self_switch_condition', (*page_id_cols, 'switch'), self_switch_rows)
             DB.H.bulk_insert('event_page_tile', (*page_id_cols, 'tile'), tile_rows)
             DB.H.bulk_insert('event_page_character', (*page_id_cols, 'character_name', 'character_hue', 'direction', 'pattern', 'opacity', 'blend_type'), character_rows)
+
+        event_page_move_command_rows = []
+
+        with DB.H.transaction():
+            for map_id, event_id, page_no, cmd_no, (cmd_type, args) in move_command_data:
+                cmd_id = create_move_command(cmd_type, args)
+                event_page_move_command_rows.append((map_id, event_id, page_no, cmd_no, cmd_id))
+
+        with DB.H.transaction():
+            DB.H.bulk_insert(
+                'event_page_move_command',
+                ('map_id', 'event_id', 'page_number', 'command_number', 'command'), event_page_move_command_rows
+            )
+
+        event_page_command_rows = []
+
+        with DB.H.transaction():
+            for (
+                map_id, event_id, page_no, cmd_no, (cmd_type, cmd_subtype, indent, args)
+             ) in event_command_data:
+                cmd_id = create_event_command(cmd_type, cmd_subtype, args)
+                event_page_command_rows.append((map_id, event_id, page_no, cmd_no, indent, cmd_id))
+            
+        with DB.H.transaction():
+            DB.H.bulk_insert(
+                'event_page_command',
+                ('map_id', 'event_id', 'page_number', 'command_number', 'indent', 'command'),
+                event_page_command_rows
+            )
 
     with DB.H.transaction():
         DB.H.dump_as_table( 'marshal_mapdata', ('map_id', 'tileset', 'width', 'height', 'data',

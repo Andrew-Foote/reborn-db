@@ -1,0 +1,54 @@
+{% from 'macros.jinja2' import base64_image %}
+{% extends 'base.jinja2' %}
+
+{% block title %}
+Move Tutors
+{% endblock %}
+
+{% block content %}
+<section>
+	<h1>Move Tutors</h1>
+
+	<section>
+		<h2>Mechanics</h2>
+
+        <p>Each move tutor can teach each move an unlimited number of times. However, there is usually an initial cost that must be paid for each move so that the tutor can teach it for the first time. Once the cost is paid, it does not need to be paid again for subsequent teachings of the same move.</p>
+
+        <p>The cost will either be a monetary cost, or a cost in shard items.</p>
+    </section>
+
+    <section>
+        <h2>List</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Move</th>
+                    <th>Cost</th>
+                    <th>Tutor Sprite</th>
+                    <th>Tutor Area</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for move_tutor in move_tutors %}
+                <tr>
+                    <td><a href="{{ url_base }}/move/{{ move_tutor.move.id }}.html">{{ move_tutor.move.name }}</a></td>
+                    <td>
+                        {% if move_tutor.cost_quantity is none %}
+                            Free
+                        {% elif move_tutor.cost_is_monetary %}
+                            {{ move_tutor.cost_quantity }} Pokédollars
+                        {% else %}
+                            {{ move_tutor.cost_quantity }} &times; <a href="{{ url_base }}/item/{{ move_tutor.cost_item.id }}.html">{{ move_tutor.cost_item.name }}</a>
+                        {% endif %}
+                    </td>
+                    <td>{{ base64_image(move_tutor.sprite) }}</td>
+                    <td><a href="{{ url_base }}/area/{{ move_tutor.map.id }}.html">{{ move_tutor.map.name }} ({{ move_tutor.map.id }})</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+</section>
+{% endblock %}

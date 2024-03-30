@@ -144,3 +144,16 @@ class MoveRoute:
             'repeat': marshal.get_bool, 'skippable': marshal.get_bool,
             'list': partial(marshal.get_array, callback=MoveCommand.get)
         })
+    
+def unpack_move_command(cmd):
+    cmd_type, *params = COMMAND_TYPES[cmd.code]
+    args = []
+
+    for param, getter in params:
+        args.append((
+            param,
+            getattr(cmd, param),
+            type_from_getter(getter, cmd_type, param)
+        ))
+
+    return cmd_type, args

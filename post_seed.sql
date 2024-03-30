@@ -463,92 +463,136 @@ values
 ('ARCEUS', 'Normal', 'It will be in this form when not holding a Plate item or a type-specific Z-Crystal.'),
 ('ARCEUS', 'Flying', 'It will be in this form when holding a <a href="/item/sky-plate.html">Sky Plate</a> or <a href="/item/flyinium-z.html">Flyinium Z</a>.');
 
----------------------------------------------------------------------------------------------------
--- Tutorable Moves
----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
+-- Views
+----------------------------------------------------------------------------------------------------
 
--- Copy the spreadsheet at
--- https://docs.google.com/spreadsheets/d/1ZaS7Vs-CWfFojVxeii8D7S4GbZWlwcNspb7zQkqMmUk/edit#gid=0
--- for now; eventually we will derive the list from the map data
-insert into "tutorable_move" ("move")
-values
-('MAGICCOAT'),
-('MAGICROOM'),
-('WONDERROOM'),
-('TELEKINESIS'),
-('IRONDEFENSE'),
-('SNORE'),
-('BIND'),
-('SPITE'),
-('SNATCH'),
-('HELPINGHAND'),
-('ALLYSWITCH'),
-('AFTERYOU'),
-('GRAVITY'),
-('MAGNETRISE'),
-('BLOCK'),
-('WORRYSEED'),
-('GIGADRAIN'),
-('WATERPLEDGE'),
-('FIREPLEDGE'),
-('GRASSPLEDGE'),
-('GASTROACID'),
-('RECYCLE'),
-('ENDEAVOR'),
-('PAINSPLIT'),
-('VOLTTACKLE'),
-('ROLEPLAY'),
-('COVET'),
-('ELECTROWEB'),
-('SKYATTACK'),
-('TRICK'),
-('DEFOG'),
-('LASERFOCUS'),
-('SKILLSWAP'),
-('WATERPULSE'),
-('LASTRESORT'),
-('SUPERFANG'),
-('SHOCKWAVE'),
-('HEADBUTT'),
-('BOUNCE'),
-('HEALBELL'),
-('BUGBITE'),
-('DUALCHOP'),
-('THUNDERPUNCH'),
-('FIREPUNCH'),
-('ICEPUNCH'),
-('UPROAR'),
-('HYPERVOICE'),
-('STOMPINGTANTRUM'),
-('LOWKICK'),
-('IRONTAIL'),
-('FOCUSPUNCH'),
-('DRILLRUN'),
-('SYNTHESIS'),
-('KNOCKOFF'),
-('IRONHEAD'),
-('LIQUIDATION'),
-('AQUATAIL'),
-('ICYWIND'),
-('SIGNALBEAM'),
-('THROATCHOP'),
-('DRAINPUNCH'),
-('TAILWIND'),
-('ZENHEADBUTT'),
-('STEALTHROCK'),
-('GUNKSHOT'),
-('DRAGONPULSE'),
-('SEEDBOMB'),
-('FOULPLAY'),
-('SUPERPOWER'),
-('EARTHPOWER'),
-('OUTRAGE'),
-('HEATWAVE'),
-('HYDROCANNON'),
-('BLASTBURN'),
-('FRENZYPLANT'),
-('DRACOMETEOR'),
-('CELEBRATE');
+create view "tutor_move_teach_command" ("move", "command") as
+select
+	regexp_capture("arg"."value", '^pbMoveTutorChoose\(PBMoves::(\w+)\)$', 1),
+	"arg"."command"
+from "event_command_text_argument" as "arg"
+where "arg"."command_type" = 'ConditionalBranch'
+and "arg"."command_subtype" = 'Script'
+and "arg"."parameter" = 'expr'
+and "arg"."value" like "pbMoveTutorChoose(%";
+
+create view "tutorable_move" ("move") as
+select distinct "move" from "tutor_move_teach_command";
+
+create view "tutor_move_item_cost" (
+	"move", "item", "quantity", "command1", "command2",
+	"map_id", "event_id", "page_number", "command1_number"
+) as
+select
+	regexp_capture("arg"."value", '^addTutorMove\(PBMoves::(\w+)\)$', 1),
+	regexp_capture("arg0"."value", '^PBItems::(\w+),(\d+)\)$', 1),
+	regexp_capture("arg0"."value", '^PBItems::(\w+),(\d+)\)$', 2),
+	"arg0"."command",
+	"arg"."command",
+	"epc"."map_id",
+	"epc"."event_id",
+	"epc"."page_number",
+	"epc"."command_number"
+from "event_command_text_argument" as "arg"
+join "event_page_command" as "epc" on "epc"."command" = "arg"."command"
+join "event_page_command" as "epc0" on (
+	"epc0"."map_id" = "epc"."map_id"
+	and "epc0"."event_id" = "epc"."event_id"
+	and "epc0"."page_number" = "epc"."page_number"
+	and "epc0"."command_number" = "epc"."command_number" - 1
+)
+join "event_command_text_argument" as "arg0" on (
+	"arg0"."command" = "epc0"."command"
+	and "arg0"."command_type" = 'ContinueScript'
+	and "arg0"."command_subtype" = ''
+	and "arg0"."parameter" = 'line'
+)
+where "arg"."command_type" = 'Script'
+and "arg"."command_subtype" = ''
+and "arg"."parameter" = 'line'
+and "arg"."value" like "addTutorMove(%";
+
+create view "tutor_move_money_cost" (
+	"move", "amount", "command1", "command2",
+	"map_id", "event_id", "page_number", "command1_number"
+) as
+select
+	regexp_capture("arg"."value", '^addTutorMove\(PBMoves::(\w+)\)$', 1),
+	"arg0"."value",
+	"arg0"."command",
+	"arg"."command",
+	"epc"."map_id",
+	"epc"."event_id",
+	"epc"."page_number",
+	"epc"."command_number"
+from "event_command_text_argument" as "arg"
+join "event_page_command" as "epc" on "epc"."command" = "arg"."command"
+join "event_page_command" as "epc0" on (
+	"epc0"."map_id" = "epc"."map_id"
+	and "epc0"."event_id" = "epc"."event_id"
+	and "epc0"."page_number" = "epc"."page_number"
+	and "epc0"."command_number" = "epc"."command_number" - 1
+)
+join "event_command_integer_argument" as "arg0" on (
+	"arg0"."command" = "epc0"."command"
+	and "arg0"."command_type" = 'ChangeGold'
+	and "arg0"."command_subtype" = ''
+	and "arg0"."parameter" = 'amount'
+)
+join "event_command_bool_argument" as "arg0_withvar" on (
+	"arg0_withvar"."command" = "epc0"."command"
+	and "arg0_withvar"."command_type" = 'ChangeGold'
+	and "arg0_withvar"."command_subtype" = ''
+	and "arg0_withvar"."parameter" = 'with_variable'
+	and "arg0_withvar"."value" = 0
+)
+join "event_command_diff_type_argument" as "arg0_difftype" on (
+	"arg0_difftype"."command" = "epc0"."command"
+	and "arg0_difftype"."command_type" = 'ChangeGold'
+	and "arg0_difftype"."command_subtype" = ''
+	and "arg0_difftype"."parameter" = 'diff_type'
+	and "arg0_difftype"."diff_type" = 'decrease'
+)
+where "arg"."command_type" = 'Script'
+and "arg"."command_subtype" = ''
+and "arg"."parameter" = 'line'
+and "arg"."value" like "addTutorMove(%";
+
+create view "move_tutor_v" (
+	"move", "cost_is_monetary", "cost_quantity", "cost_item", "sprite", "map"
+) as
+select
+	"tcmd"."move",
+	case when "mcost"."amount" is null then 0 else 1 end,
+	coalesce("icost"."quantity", "mcost"."amount"),
+	"icost"."item",
+	"char_img"."content",
+	"epcmd"."map_id"
+from "tutor_move_teach_command" as "tcmd"
+join "event_page_command" as "epcmd" on "epcmd"."command" = "tcmd"."command"
+join "event_page_character" as "epchar" on (
+	"epchar"."map_id" = "epcmd"."map_id"
+	and "epchar"."event_id" = "epcmd"."event_id"
+	and "epchar"."page_number" = "epcmd"."page_number"
+)
+join "character_image" as "char_img" on (
+	"char_img"."filename" = "epchar"."character_name"
+	and "char_img"."direction" = "epchar"."direction"
+	and "char_img"."pattern" = "epchar"."pattern"
+)
+left join "tutor_move_item_cost" as "icost" on (
+	"icost"."map_id" = "epcmd"."map_id"
+	and "icost"."event_id" = "epcmd"."event_id"
+	and "icost"."page_number" = "epcmd"."page_number"
+	and "icost"."move" = "tcmd"."move"
+)
+left join "tutor_move_money_cost" as "mcost" on (
+	"mcost"."map_id" = "epcmd"."map_id"
+	and "mcost"."event_id" = "epcmd"."event_id"
+	and "mcost"."page_number" = "epcmd"."page_number"
+	and "mcost"."move" = "tcmd"."move"
+);
 
 ---------------------------------------------------------------------------------------------------
 -- Materialized Views

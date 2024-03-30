@@ -5,7 +5,6 @@ from reborndb import DB
 extractor_names = [
 	'switches_and_variables',
 	'tilesets',
-	'common_events',
 	'metadata',
 	'types',
 	'abilities',
@@ -19,6 +18,7 @@ extractor_names = [
 	'trainertypes',
 	'trainers',
 	'trainerlists',
+	'graphics',
 ]
 
 #extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]
@@ -36,12 +36,54 @@ EXCEPTIONS = [
 	'event_encounter_old',
 	'marshal_mapdata',
 	'map_event',
+	'event_page_trigger',
 	'event_page',
 	'event_page_switch_condition',
 	'event_page_variable_condition',
 	'event_page_self_switch_condition',
 	'event_page_tile',
-	'event_page_character'
+	'event_page_character',
+	'parameter_type',
+	'switch_state',
+	'cancel_type',
+	'appoint_type',
+	'comparison',
+	'bound_type',
+	'diff_type',
+	'text_position',
+	'move_command_type',
+	'move_command_parameter',
+	'move_command',
+	'event_page_move_command',
+	'move_command_integer_argument',
+	'move_command_text_argument',
+	'move_command_audio_file_argument',
+	'move_command_direction_argument',
+	'event_command_type',
+	'event_command_subtype',
+	'event_command_parameter',
+	'event_command',
+	'common_event_command',
+	'event_page_command',
+	'event_command_integer_argument',
+	'event_command_text_argument',
+	'event_command_bool_argument',
+	'event_command_audio_file_argument',
+	'event_command_direction_argument',
+	'event_command_choices_array_argument',
+	'event_command_tone_argument',
+	'event_command_color_argument',
+	'event_command_cancel_type_argument',
+	'event_command_text_position_argument',
+	'event_command_switch_state_argument',
+	'event_command_diff_type_argument',
+	'event_command_appoint_type_argument',
+	'event_command_move_command_argument',
+	'event_command_move_route_argument',
+	'event_command_move_route_argument_move_command',
+	'event_command_comparison_argument',
+	'event_command_bound_type_argument',
+	'event_command_weather_argument',
 ]
 
 def run():
@@ -53,7 +95,9 @@ def run():
 	elif os.environ.get('EVENT_ENCOUNTERS'):
 		extractor_names.append('event_encounters')
 	elif os.environ.get('MAP_DATA'):
-		extractor_names.append('map_data')
+		i = extractor_names.index('metadata')
+		extractor_names.insert(i, 'common_events')
+		extractor_names.insert(i + 1, 'map_data')
 	
 	print('Creating schema... ', end='')
 	with DB.H.transaction(): DB.H.execscript('schema.sql')

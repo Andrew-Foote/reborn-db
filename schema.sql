@@ -495,13 +495,6 @@ create table "tutor_move" (
 
 create index "tutor_move_idx_move" on "tutor_move" ("move");
 
--- Moves for which there is an actually existing move tutor NPC in the game.
-create table "tutorable_move" (
-	"move" text,
-	primary key ("move"),
-	foreign key ("move") references "move" ("id")	
-) without rowid;
-
 create table "move_learn_method" (
 	"name" text primary key,
 	"order" integer not null unique
@@ -1431,6 +1424,15 @@ create table "common_event" (
 	"switch" integer not null,
 	foreign key ("trigger") references "common_event_trigger" ("name"),
 	foreign key ("switch") references "game_switch" ("id")
+);
+
+create table "character_image" (
+	"filename" text,
+	"direction" text check ("direction" != 'none'),
+	"pattern" integer check ("pattern" between 0 and 3),
+	"content" blob not null,
+	primary key ("filename", "direction", "pattern"),
+	foreign key ("direction") references "direction" ("name")
 );
 
 ------------------------
