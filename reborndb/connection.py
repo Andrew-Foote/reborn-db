@@ -5,15 +5,16 @@ class Connection:
     def __init__(self, db_path):
         self.apsw = apsw.Connection(str(db_path))
         self.apsw.enable_load_extension(True)
-        self.apsw.load_extension('C:/programs/sqlean/define')
+        self.apsw.load_extension('C:/programs/sqlean/stats')
         self.apsw.load_extension('C:/programs/sqlean/regexp')
+        self.apsw.load_extension('C:/programs/sqlean/define')
         self.exec('pragma foreign_keys = 1')
         
         # i don't remember why i commented this out#
 #    def close(self):
 #        self.analyze()
 #        self.apsw.close()
-
+        
     def register_function(self, name, argcount, deterministic):
         def decorator(callback):
             self.apsw.createscalarfunction(name, callback, argcount, deterministic=deterministic)

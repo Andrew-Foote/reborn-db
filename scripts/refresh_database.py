@@ -35,6 +35,7 @@ EXCEPTIONS = [
 	'event_encounter_iv',
 	'event_encounter_old',
 	'marshal_mapdata',
+	'common_event',
 	'map_event',
 	'event_page_trigger',
 	'event_page',
@@ -96,8 +97,8 @@ def run():
 		extractor_names.append('event_encounters')
 	elif os.environ.get('MAP_DATA'):
 		i = extractor_names.index('metadata')
-		extractor_names.insert(i, 'common_events')
-		extractor_names.insert(i + 1, 'map_data')
+		extractor_names.insert(i, 'map_data')
+		extractor_names.insert(i + 1, 'common_events')
 	
 	print('Creating schema... ', end='')
 	with DB.H.transaction(): DB.H.execscript('schema.sql')

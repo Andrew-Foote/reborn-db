@@ -2,10 +2,17 @@
 
 import os
 import sys
-from scripts import refresh_database, regenerate_site, run_server
+from scripts import refresh_database, create_views, regenerate_site, run_server
 
-SCRIPTS = (refresh_database, regenerate_site, run_server)
-SHORT_NAMES = {'db': 'refresh_database', 'site': 'regenerate_site', 'serve': 'run_server'}
+SCRIPTS = (refresh_database, create_views, regenerate_site, run_server)
+
+SHORT_NAMES = {
+	'db': 'refresh_database',
+	'views': 'create_views',
+	'site': 'regenerate_site',
+	'serve': 'run_server'
+}
+
 SCRIPTS_DICT = {script.__name__: script for script in SCRIPTS}
 
 if len(sys.argv) <= 1:

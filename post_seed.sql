@@ -559,6 +559,21 @@ and "arg"."command_subtype" = ''
 and "arg"."parameter" = 'line'
 and "arg"."value" like "addTutorMove(%";
 
+create view "event_page_character_image" (
+	"map_id", "event_id", "page_number",
+	"character_name", "character_hue",
+	"direction", "pattern",
+	"opacity", "blend_type",
+	"image"
+) as
+select "epchar".*, "char_img"."content"
+from "event_page_character" as "epchar"
+join "character_image" as "char_img" on (
+	"char_img"."filename" = "epchar"."character_name"
+	and "char_img"."direction" = "epchar"."direction"
+	and "char_img"."pattern" = "epchar"."pattern"
+);
+
 create view "move_tutor_v" (
 	"move", "cost_is_monetary", "cost_quantity", "cost_item", "sprite", "map"
 ) as
@@ -592,6 +607,138 @@ left join "tutor_move_money_cost" as "mcost" on (
 	and "mcost"."event_id" = "epcmd"."event_id"
 	and "mcost"."page_number" = "epcmd"."page_number"
 	and "mcost"."move" = "tcmd"."move"
+);
+
+create view "trainer_single_battle_command" (
+	"command", "level100",
+	"type", "name", "endspeech", "doublebattle", "party",
+	"canlose", "variable"
+) as
+with "args" ("command", "index", "value") as (
+	select
+		"arg"."command", "arg_index"."value",
+		regexp_capture("arg"."value", '^pbTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",_I\("(.*?)"\)(?:,(true|false)(?:,(\d+)(?:,(true|false)(?:,(\d+))?)?)?)?\)$', "arg_index"."value")
+	from "event_command_text_argument" as "arg"
+	join generate_series(1, 8) as "arg_index"
+	where "arg"."value" like 'pbTrainerBattle%'
+	and "arg"."command" not in (
+		471049, -- exclude challengers at elite four
+		488168, -- exclude the themed teams at the nightclub arena
+		585399, -- exclude self battle at neoteric isle
+		618855, -- exclude grind trainer common event
+		572057 -- exclude this kyurem battle which i don't think can actually be accessed
+		       -- (it has trainer type='KYUREM' which isn't a valid trainer type)
+	) 
+)
+select
+	"command",
+	max(case when "index" = 1 then "value" = '100' else null end),
+	max(case when "index" = 2 then "value" else null end),
+	max(case when "index" = 3 then "value" else null end),
+	max(case when "index" = 4 then "value" else null end),
+	max(case when "index" = 5 then "value" is not null and "value" = 'true' else null end),
+	max(case when "index" = 6 then ifnull(cast("value" as integer), 0) else null end),
+	max(case when "index" = 7 then "value" is not null and "value" = 'true' else null end),
+	max(case when "index" = 8 then cast("value" as integer) else null end)
+from "args" group by "command";
+
+
+-- pbDoubleTrainerBattle(
+-- trainerid1, trainername1, trainerparty1, endspeech1,
+-- trainerid2, trainername2, trainerparty2, endspeech2,
+-- canlose=false, variable=nil, switch_sprites=false, recorded=false
+-- )
+
+-- canlose = if true, all non-fainted pokemon get healed when we lose the battle?
+-- otherwise, we do pbStartOver when losing -- pbStartOver takes you to a poke center, etc
+-- switch_sprites presumably controls the order in which the two trainers appear in the field
+--   (although i'm not sure why they don't just pass in the trainer arguments the other way round)
+-- 
+
+create view "trainer_double_battle_command" (
+	"command", "level100",
+	"type1", "name1", "party1", "endspeech1",
+	"type2", "name2", "party2", "endspeech2",
+	"switch_sprites"
+) as
+with "args" ("command", "index", "value") as (
+	select
+		"arg"."command", "arg_index"."value",
+		regexp_capture("arg"."value", '^pbDoubleTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\),PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\)(?:,switch_sprites:\s*(true|false))?\)$', "arg_index"."value")
+	from "event_command_text_argument" as "arg"
+	join generate_series(1, 10) as "arg_index"
+	where "arg"."value" like 'pbDoubleTrainerBattle%'
+	and not "arg"."command" in (
+		488240, -- exclude the themed teams at the nightclub arena
+		618842 -- exclude grind trainers
+	)
+)
+select
+	"command",
+	max(case when "index" = 1 then "value" = '100' else null end),
+	max(case when "index" = 2 then "value" else null end),
+	max(case when "index" = 3 then "value" else null end),
+	max(case when "index" = 4 then cast("value" as integer) else null end),
+	max(case when "index" = 5 then "value" else null end),
+	max(case when "index" = 6 then "value" else null end),
+	max(case when "index" = 7 then "value" else null end),
+	max(case when "index" = 8 then "value" else null end),
+	max(case when "index" = 9 then cast("value" as integer) else null end),
+	max(case when "index" = 10 then "value" is not null and "value" = 'true' else null end)
+from "args" group by "command";
+
+create view "trainer_battle_command" (
+	"trainer_type", "trainer_name", "party_id",
+	"command", "level100", "endspeech", "doublebattle", "doubleindex", "canlose"
+) as select
+	"t"."type", "t"."name", "t"."party_id",
+	coalesce("sc"."command", "dc1"."command", "dc2"."command"),
+	coalesce("sc"."level100", "dc1"."level100", "dc2"."level100"),
+	coalesce("sc"."endspeech", "dc1"."endspeech1", "dc2"."endspeech2"),
+	case when "dc1"."command" is not null or "dc2"."command" is not null then 1 else "sc"."doublebattle" end,
+	case when "dc1"."command" is not null then 1 when "dc2"."command" is not null then 2 else null end,
+	coalesce("sc"."canlose", 0)
+from "trainer" as "t"
+left join "trainer_single_battle_command" as "sc" on (
+	"sc"."type" = "t"."type"
+	and "sc"."name" = "t"."name"
+	and "sc"."party" = "t"."party_id"
+)
+left join "trainer_double_battle_command" as "dc1" on (
+	"dc1"."type1" = "t"."type"
+	and "dc1"."name1" = "t"."name"
+	and "dc1"."party1" = "t"."party_id"
+)
+left join "trainer_double_battle_command" as "dc2" on (
+	"dc2"."type2" = "t"."type"
+	and "dc2"."name2" = "t"."name"
+	and "dc2"."party2" = "t"."party_id"
+);
+
+-- this is imperfect, because the image only reflects the very start of the event page
+-- through the course of the event leading up to the battle command, the image may change
+-- due to Graphic commands
+create view "trainer_location_info" (
+	"type", "name", "party_id", "command", "x", "y", "map", "image"
+) as
+select
+	"t"."type", "t"."name", "t"."party_id", "tcmd"."command", "event"."x", "event"."y",
+	"epcmd"."map_id", "epchar"."image"
+from "trainer" as "t"
+left join "trainer_battle_command" as "tcmd" on (
+	"tcmd"."trainer_type" = "t"."type"
+	and "tcmd"."trainer_name" = "t"."name"
+	and "tcmd"."party_id" = "t"."party_id"
+)
+left join "event_page_command" as "epcmd" on "epcmd"."command" = "tcmd"."command"
+left join "event_page_character_image" as "epchar" on (
+	"epchar"."map_id" = "epcmd"."map_id"
+	and "epchar"."event_id" = "epcmd"."event_id"
+	and "epchar"."page_number" = "epcmd"."page_number"
+)
+left join "map_event" as "event" on (
+	"event"."map_id" = "epcmd"."map_id"
+	and "event"."event_id" = "epcmd"."event_id"
 );
 
 ---------------------------------------------------------------------------------------------------

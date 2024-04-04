@@ -1,3 +1,13 @@
+-- well, now it's common events too
+create table "common_event" (
+	"id" integer primary key,
+	"name" text not null,
+	"trigger" text not null,
+	"switch" integer not null,
+	foreign key ("trigger") references "common_event_trigger" ("name"),
+	foreign key ("switch") references "game_switch" ("id")
+);
+
 create table "map_event" (
 	"map_id" integer, 
 	"event_id" integer,

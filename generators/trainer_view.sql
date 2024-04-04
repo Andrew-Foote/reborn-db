@@ -7,6 +7,10 @@ select json_object(
   ,'back_sprite', base64("type"."battle_back_sprite")
   ,'base_prize', "type"."base_prize"
   ,'skill', "type"."skill"
+  ,'area',case when "tloc"."map" is null then null else (
+	select json_object('id', "map"."id", 'name', "map"."name")
+	from "map" where "map"."id" = "tloc"."map"
+  ) end
   ,'items_', (
   	select json_group_array(json_object('name', "item"."name", 'quantity', "item"."quantity"))
   	from (
@@ -179,5 +183,10 @@ select json_object(
 )
 from "trainer"
 join "trainer_type" as "type" on "type"."id" = "trainer"."type"
+join "trainer_location_info" as "tloc" on (
+	"tloc"."type" = "trainer"."type"
+	and "tloc"."name" = "trainer"."name"
+	and "tloc"."party_id" = "trainer"."party_id"
+)
 
 -- where does the order of the trainers in debug menu come from?

@@ -1417,15 +1417,6 @@ values
 ('autorun', 1),
 ('parallel', 2);
 
-create table "common_event" (
-	"id" integer primary key,
-	"name" text not null,
-	"trigger" text not null,
-	"switch" integer not null,
-	foreign key ("trigger") references "common_event_trigger" ("name"),
-	foreign key ("switch") references "game_switch" ("id")
-);
-
 create table "character_image" (
 	"filename" text,
 	"direction" text check ("direction" != 'none'),
