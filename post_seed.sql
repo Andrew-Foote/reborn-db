@@ -597,3 +597,115 @@ insert into "trainer_v"
 		"type"."base_prize", "type"."bg_music", "type"."win_music", "type"."intro_music",
 		"type"."gender", "type"."skill", "type"."battle_sprite", "type"."battle_back_sprite"
 	from "trainer" join "trainer_type" as "type" on "trainer"."type" = "type"."id";
+
+
+create view "trainer_single_battle_command" (
+	"command", "level100",
+	"type", "name", "endspeech", "doublebattle", "party",
+	"canlose", "variable"
+) as
+with "args" ("command", "index", "value") as (
+	select
+		"arg"."command", "arg_index"."value",
+		regexp_capture("arg"."value", '^pbTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",_I\("(.*?)"\)(?:,(true|false)(?:,(\d+)(?:,(true|false)(?:,(\d+))?)?)?)?\)$', "arg_index"."value")
+	from "event_command_text_argument" as "arg"
+	join generate_series(1, 8) as "arg_index"
+	where "arg"."value" like 'pbTrainerBattle%'
+	and "arg"."command" not in (
+		471049, -- exclude challengers at elite four
+		488168, -- exclude the themed teams at the nightclub arena
+		585399, -- exclude self battle at neoteric isle
+		618855, -- exclude grind trainer common event
+		572057 -- exclude this kyurem battle which i don't think can actually be accessed
+		       -- (it has trainer type='KYUREM' which isn't a valid trainer type)
+	) 
+)
+select
+	"command",
+	max(case when "index" = 1 then "value" = '100' else null end),
+	max(case when "index" = 2 then "value" else null end),
+	max(case when "index" = 3 then "value" else null end),
+	max(case when "index" = 4 then "value" else null end),
+	max(case when "index" = 5 then "value" is not null and "value" = 'true' else null end),
+	max(case when "index" = 6 then ifnull(cast("value" as integer), 0) else null end),
+	max(case when "index" = 7 then "value" is not null and "value" = 'true' else null end),
+	max(case when "index" = 8 then cast("value" as integer) else null end)
+from "args" group by "command";
+
+
+-- pbDoubleTrainerBattle(
+-- trainerid1, trainername1, trainerparty1, endspeech1,
+-- trainerid2, trainername2, trainerparty2, endspeech2,
+-- canlose=false, variable=nil, switch_sprites=false, recorded=false
+-- )
+
+-- canlose = if true, all non-fainted pokemon get healed when we lose the battle?
+-- otherwise, we do pbStartOver when losing -- pbStartOver takes you to a poke center, etc
+-- switch_sprites presumably controls the order in which the two trainers appear in the field
+--   (although i'm not sure why they don't just pass in the trainer arguments the other way round)
+-- 
+
+create view "trainer_double_battle_command" (
+	"command", "level100",
+	"type1", "name1", "party1", "endspeech1",
+	"type2", "name2", "party2", "endspeech2",
+	"switch_sprites"
+) as
+with "args" ("command", "index", "value") as (
+	select
+		"arg"."command", "arg_index"."value",
+		regexp_capture("arg"."value", '^pbDoubleTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\),PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\)(?:,switch_sprites:\s*(true|false))?\)$', "arg_index"."value")
+	from "event_command_text_argument" as "arg"
+	join generate_series(1, 10) as "arg_index"
+	where "arg"."value" like 'pbDoubleTrainerBattle%'
+	and not "arg"."command" in (
+		8542, -- CRAUDBURRY trainer type doesn't exist
+		488240, -- exclude the themed teams at the nightclub arena
+		618842 -- exclude grind trainers
+	)
+)
+select
+	"command",
+	max(case when "index" = 1 then "value" = '100' else null end),
+	max(case when "index" = 2 then "value" else null end),
+	max(case when "index" = 3 then "value" else null end),
+	max(case when "index" = 4 then cast("value" as integer) else null end),
+	max(case when "index" = 5 then "value" else null end),
+	max(case when "index" = 6 then "value" else null end),
+	max(case when "index" = 7 then "value" else null end),
+	max(case when "index" = 8 then "value" else null end),
+	max(case when "index" = 9 then cast("value" as integer) else null end),
+	max(case when "index" = 10 then "value" is not null and "value" = 'true' else null end)
+from "args" group by "command";
+
+create table "trainer_battle_command" (
+	"trainer_type" text,
+	"trainer_name" text,
+	"party" text,
+	"command" integer,
+	"level_100" integer,
+	"end_speech" text,
+    "is_double" integer,
+	"partner_index" integer,
+    "partner_type" integer,
+	"partner_name" text,
+	"partner_party" text,
+    "can_lose" integer,
+	primary key ("trainer_type", "trainer_name", "party", "command")
+) without rowid;
+
+insert into "trainer_battle_command"
+    select
+        "type", "name", "party", "command", "level100", "endspeech",
+        "doublebattle", null, null, null, null, "canlose"
+    from "trainer_single_battle_command"
+    union
+    select
+        "type1", "name1", "party1", "command", "level100", "endspeech1",
+        1, 1, "type2", "name2", "party2", 0
+    from "trainer_double_battle_command"
+    union
+    select
+        "type2", "name2", "party2", "command", "level100", "endspeech2",
+        1, 2, "type1", "name1", "party1", 0
+    from "trainer_double_battle_command";

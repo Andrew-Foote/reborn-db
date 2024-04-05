@@ -4,6 +4,8 @@ EXCEPTIONS = [
 	'evolution',
 	'evolution_trcl',
 	'evolution_requirement_display',
+	'trainer_single_battle_command',
+	'trainer_double_battle_command',
 ]
 
 def run():
