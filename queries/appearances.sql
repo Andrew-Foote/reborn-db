@@ -85,9 +85,9 @@ select
 	) as "stats"
 from "trainer_pokemon"
 join "trainer_v" as "trainer" on (
-	"trainer"."type_id" = "trainer_pokemon"."trainer_type"
-	and "trainer"."trainer_name" = "trainer_pokemon"."trainer_name"
-	and "trainer"."party_id" = "trainer_pokemon"."party_id"
+	"trainer"."type" = "trainer_pokemon"."trainer_type"
+	and "trainer"."name" = "trainer_pokemon"."trainer_name"
+	and "trainer"."party" = "trainer_pokemon"."party_id"
 )
 join "pokemon" on "pokemon"."id" = "trainer_pokemon"."pokemon"
 join "nature" on "nature"."id" = "trainer_pokemon"."nature"

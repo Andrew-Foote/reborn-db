@@ -4,9 +4,9 @@ select
 from  "trainer_pokemon" as "tp"
 join "pokemon" on "pokemon"."id" = "tp"."pokemon"
 join "trainer_v" as "tv" on
-	"tv"."type_id" = "tp"."trainer_type"
-	and "tv"."trainer_name" = "tp"."trainer_name"
-	and "tv"."party_id" = "tp"."party_id"
+	"tv"."type" = "tp"."trainer_type"
+	and "tv"."name" = "tp"."trainer_name"
+	and "tv"."party" = "tp"."party_id"
 join "trainer_pokemon_v" as "tpv" on
 	"tpv"."trainer_id" = "tv"."id" and "tpv"."index" = "tp"."index"
 join "nature" on "nature"."name" = "tpv"."nature"

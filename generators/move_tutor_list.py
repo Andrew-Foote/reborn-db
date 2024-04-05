@@ -30,8 +30,6 @@ def run():
         left join "item" on "mtv"."cost_item" is not null and "item"."id" = "mtv"."cost_item"
         order by "map"."id", "move"."name"
     ''')]
-
-    print(move_tutors)
     
     generate.render_template('move_tutors.html', 'move_tutor_list.jinja2', move_tutors=move_tutors)
 

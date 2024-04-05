@@ -1,25 +1,54 @@
 select json_object(
-  'name', "type"."name" || ' ' || "trainer"."name" || case
-      when count(*) over (partition by "type"."name", "trainer"."name") > 1
-      then ' ' || row_number() over (partition by "type"."name", "trainer"."name") else ''
-  end
-  ,'front_sprite', base64("type"."battle_sprite")
-  ,'back_sprite', base64("type"."battle_back_sprite")
-  ,'base_prize', "type"."base_prize"
-  ,'skill', "type"."skill"
-  ,'area',case when "tloc"."map" is null then null else (
-	select json_object('id', "map"."id", 'name', "map"."name")
-	from "map" where "map"."id" = "tloc"."map"
-  ) end
+  'name', "trainer"."id"
+  ,'front_sprite', base64("trainer"."battle_sprite")
+  ,'back_sprite', base64("trainer"."battle_back_sprite")
+  ,'base_prize', "trainer"."base_prize"
+  ,'skill', "trainer"."skill"
+  ,'battles', (
+	select json_group_array(json_object(
+		'area', json_object('id', "battle"."map_id", 'name', "battle"."map_name"),
+		'x', "battle"."x", 'y', "battle"."y",
+		'end_speech', "battle"."end_speech",
+		'level_100', "battle"."level_100",
+		'is_double', "battle"."is_double",
+		'partner_index', "battle"."partner_index",
+		'partner', "battle"."partner",
+		'can_lose', "battle"."can_lose"
+	))
+	from (
+		select 
+			"map"."id" as "map_id", "map"."name" as "map_name"
+			,"map_event"."x", "map_event"."y"
+			,"tbc"."end_speech", "tbc"."level_100"
+			,"tbc"."is_double", "tbc"."partner_index", "partner"."id" as "partner"
+			,"tbc"."can_lose"
+		from "trainer_battle_command" as "tbc"
+		left join "event_page_command" as "epc" on "epc"."command" = "tbc"."command"
+		left join "map_event" on (
+			"map_event"."map_id" = "epc"."map_id"
+			and "map_event"."event_id" = "epc"."event_id"
+		)
+		left join "map" on "map"."id" = "epc"."map_id"
+		left join "trainer_v" as "partner" on (
+			"partner"."type" = "tbc"."partner_type" 
+			and "partner"."name" = "tbc"."partner_name"
+			and "partner"."party" = "tbc"."partner_party"
+		)
+		where "tbc"."trainer_type" = "trainer"."type"
+		and "tbc"."trainer_name" = "trainer"."name"
+		and "tbc"."party" = "trainer"."party"
+		order by "tbc"."command"
+	) as "battle"
+  )
   ,'items_', (
   	select json_group_array(json_object('name', "item"."name", 'quantity', "item"."quantity"))
   	from (
   		select "item"."name", "trainer_item"."quantity"
   		from "trainer_item" join "item" on "item"."id" = "trainer_item"."item"
   		where
-    		"trainer_item"."trainer_type" = "type"."id"
+    		"trainer_item"."trainer_type" = "trainer"."type"
     		and "trainer_item"."trainer_name" = "trainer"."name"
-    		and "trainer_item"."party_id" = "trainer"."party_id"
+    		and "trainer_item"."party_id" = "trainer"."party"
   		order by "item"."code"
   	) as "item"
   )
@@ -71,85 +100,65 @@ select json_object(
 	  				order by "possible_form"."order"
   				) as "possible_form"
   			) as "abilities"
-  			-- ,(
-				-- 	select json_group_array("ability"."name")
-				-- 	from (
-				-- 		select "ability"."name"
-				-- 		from "trainer_pokemon_ability"
-				-- 		join "pokemon_ability" on (
-				-- 			"pokemon_ability"."pokemon" = "pokemon"."id"
-				-- 			and ("form"."name" is null or "pokemon_ability"."form" = "form"."name")
-				-- 			and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
-				-- 		)
-				-- 		join "pokemon_form" as "ability_form" on "ability_form"."pokemon" = "pokemon_ability"."pokemon" and "ability_form"."name" = "pokemon_ability"."form"
-				-- 		join "ability" on "ability"."id" = "pokemon_ability"."ability"
-				-- 		where
-				-- 			"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
-				-- 			and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
-				-- 			and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
-				-- 			and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
-				-- 		order by "ability_form"."order", "pokemon_ability"."index"
-				-- 	) as "ability"
-				-- ) as "abilities"
-				,(
-					select json_group_array(json_object('id', "move"."id", 'name', "move"."name", 'pp', "move"."pp"))
-					from (
-						select "move"."name", "move"."id", case
-						  when "trainer_pokemon"."level" >= 100 and "type"."skill" >= 100
-							then ("move"."pp" * 8) / 5 else "move"."pp"
-						end as "pp"
-						from "trainer_pokemon_move" as "pokemon_move"
-						join "move" on "move"."id" = "pokemon_move"."move"
-						where
-							"pokemon_move"."trainer_type" = "trainer_pokemon"."trainer_type"
-							and "pokemon_move"."trainer_name" = "trainer_pokemon"."trainer_name"
-							and "pokemon_move"."party_id" = "trainer_pokemon"."party_id"
-							and "pokemon_move"."pokemon_index" = "trainer_pokemon"."index"
-						order by "pokemon_move"."move_index"
-					) as "move"
-				) as "moves"
-				,(
-					select json_group_array(json_object('stat', "ev"."stat", 'value', "ev"."value"))
-					from (
-						select "stat"."name" as "stat", "ev"."value"
-						from "trainer_pokemon_ev" as "ev"
-						join "stat" on "stat"."id" = "ev"."stat"
-						where
-							"ev"."trainer_type" = "trainer_pokemon"."trainer_type"
-							and "ev"."trainer_name" = "trainer_pokemon"."trainer_name"
-							and "ev"."party_id" = "trainer_pokemon"."party_id"
-							and "ev"."pokemon_index" = "trainer_pokemon"."index"
-						order by "stat"."order"
-					) as "ev"
-				) as "evs"
-				,(
-					select json_group_array(json_object('stat', "iv"."stat", 'value', "iv"."value"))
-					from (
-						select "stat"."name" as "stat", "iv"."value"
-						from "trainer_pokemon_iv" as "iv"
-						join "stat" on "stat"."id" = "iv"."stat"
-						where
-							"iv"."trainer_type" = "trainer_pokemon"."trainer_type"
-							and "iv"."trainer_name" = "trainer_pokemon"."trainer_name"
-							and "iv"."party_id" = "trainer_pokemon"."party_id"
-							and "iv"."pokemon_index" = "trainer_pokemon"."index"
-						order by "stat"."order"
-					) as "iv"
-				) as "ivs"
-				,(
-					select json_group_array(json_object('stat', "stat"."stat", 'value', "stat"."value"))
-					from (
-						select "stat"."name" as "stat", "pokemon_stat"."value"
-						from "trainer_pokemon_stat" as "pokemon_stat"
-						join "stat" on "stat"."id" = "pokemon_stat"."stat"
-						where
-							"pokemon_stat"."trainer_type" = "trainer_pokemon"."trainer_type"
-							and "pokemon_stat"."trainer_name" = "trainer_pokemon"."trainer_name"
-							and "pokemon_stat"."party_id" = "trainer_pokemon"."party_id"
-							and "pokemon_stat"."pokemon_index" = "trainer_pokemon"."index"
-						order by "stat"."order"
-					) as "stat"
-				) as "stats"
+			,(
+				select json_group_array(json_object('id', "move"."id", 'name', "move"."name", 'pp', "move"."pp"))
+				from (
+					select "move"."name", "move"."id", case
+						when "trainer_pokemon"."level" >= 100 and "trainer"."skill" >= 100
+						then ("move"."pp" * 8) / 5 else "move"."pp"
+					end as "pp"
+					from "trainer_pokemon_move" as "pokemon_move"
+					join "move" on "move"."id" = "pokemon_move"."move"
+					where
+						"pokemon_move"."trainer_type" = "trainer_pokemon"."trainer_type"
+						and "pokemon_move"."trainer_name" = "trainer_pokemon"."trainer_name"
+						and "pokemon_move"."party_id" = "trainer_pokemon"."party_id"
+						and "pokemon_move"."pokemon_index" = "trainer_pokemon"."index"
+					order by "pokemon_move"."move_index"
+				) as "move"
+			) as "moves"
+			,(
+				select json_group_array(json_object('stat', "ev"."stat", 'value', "ev"."value"))
+				from (
+					select "stat"."name" as "stat", "ev"."value"
+					from "trainer_pokemon_ev" as "ev"
+					join "stat" on "stat"."id" = "ev"."stat"
+					where
+						"ev"."trainer_type" = "trainer_pokemon"."trainer_type"
+						and "ev"."trainer_name" = "trainer_pokemon"."trainer_name"
+						and "ev"."party_id" = "trainer_pokemon"."party_id"
+						and "ev"."pokemon_index" = "trainer_pokemon"."index"
+					order by "stat"."order"
+				) as "ev"
+			) as "evs"
+			,(
+				select json_group_array(json_object('stat', "iv"."stat", 'value', "iv"."value"))
+				from (
+					select "stat"."name" as "stat", "iv"."value"
+					from "trainer_pokemon_iv" as "iv"
+					join "stat" on "stat"."id" = "iv"."stat"
+					where
+						"iv"."trainer_type" = "trainer_pokemon"."trainer_type"
+						and "iv"."trainer_name" = "trainer_pokemon"."trainer_name"
+						and "iv"."party_id" = "trainer_pokemon"."party_id"
+						and "iv"."pokemon_index" = "trainer_pokemon"."index"
+					order by "stat"."order"
+				) as "iv"
+			) as "ivs"
+			,(
+				select json_group_array(json_object('stat', "stat"."stat", 'value', "stat"."value"))
+				from (
+					select "stat"."name" as "stat", "pokemon_stat"."value"
+					from "trainer_pokemon_stat" as "pokemon_stat"
+					join "stat" on "stat"."id" = "pokemon_stat"."stat"
+					where
+						"pokemon_stat"."trainer_type" = "trainer_pokemon"."trainer_type"
+						and "pokemon_stat"."trainer_name" = "trainer_pokemon"."trainer_name"
+						and "pokemon_stat"."party_id" = "trainer_pokemon"."party_id"
+						and "pokemon_stat"."pokemon_index" = "trainer_pokemon"."index"
+					order by "stat"."order"
+				) as "stat"
+			) as "stats"
       from "trainer_pokemon"
       left join "pokemon_form" as "form" on (
           "form"."pokemon" = "trainer_pokemon"."pokemon"
@@ -173,20 +182,13 @@ select json_object(
       join "nature" on "nature"."id" = "trainer_pokemon"."nature"
       left join "item" on "item"."id" = "trainer_pokemon"."item"
       where 
-		    "trainer_pokemon"."trainer_type" = "type"."id"
+		    "trainer_pokemon"."trainer_type" = "trainer"."type"
 		    and "trainer_pokemon"."trainer_name" = "trainer"."name"
-		    and "trainer_pokemon"."party_id" = "trainer"."party_id"
+		    and "trainer_pokemon"."party_id" = "trainer"."party"
 		    and ("form"."name" is not null or "sprite_form"."order" = 0)
       order by "trainer_pokemon"."index"
   	) as "pokemon"
   )
 )
-from "trainer"
-join "trainer_type" as "type" on "type"."id" = "trainer"."type"
-join "trainer_location_info" as "tloc" on (
-	"tloc"."type" = "trainer"."type"
-	and "tloc"."name" = "trainer"."name"
-	and "tloc"."party_id" = "trainer"."party_id"
-)
-
+from "trainer_v" as "trainer"
 -- where does the order of the trainers in debug menu come from?

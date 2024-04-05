@@ -47,32 +47,6 @@ create table "type_effect" (
 
 create index "type_effect_idx_multiplier" on "type_effect" ("multiplier");
 
--- [An {attacking_type} move hitting a Pokémon of type {defending_type1}/{defending_type2}
--- will have a damage multiplier of {multiplier}. (If {defending_type2} is null, this includes
--- the case where the defending Pokémon has a single type.)]
-create view "type_effect2" ("attacking_type", "defending_type1", "defending_type2", "multiplier")
-as select
-	"attacking_type",
-	"defending_type" as "defending_type1", NULL as "defending_type2",
-	"multiplier"
-from "type_effect"
-union
-select * from (
-	select
-		"attacking_type"."id" as "attacking_type",
-		"defending_type1"."id" as "defending_type1", "defending_type2"."id" as "defending_type2",
-		ifnull("effect1"."multiplier", 1) * ifnull("effect2"."multiplier", 1) as "multiplier"
-	from "type" as "attacking_type"
-	join "type" as "defending_type1" on not "defending_type1"."is_pseudo"
-	left join "type_effect" as "effect1"
-		on "effect1"."attacking_type" = "attacking_type"."id" and "effect1"."defending_type" = "defending_type1"."id"
-	join "type" as "defending_type2" on not "defending_type2"."is_pseudo"
-	left join "type_effect" as "effect2"
-		on "effect2"."attacking_type" = "attacking_type"."id" and "effect2"."defending_type" = "defending_type2"."id"
-	where not "attacking_type"."is_pseudo" and "defending_type1"."id" != "defending_type2"."id"
-)
-where "multiplier" != 1;
-
 -------------------
 -- POKÉMON MOVES --
 -------------------
@@ -247,27 +221,6 @@ create table "pokemon" (
 	,foreign key ("habitat") references "habitat" ("name")
 	,foreign key ("evolves_from") references "pokemon" ("id")
 ) without rowid;
-
--- [{evolution} is the stage {stage} evolution of the unevolved Pokémon {pokemon},
--- with {evolves_from} as the previous Pokémon in the evolution chain. (Note:
--- unevolved Pokémon are counted as the stage 0 evolutions of themselves.)]
-create view "pokemon_evolution_stage" ("pokemon", "evolution", "stage", "evolves_from") as
-with recursive "pokemon_evolution_stage" (
-	"pokemon", "evolution", "stage", "evolves_from"
-) as (
-	select "id", "id", 0, null from "pokemon" where "evolves_from" is null
-	union all
-	select
-		"pokemon"."id"
-		,"evolves_to"."id"
-		,"pokemon_evolution_stage"."stage" + 1
-		,"evolution"."id"
-	from "pokemon_evolution_stage"
-	join "pokemon" on "pokemon"."id" = "pokemon_evolution_stage"."pokemon"
-	join "pokemon" as "evolution" on "evolution"."id" = "pokemon_evolution_stage"."evolution"
-	join "pokemon" as "evolves_to" on "evolves_to"."evolves_from" = "evolution"."id"
-)
-select * from "pokemon_evolution_stage";
 
 -- Pokémon egg groups.
 create table "egg_group" (
@@ -499,35 +452,6 @@ create table "move_learn_method" (
 	"name" text primary key,
 	"order" integer not null unique
 ) without rowid;
-
-create view "pokemon_move" ("pokemon", "form", "move", "method", "level", "order") as
-	select "pokemon", "form", "move", 'level', "level", "order" from "level_move"
-	union
-	select "pokemon", "form", "move", 'egg', null, null from "egg_move"
-	union
-	select "pokemon", "form", "move", 'machine', null, null from "machine_move"
-	union
-	select "pokemon", "form", "move", 'tutor', null, null from "tutor_move";
-
--- note that this includes egg moves --- this is relevant because for a Pokémon like Roserade, it
--- can learn either Extrasensory via Budew's egg move or Bullet Seed via Roselia's egg moves, but
--- not both
-create view "preevo_move" ("pokemon", "form", "preevo", "preevo_form", "dist", "method", "level", "order", "move") as
-select
-	"form"."pokemon", "form"."name", "preevo"."from", "preevo"."from_form", "preevo"."dist",
-	"move"."method", "move"."level", "move"."order", "move"."move"
-from "pokemon_form" as "form"
-join "evolution_trcl" as "preevo" on (
-	"preevo"."to" = "form"."pokemon" and "preevo"."to_form" = "form"."name"
-)
-join "pokemon_move" as "move" on (
-	"move"."pokemon" = "preevo"."from" and "move"."form" = "preevo"."from_form"
-)
-left join "pokemon_move" as "evo_move" on (
-   "evo_move"."pokemon" = "form"."pokemon" and "evo_move"."form" = "form"."name"
-   and "evo_move"."move" = "move"."move"
-)
-where "evo_move"."move" is null;
 
 -----------------------------
 -- AREAS IN THE GAME WORLD --
@@ -819,59 +743,6 @@ create table `evolution_requirement_weather` (
 	foreign key (`weather`) references `weather` (`name`)
 ) without rowid;
 
-create view "evolution_requirement_display" ("method", "kind", "args") as
-select "base"."method", "base"."kind", case
-	when "base"."kind" = 'level' then json_array("er_level"."level")
-	when "base"."kind" = 'item' then json_array("item"."name")
-	when "base"."kind" = 'held_item' then json_array("held_item"."name")
-	when "base"."kind" = 'friendship' then json_array()
-	when "base"."kind" = 'time'	then json_array("time"."desc", "time"."range_desc")
-	when "base"."kind" = 'stat_cmp' then json_array("stat1"."name", "stat2"."name", "er_stat_cmp"."operator")
-	when "base"."kind" = 'coin_flip' then json_array("er_coin_flip"."value")
-	when "base"."kind" = 'leftover' then json_array()
-	when "base"."kind" = 'gender' then json_array("er_gender"."gender")
-	when "base"."kind" = 'teammate' then json_array("teammate"."name")
-	when "base"."kind" = 'move' then json_array("move"."name")
-	when "base"."kind" = 'map' then json_array("map"."id", "map"."name")
-	when "base"."kind" = 'trademate' then json_array("trademate"."name")
-	when "base"."kind" = 'teammate_type' then json_array("teammate_type"."name")
-	when "base"."kind" = 'cancel' then json_array()
-	when "base"."kind" = 'move_type' then json_array("move_type"."name")
-	when "base"."kind" = 'weather' then json_array("weather"."desc")
-end
-from "evolution_requirement" as "base"
-left join "evolution_requirement_level" as "er_level" on "er_level"."method" = "base"."method"
-left join "evolution_requirement_item" as "er_item" on "er_item"."method" = "base"."method"
-left join "item" on "item"."id" = "er_item"."item"
-left join "evolution_requirement_held_item" as "er_held_item" on "er_held_item"."method" = "base"."method"
-left join "item" as "held_item" on "held_item"."id" = "er_held_item"."item"
-left join "evolution_requirement_time" as "er_time" on "er_time"."method" = "base"."method"
-left join "time_of_day" as "time" on "time"."name" = "er_time"."time"
-left join "evolution_requirement_stat_cmp" as "er_stat_cmp" on "er_stat_cmp"."method" = "base"."method"
-left join "stat" as "stat1" on "stat1"."id" = "er_stat_cmp"."stat1"
-left join "stat" as "stat2" on "stat2"."id" = "er_stat_cmp"."stat2"
-left join "evolution_requirement_coin_flip" as "er_coin_flip" on "er_coin_flip"."method" = "base"."method"
-left join "evolution_requirement_gender" as "er_gender" on "er_gender"."method" = "base"."method"
-left join "gender" as "gender" on "gender"."name" = "er_gender"."gender"
-left join "evolution_requirement_teammate" as "er_teammate" on "er_teammate"."method" = "base"."method"
-left join "pokemon" as "teammate" on "teammate"."id" = "er_teammate"."pokemon"
-left join "evolution_requirement_map" as "er_map" on "er_map"."method" = "base"."method"
-left join "map" on "map"."id" = "er_map"."map"
-left join "evolution_requirement_move" as "er_move" on "er_move"."method" = "base"."method"
-left join "move" on "move"."id" = "er_move"."move"
-left join "evolution_requirement_trademate" as "er_trademate" on "er_trademate"."method" = "base"."method"
-left join "pokemon" as "trademate" on "trademate"."id" = "er_trademate"."pokemon"
-left join "evolution_requirement_teammate_type" as "er_teammate_type" on "er_teammate_type"."method" = "base"."method"
-left join "type" as "teammate_type" on "teammate_type"."id" = "er_teammate_type"."type"
-left join "evolution_requirement_move_type" as "er_move_type" on "er_move_type"."method" = "base"."method"
-left join "type" as "move_type" on "move_type"."id" = "er_move_type"."type"
-left join "evolution_requirement_weather" as "er_weather" on "er_weather"."method" = "base"."method" 
-left join "weather" as "weather" on "weather"."name" = "er_weather"."weather"
-order by 
- "item"."code", "held_item"."code", "time"."order", "stat1"."order", "stat2"."order",
- "er_coin_flip"."value", "gender"."code", "teammate"."number", "map"."order", "move"."code",
- "trademate"."number", "teammate_type"."code", "move_type"."code", "weather"."order";
-
 -- Determines the method for evolving one Pokémon into another.
 create table `pokemon_evolution_method` (
 	`from` text,
@@ -886,37 +757,9 @@ create table `pokemon_evolution_method` (
 	foreign key (`method`) references `evolution_method` (`id`)
 ) without rowid;
 
-create view "evolution" ("from", "from_form", "to", "to_form") as
-select distinct "from", "from_form", "to", "to_form"
-from "pokemon_evolution_method";
-	
-create view "evolution_trcl" ("from", "from_form", "to", "to_form", "dist") as
-with recursive "evolution_trcl" ("from", "from_form", "to", "to_form", "dist") as (
-	select "from", "from_form", "to", "to_form", 1 from "evolution"
-	union all
-	select "trcl"."from", "trcl"."from_form", "evolution"."to", "evolution"."to_form", "trcl"."dist" + 1
-	from "evolution_trcl" as "trcl"
-	join "evolution" on (
-		"evolution"."from" = "trcl"."to" and "evolution"."from_form" = "trcl"."to_form"
-	)
-)
-select * from "evolution_trcl"
-union
-select "form"."pokemon", "form"."name", "form"."pokemon", "form"."name", 0
-from "pokemon_form" as "form";
-
--- create view "pokemon_evolution_schemes" ("from", "from_form", "to", "to_form", "schemes") as
--- 	select
--- 		"pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form"
--- 		,evolution_schemes("em"."base_method", "em"."reqs")
--- 	from "pokemon_evolution_method" as "pem"
--- 	join (
--- 		select "em"."id", "em"."base_method", json_group_object("erd"."kind", json("erd"."args")) as "reqs"
--- 		from "evolution_method" as "em"
--- 		join "evolution_requirement_display" as "erd" on "erd"."method" = "em"."id"
--- 		group by "em"."id"
--- 	) as "em" on "em"."id" = "pem"."method"
--- 	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
+create index "pokemon_evolution_method_from_to_idx" on "pokemon_evolution_method" (
+	"from", "to", "from_form", "to_form"
+);
 
 --------------------------------------
 -- ATTRIBUTES OF INDIVIDUAL POKÉMON --
@@ -964,21 +807,6 @@ create table "trainer" (
 	primary key ("type", "name", "party_id"),
 	foreign key ("type") references "trainer_type" ("id")
 ) without rowid;
-
-create view "trainer_v" (
-	"id", "type_id", "trainer_name", "party_id",
-	"type_name", "type_code", "pbs_order",
-	"base_prize", "bg_music", "win_music", "intro_music", "gender", "skill", "battle_sprite", "battle_back_sprite"
-) as select
-	"type"."name" || ' ' || "trainer"."name" || case
-        when count(*) over (partition by "type"."name", "trainer"."name") > 1
-        then ' ' || row_number() over (partition by "type"."name", "trainer"."name") else ''
-    end,
-    "type"."id", "trainer"."name", "trainer"."party_id",
-    "type"."name", "type"."code", "trainer"."pbs_order",
-    "type"."base_prize", "type"."bg_music", "type"."win_music", "type"."intro_music", "type"."gender",
-    "type"."skill", "type"."battle_sprite", "type"."battle_back_sprite"
-from "trainer" join "trainer_type" as "type" on "trainer"."type" = "type"."id";
 
 create table "trainer_item" (
 	"trainer_type" text,
@@ -1075,201 +903,6 @@ create table "trainer_pokemon_iv" (
 	foreign key ("stat") references "stat" ("id")
 ) without rowid;
 
-create view "trainer_pokemon_stat" (
-	"trainer_type", "trainer_name", "party_id", "pokemon_index", "stat", "value"
-) as
-	select
-		"tp"."trainer_type", "tp"."trainer_name", "tp"."party_id", "tp"."index", "base_stat"."stat",
-		case when "base_stat"."stat" = 'HP' then
-			case when "base_stat"."value" = 1 then 1 -- for shedinja
-			else
-			cast(
-				("base_stat"."value" * 2 + "iv"."value" + "ev"."value" / 4) * "tp"."level" / 100
-			as int) + "tp"."level" + 10
-			end
-		else
-			cast((cast(
-				("base_stat"."value" * 2 + "iv"."value" + "ev"."value" / 4) * "tp"."level" / 100
-			as int) + 5) * (
-				case
-					when (
-						"nature"."increased_stat" = "base_stat"."stat"
-						and "nature"."decreased_stat" != "base_stat"."stat"
-					) then 1.1
-					when (
-						"nature"."decreased_stat" = "base_stat"."stat"
-						and "nature"."increased_stat" != "base_stat"."stat"
-					) then 0.9
-					else 1
-				end
-			) as int)
-		end as "value"
-	from "trainer_pokemon" as "tp"
-	join "base_stat" on (
-		"base_stat"."pokemon" = "tp"."pokemon"
-		and "base_stat"."form" = "tp"."form"
-	)
-	join "trainer_pokemon_ev" as "ev" on (
-		"ev"."trainer_type" = "tp"."trainer_type"
-		and "ev"."trainer_name" = "tp"."trainer_name"
-		and "ev"."party_id" = "tp"."party_id"
-		and "ev"."pokemon_index" = "tp"."index"
-		and "ev"."stat" = "base_stat"."stat"
-	)
-	join "trainer_pokemon_iv" as "iv" on (
-		"iv"."trainer_type" = "tp"."trainer_type"
-		and "iv"."trainer_name" = "tp"."trainer_name"
-		and "iv"."party_id" = "tp"."party_id"
-		and "iv"."pokemon_index" = "tp"."index"
-		and "iv"."stat" = "base_stat"."stat"
-	)
-	join "nature" on "nature"."id" = "tp"."nature";
-
-create view "trainer_pokemon_v" (
-	"trainer_id", "trainer_sprite", "index"
-	,"pokemon", "form", "nickname", "shiny", "level", "gender"
-	,"nature", "item", "friendship", "sprite", "abilities", "moves",
-	"evs", "ivs", "stats"
-) as
-select
-	"trainer"."id", "trainer"."battle_sprite", "trainer_pokemon"."index"
-	,"trainer_pokemon"."pokemon", "trainer_pokemon"."form", "trainer_pokemon"."nickname"
-	,"trainer_pokemon"."shiny", "trainer_pokemon"."level", "trainer_pokemon"."gender"
-	,"nature"."name" as "nature","item"."name" as "item", "trainer_pokemon"."friendship"
-	,"sprite"."sprite"
-	,(
-		select json_group_array(json_object('form', "possible_form"."name", 'abilities', json("possible_form"."abilities")))
-		from (
-			select "possible_form"."name", (
-				select json_group_array("ability"."name")
-				from (
-					select "ability"."name"
-					from "trainer_pokemon_ability"
-					join "pokemon_ability" on (
-						"pokemon_ability"."pokemon" = "trainer_pokemon"."pokemon"
-						and "pokemon_ability"."form" = "possible_form"."name"
-						and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
-					)
-					join "ability" on "ability"."id" = "pokemon_ability"."ability"
-					where
-						"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
-						and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
-						and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
-						and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
-					order by "pokemon_ability"."index"
-				) as "ability"
-			) as "abilities"
-			from "pokemon_form" as "possible_form"
-			where
-				"possible_form"."pokemon" = "trainer_pokemon"."pokemon"
-				and ("trainer_pokemon"."form" is null or "possible_form"."name" = "trainer_pokemon"."form")
-			order by "possible_form"."order"
-		) as "possible_form"
-	) as "abilities"
-	-- ,(
-	-- 	select json_group_array("ability"."name")
-	-- 	from (
-	-- 		select "ability"."name"
-	-- 		from "trainer_pokemon_ability"
-	-- 		join "pokemon_ability" on (
-	-- 			"pokemon_ability"."pokemon" = "trainer_pokemon"."pokemon"
-	-- 			and ("trainer_pokemon"."form" is null or "pokemon_ability"."form" = "trainer_pokemon"."form")
-	-- 			and "pokemon_ability"."index" = "trainer_pokemon_ability"."ability"
-	-- 		)
-	-- 		join "ability" on "ability"."id" = "pokemon_ability"."ability"
-	-- 		where
-	-- 			"trainer_pokemon_ability"."trainer_type" = "trainer_pokemon"."trainer_type"
-	-- 			and "trainer_pokemon_ability"."trainer_name" = "trainer_pokemon"."trainer_name"
-	-- 			and "trainer_pokemon_ability"."party_id" = "trainer_pokemon"."party_id"
-	-- 			and "trainer_pokemon_ability"."pokemon_index" = "trainer_pokemon"."index"
-	-- 		order by "pokemon_ability"."index"
-	-- 	) as "ability"
-	-- ) as "abilities"
-	,(
-		select json_group_array(json_object('id', "move"."id", 'name', "move"."name", 'pp', "move"."pp"))
-		from (
-			select "move"."name", "move"."id", case
-			  when "trainer_pokemon"."level" >= 100 and "trainer"."skill" >= 100
-				then ("move"."pp" * 8) / 5 else "move"."pp"
-			end as "pp"
-			from "trainer_pokemon_move" as "pokemon_move"
-			join "move" on "move"."id" = "pokemon_move"."move"
-			where
-				"pokemon_move"."trainer_type" = "trainer_pokemon"."trainer_type"
-				and "pokemon_move"."trainer_name" = "trainer_pokemon"."trainer_name"
-				and "pokemon_move"."party_id" = "trainer_pokemon"."party_id"
-				and "pokemon_move"."pokemon_index" = "trainer_pokemon"."index"
-			order by "pokemon_move"."move_index"
-		) as "move"
-	) as "moves"
-	,(
-		select json_group_array(json_object('stat', "ev"."stat", 'value', "ev"."value"))
-		from (
-			select "stat"."name" as "stat", "ev"."value"
-			from "trainer_pokemon_ev" as "ev"
-			join "stat" on "stat"."id" = "ev"."stat"
-			where
-				"ev"."trainer_type" = "trainer_pokemon"."trainer_type"
-				and "ev"."trainer_name" = "trainer_pokemon"."trainer_name"
-				and "ev"."party_id" = "trainer_pokemon"."party_id"
-				and "ev"."pokemon_index" = "trainer_pokemon"."index"
-			order by "stat"."order"
-		) as "ev"
-	) as "evs"
-	,(
-		select json_group_array(json_object('stat', "iv"."stat", 'value', "iv"."value"))
-		from (
-			select "stat"."name" as "stat", "iv"."value"
-			from "trainer_pokemon_iv" as "iv"
-			join "stat" on "stat"."id" = "iv"."stat"
-			where
-				"iv"."trainer_type" = "trainer_pokemon"."trainer_type"
-				and "iv"."trainer_name" = "trainer_pokemon"."trainer_name"
-				and "iv"."party_id" = "trainer_pokemon"."party_id"
-				and "iv"."pokemon_index" = "trainer_pokemon"."index"
-			order by "stat"."order"
-		) as "iv"
-	) as "ivs"
-	,(
-		select json_group_array(json_object('stat', "stat"."stat", 'value', "stat"."value"))
-		from (
-			select "stat"."name" as "stat", "pokemon_stat"."value"
-			from "trainer_pokemon_stat" as "pokemon_stat"
-			join "stat" on "stat"."id" = "pokemon_stat"."stat"
-			where
-				"pokemon_stat"."trainer_type" = "trainer_pokemon"."trainer_type"
-				and "pokemon_stat"."trainer_name" = "trainer_pokemon"."trainer_name"
-				and "pokemon_stat"."party_id" = "trainer_pokemon"."party_id"
-				and "pokemon_stat"."pokemon_index" = "trainer_pokemon"."index"
-			order by "stat"."order"
-		) as "stat"
-	) as "stats"
-from "trainer_pokemon"
-join "trainer_v" as "trainer" on (
-	"trainer"."type_id" = "trainer_pokemon"."trainer_type"
-	and "trainer"."trainer_name" = "trainer_pokemon"."trainer_name"
-	and "trainer"."party_id" = "trainer_pokemon"."party_id"
-)
-join "pokemon" on "pokemon"."id" = "trainer_pokemon"."pokemon"
-join "nature" on "nature"."id" = "trainer_pokemon"."nature"
-left join "pokemon_sprite" as "sprite" on (
-	"sprite"."pokemon" = "trainer_pokemon"."pokemon" and
-	("trainer_pokemon"."form" is null or "sprite"."form" = "trainer_pokemon"."form")
-	and "sprite"."type" = 'front' and "sprite"."shiny" = "trainer_pokemon"."shiny"
-	and ((
-		"trainer_pokemon"."gender" is null
-		and ("sprite"."gender" is null or "sprite"."gender" = 'Male')
-	) or (
-		"sprite"."gender" is null or "trainer_pokemon"."gender" = "sprite"."gender"
-	))
-)
-join "pokemon_form" as "sprite_form" on (
-	"sprite_form"."pokemon" = "trainer_pokemon"."pokemon"
-	and "sprite_form"."name" = "sprite"."form"
-)
-left join "item" on "item"."id" = "trainer_pokemon"."item"
-where "trainer_pokemon"."form" is not null or "sprite_form"."order" = 0;
-
 create table "trainer_list" (
 	"id" integer primary key
 	,"trainers_file" text not null
@@ -1347,24 +980,6 @@ create table "battle_facility_set_ev_stat" (
 	,foreign key ("list", "set_index") references "battle_facility_set" ("list", "index")
 	,foreign key ("stat") references "stat" ("id")
 ) without rowid;
-
-create view "battle_facility_set_ev" ("list", "set_index", "stat", "ev") as
-	with "set" as (
-		select "list", "set_index" as "index", count(*) as "stat_with_ev_count"
-		from "battle_facility_set_ev_stat"
-		group by "list", "set_index"
-	)
-	select "bes"."list", "bes"."set_index", "bes"."stat", min(252, 510 / "set"."stat_with_ev_count")
-	from "battle_facility_set_ev_stat" as "bes"
-	join "set" on "set"."list" = "bes"."list" and "set"."index" = "bes"."set_index"
-	union
-	select "set"."list", "set"."index", "stat"."id", 0
-	from "battle_facility_set" as "set"
-	join "stat"
-	left join "battle_facility_set_ev_stat" as "bes"
-		on "bes"."list" = "set"."list" and "bes"."set_index" = "set"."index"
-		and "bes"."stat" = "stat"."id"
-	where "bes"."stat" is null; 
 
 ------------
 -- EVENTS --
@@ -1479,24 +1094,6 @@ create index "pokemon_encounter_rate_idx" on "pokemon_encounter_rate" (
 	"map", "method", "pokemon", "form", "rate" collate "frac" desc
 );
 
--- note that the level range is not necessarily made up of consecutive levels!
--- example is pyroar in obsidia alleyway post-restoration; 4% encounter rate,
--- 2% levels 45--65, 2% levels 70--90
-create view "pokemon_encounter_rate_by_level_range" (
-	"map", "method", "pokemon", "form", "level_range", "rate"
-) as select
-	"map", "method", "pokemon", "form", json_group_array("level"),
-	frac_mul("rate", count("level"))
-from "pokemon_encounter_rate"
-group by "map", "method", "pokemon", "form", "rate";
-
-create view "pokemon_encounter_rate_by_form" (
-	"map", "method", "pokemon", "form", "rate"
-) as select
-	"map", "method", "pokemon", "form", frac_sum("rate")
-from "pokemon_encounter_rate"
-group by "map", "method", "pokemon", "form";
-
 -- Verbal notes to explain how an encounter's form is determined, if not by area.
 create table "pokemon_encounter_form_note" (
 	"pokemon" text
@@ -1504,31 +1101,6 @@ create table "pokemon_encounter_form_note" (
 	,primary key ("pokemon")
 	,foreign key ("pokemon") references "pokemon" ("id")
 ) without rowid;
-
-create view "random_encounter_move" ("map", "method", "pokemon", "form", "level", "index", "move") as
-with
-	"level_move_o" as (
-		select
-			"pokemon", "form", "level"
-			,row_number() over (partition by "pokemon", "form" order by "level", "order") as "order"
-			,"move"
-		from "level_move"
-	)
-	,"per" as (
-		select
-			"per"."map", "per"."method", "lm"."pokemon", "lm"."form", "per"."level", max("lm"."order") as "last_move_order"
-			from "pokemon_encounter_rate" as "per"
-			join "level_move_o" as "lm"
-				on "lm"."pokemon" = "per"."pokemon" and ("lm"."form" = "per"."form" or "per"."form" is null)
-				and "lm"."level" <= "per"."level"
-			group by "per"."map", "per"."method", "lm"."pokemon", "lm"."form", "per"."level"
-	)
-select 
-	"per"."map", "per"."method", "per"."pokemon", "per"."form", "per"."level"
-	,"lm"."order" - "per"."last_move_order" + min(3, "last_move_order" - 1) as "index"
-	,"lm"."move"
-from "per" join "level_move_o" as "lm" on "lm"."pokemon" = "per"."pokemon" and "lm"."form" = "per"."form"
-and "lm"."order" between "per"."last_move_order" - 3 and "per"."last_move_order";
 
 create table if not exists "event_encounter_type" ("name" text primary key) without rowid;
 insert into "event_encounter_type" ("name") values

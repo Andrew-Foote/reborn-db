@@ -1,3 +1,22 @@
+create view "evolution" ("from", "from_form", "to", "to_form") as
+select distinct "from", "from_form", "to", "to_form"
+from "pokemon_evolution_method";
+	
+create view "evolution_trcl" ("from", "from_form", "to", "to_form", "dist") as
+with recursive "evolution_trcl" ("from", "from_form", "to", "to_form", "dist") as (
+	select "from", "from_form", "to", "to_form", 1 from "evolution"
+	union all
+	select "trcl"."from", "trcl"."from_form", "evolution"."to", "evolution"."to_form", "trcl"."dist" + 1
+	from "evolution_trcl" as "trcl"
+	join "evolution" on (
+		"evolution"."from" = "trcl"."to" and "evolution"."from_form" = "trcl"."to_form"
+	)
+)
+select * from "evolution_trcl"
+union
+select "form"."pokemon", "form"."name", "form"."pokemon", "form"."name", 0
+from "pokemon_form" as "form";
+
 ---------------------------------------------------------------------------------------------------
 -- Breeding
 ---------------------------------------------------------------------------------------------------
@@ -463,289 +482,73 @@ values
 ('ARCEUS', 'Normal', 'It will be in this form when not holding a Plate item or a type-specific Z-Crystal.'),
 ('ARCEUS', 'Flying', 'It will be in this form when holding a <a href="/item/sky-plate.html">Sky Plate</a> or <a href="/item/flyinium-z.html">Flyinium Z</a>.');
 
-----------------------------------------------------------------------------------------------------
--- Views
-----------------------------------------------------------------------------------------------------
-
-create view "tutor_move_teach_command" ("move", "command") as
-select
-	regexp_capture("arg"."value", '^pbMoveTutorChoose\(PBMoves::(\w+)\)$', 1),
-	"arg"."command"
-from "event_command_text_argument" as "arg"
-where "arg"."command_type" = 'ConditionalBranch'
-and "arg"."command_subtype" = 'Script'
-and "arg"."parameter" = 'expr'
-and "arg"."value" like "pbMoveTutorChoose(%";
-
-create view "tutorable_move" ("move") as
-select distinct "move" from "tutor_move_teach_command";
-
-create view "tutor_move_item_cost" (
-	"move", "item", "quantity", "command1", "command2",
-	"map_id", "event_id", "page_number", "command1_number"
-) as
-select
-	regexp_capture("arg"."value", '^addTutorMove\(PBMoves::(\w+)\)$', 1),
-	regexp_capture("arg0"."value", '^PBItems::(\w+),(\d+)\)$', 1),
-	regexp_capture("arg0"."value", '^PBItems::(\w+),(\d+)\)$', 2),
-	"arg0"."command",
-	"arg"."command",
-	"epc"."map_id",
-	"epc"."event_id",
-	"epc"."page_number",
-	"epc"."command_number"
-from "event_command_text_argument" as "arg"
-join "event_page_command" as "epc" on "epc"."command" = "arg"."command"
-join "event_page_command" as "epc0" on (
-	"epc0"."map_id" = "epc"."map_id"
-	and "epc0"."event_id" = "epc"."event_id"
-	and "epc0"."page_number" = "epc"."page_number"
-	and "epc0"."command_number" = "epc"."command_number" - 1
-)
-join "event_command_text_argument" as "arg0" on (
-	"arg0"."command" = "epc0"."command"
-	and "arg0"."command_type" = 'ContinueScript'
-	and "arg0"."command_subtype" = ''
-	and "arg0"."parameter" = 'line'
-)
-where "arg"."command_type" = 'Script'
-and "arg"."command_subtype" = ''
-and "arg"."parameter" = 'line'
-and "arg"."value" like "addTutorMove(%";
-
-create view "tutor_move_money_cost" (
-	"move", "amount", "command1", "command2",
-	"map_id", "event_id", "page_number", "command1_number"
-) as
-select
-	regexp_capture("arg"."value", '^addTutorMove\(PBMoves::(\w+)\)$', 1),
-	"arg0"."value",
-	"arg0"."command",
-	"arg"."command",
-	"epc"."map_id",
-	"epc"."event_id",
-	"epc"."page_number",
-	"epc"."command_number"
-from "event_command_text_argument" as "arg"
-join "event_page_command" as "epc" on "epc"."command" = "arg"."command"
-join "event_page_command" as "epc0" on (
-	"epc0"."map_id" = "epc"."map_id"
-	and "epc0"."event_id" = "epc"."event_id"
-	and "epc0"."page_number" = "epc"."page_number"
-	and "epc0"."command_number" = "epc"."command_number" - 1
-)
-join "event_command_integer_argument" as "arg0" on (
-	"arg0"."command" = "epc0"."command"
-	and "arg0"."command_type" = 'ChangeGold'
-	and "arg0"."command_subtype" = ''
-	and "arg0"."parameter" = 'amount'
-)
-join "event_command_bool_argument" as "arg0_withvar" on (
-	"arg0_withvar"."command" = "epc0"."command"
-	and "arg0_withvar"."command_type" = 'ChangeGold'
-	and "arg0_withvar"."command_subtype" = ''
-	and "arg0_withvar"."parameter" = 'with_variable'
-	and "arg0_withvar"."value" = 0
-)
-join "event_command_diff_type_argument" as "arg0_difftype" on (
-	"arg0_difftype"."command" = "epc0"."command"
-	and "arg0_difftype"."command_type" = 'ChangeGold'
-	and "arg0_difftype"."command_subtype" = ''
-	and "arg0_difftype"."parameter" = 'diff_type'
-	and "arg0_difftype"."diff_type" = 'decrease'
-)
-where "arg"."command_type" = 'Script'
-and "arg"."command_subtype" = ''
-and "arg"."parameter" = 'line'
-and "arg"."value" like "addTutorMove(%";
-
-create view "event_page_character_image" (
-	"map_id", "event_id", "page_number",
-	"character_name", "character_hue",
-	"direction", "pattern",
-	"opacity", "blend_type",
-	"image"
-) as
-select "epchar".*, "char_img"."content"
-from "event_page_character" as "epchar"
-join "character_image" as "char_img" on (
-	"char_img"."filename" = "epchar"."character_name"
-	and "char_img"."direction" = "epchar"."direction"
-	and "char_img"."pattern" = "epchar"."pattern"
-);
-
-create view "move_tutor_v" (
-	"move", "cost_is_monetary", "cost_quantity", "cost_item", "sprite", "map"
-) as
-select
-	"tcmd"."move",
-	case when "mcost"."amount" is null then 0 else 1 end,
-	coalesce("icost"."quantity", "mcost"."amount"),
-	"icost"."item",
-	"char_img"."content",
-	"epcmd"."map_id"
-from "tutor_move_teach_command" as "tcmd"
-join "event_page_command" as "epcmd" on "epcmd"."command" = "tcmd"."command"
-join "event_page_character" as "epchar" on (
-	"epchar"."map_id" = "epcmd"."map_id"
-	and "epchar"."event_id" = "epcmd"."event_id"
-	and "epchar"."page_number" = "epcmd"."page_number"
-)
-join "character_image" as "char_img" on (
-	"char_img"."filename" = "epchar"."character_name"
-	and "char_img"."direction" = "epchar"."direction"
-	and "char_img"."pattern" = "epchar"."pattern"
-)
-left join "tutor_move_item_cost" as "icost" on (
-	"icost"."map_id" = "epcmd"."map_id"
-	and "icost"."event_id" = "epcmd"."event_id"
-	and "icost"."page_number" = "epcmd"."page_number"
-	and "icost"."move" = "tcmd"."move"
-)
-left join "tutor_move_money_cost" as "mcost" on (
-	"mcost"."map_id" = "epcmd"."map_id"
-	and "mcost"."event_id" = "epcmd"."event_id"
-	and "mcost"."page_number" = "epcmd"."page_number"
-	and "mcost"."move" = "tcmd"."move"
-);
-
-create view "trainer_single_battle_command" (
-	"command", "level100",
-	"type", "name", "endspeech", "doublebattle", "party",
-	"canlose", "variable"
-) as
-with "args" ("command", "index", "value") as (
-	select
-		"arg"."command", "arg_index"."value",
-		regexp_capture("arg"."value", '^pbTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",_I\("(.*?)"\)(?:,(true|false)(?:,(\d+)(?:,(true|false)(?:,(\d+))?)?)?)?\)$', "arg_index"."value")
-	from "event_command_text_argument" as "arg"
-	join generate_series(1, 8) as "arg_index"
-	where "arg"."value" like 'pbTrainerBattle%'
-	and "arg"."command" not in (
-		471049, -- exclude challengers at elite four
-		488168, -- exclude the themed teams at the nightclub arena
-		585399, -- exclude self battle at neoteric isle
-		618855, -- exclude grind trainer common event
-		572057 -- exclude this kyurem battle which i don't think can actually be accessed
-		       -- (it has trainer type='KYUREM' which isn't a valid trainer type)
-	) 
-)
-select
-	"command",
-	max(case when "index" = 1 then "value" = '100' else null end),
-	max(case when "index" = 2 then "value" else null end),
-	max(case when "index" = 3 then "value" else null end),
-	max(case when "index" = 4 then "value" else null end),
-	max(case when "index" = 5 then "value" is not null and "value" = 'true' else null end),
-	max(case when "index" = 6 then ifnull(cast("value" as integer), 0) else null end),
-	max(case when "index" = 7 then "value" is not null and "value" = 'true' else null end),
-	max(case when "index" = 8 then cast("value" as integer) else null end)
-from "args" group by "command";
-
-
--- pbDoubleTrainerBattle(
--- trainerid1, trainername1, trainerparty1, endspeech1,
--- trainerid2, trainername2, trainerparty2, endspeech2,
--- canlose=false, variable=nil, switch_sprites=false, recorded=false
--- )
-
--- canlose = if true, all non-fainted pokemon get healed when we lose the battle?
--- otherwise, we do pbStartOver when losing -- pbStartOver takes you to a poke center, etc
--- switch_sprites presumably controls the order in which the two trainers appear in the field
---   (although i'm not sure why they don't just pass in the trainer arguments the other way round)
--- 
-
-create view "trainer_double_battle_command" (
-	"command", "level100",
-	"type1", "name1", "party1", "endspeech1",
-	"type2", "name2", "party2", "endspeech2",
-	"switch_sprites"
-) as
-with "args" ("command", "index", "value") as (
-	select
-		"arg"."command", "arg_index"."value",
-		regexp_capture("arg"."value", '^pbDoubleTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\),PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\)(?:,switch_sprites:\s*(true|false))?\)$', "arg_index"."value")
-	from "event_command_text_argument" as "arg"
-	join generate_series(1, 10) as "arg_index"
-	where "arg"."value" like 'pbDoubleTrainerBattle%'
-	and not "arg"."command" in (
-		488240, -- exclude the themed teams at the nightclub arena
-		618842 -- exclude grind trainers
-	)
-)
-select
-	"command",
-	max(case when "index" = 1 then "value" = '100' else null end),
-	max(case when "index" = 2 then "value" else null end),
-	max(case when "index" = 3 then "value" else null end),
-	max(case when "index" = 4 then cast("value" as integer) else null end),
-	max(case when "index" = 5 then "value" else null end),
-	max(case when "index" = 6 then "value" else null end),
-	max(case when "index" = 7 then "value" else null end),
-	max(case when "index" = 8 then "value" else null end),
-	max(case when "index" = 9 then cast("value" as integer) else null end),
-	max(case when "index" = 10 then "value" is not null and "value" = 'true' else null end)
-from "args" group by "command";
-
-create view "trainer_battle_command" (
-	"trainer_type", "trainer_name", "party_id",
-	"command", "level100", "endspeech", "doublebattle", "doubleindex", "canlose"
-) as select
-	"t"."type", "t"."name", "t"."party_id",
-	coalesce("sc"."command", "dc1"."command", "dc2"."command"),
-	coalesce("sc"."level100", "dc1"."level100", "dc2"."level100"),
-	coalesce("sc"."endspeech", "dc1"."endspeech1", "dc2"."endspeech2"),
-	case when "dc1"."command" is not null or "dc2"."command" is not null then 1 else "sc"."doublebattle" end,
-	case when "dc1"."command" is not null then 1 when "dc2"."command" is not null then 2 else null end,
-	coalesce("sc"."canlose", 0)
-from "trainer" as "t"
-left join "trainer_single_battle_command" as "sc" on (
-	"sc"."type" = "t"."type"
-	and "sc"."name" = "t"."name"
-	and "sc"."party" = "t"."party_id"
-)
-left join "trainer_double_battle_command" as "dc1" on (
-	"dc1"."type1" = "t"."type"
-	and "dc1"."name1" = "t"."name"
-	and "dc1"."party1" = "t"."party_id"
-)
-left join "trainer_double_battle_command" as "dc2" on (
-	"dc2"."type2" = "t"."type"
-	and "dc2"."name2" = "t"."name"
-	and "dc2"."party2" = "t"."party_id"
-);
-
--- this is imperfect, because the image only reflects the very start of the event page
--- through the course of the event leading up to the battle command, the image may change
--- due to Graphic commands
-create view "trainer_location_info" (
-	"type", "name", "party_id", "command", "x", "y", "map", "image"
-) as
-select
-	"t"."type", "t"."name", "t"."party_id", "tcmd"."command", "event"."x", "event"."y",
-	"epcmd"."map_id", "epchar"."image"
-from "trainer" as "t"
-left join "trainer_battle_command" as "tcmd" on (
-	"tcmd"."trainer_type" = "t"."type"
-	and "tcmd"."trainer_name" = "t"."name"
-	and "tcmd"."party_id" = "t"."party_id"
-)
-left join "event_page_command" as "epcmd" on "epcmd"."command" = "tcmd"."command"
-left join "event_page_character_image" as "epchar" on (
-	"epchar"."map_id" = "epcmd"."map_id"
-	and "epchar"."event_id" = "epcmd"."event_id"
-	and "epchar"."page_number" = "epcmd"."page_number"
-)
-left join "map_event" as "event" on (
-	"event"."map_id" = "epcmd"."map_id"
-	and "event"."event_id" = "epcmd"."event_id"
-);
-
 ---------------------------------------------------------------------------------------------------
 -- Materialized Views
 ---------------------------------------------------------------------------------------------------
 
-create table "pokemon_evolution_schemes" as
+create view "evolution_requirement_display" ("method", "kind", "args") as
+select "base"."method", "base"."kind", case
+	when "base"."kind" = 'level' then json_array("er_level"."level")
+	when "base"."kind" = 'item' then json_array("item"."name")
+	when "base"."kind" = 'held_item' then json_array("held_item"."name")
+	when "base"."kind" = 'friendship' then json_array()
+	when "base"."kind" = 'time'	then json_array("time"."desc", "time"."range_desc")
+	when "base"."kind" = 'stat_cmp' then json_array("stat1"."name", "stat2"."name", "er_stat_cmp"."operator")
+	when "base"."kind" = 'coin_flip' then json_array("er_coin_flip"."value")
+	when "base"."kind" = 'leftover' then json_array()
+	when "base"."kind" = 'gender' then json_array("er_gender"."gender")
+	when "base"."kind" = 'teammate' then json_array("teammate"."name")
+	when "base"."kind" = 'move' then json_array("move"."name")
+	when "base"."kind" = 'map' then json_array("map"."id", "map"."name")
+	when "base"."kind" = 'trademate' then json_array("trademate"."name")
+	when "base"."kind" = 'teammate_type' then json_array("teammate_type"."name")
+	when "base"."kind" = 'cancel' then json_array()
+	when "base"."kind" = 'move_type' then json_array("move_type"."name")
+	when "base"."kind" = 'weather' then json_array("weather"."desc")
+end
+from "evolution_requirement" as "base"
+left join "evolution_requirement_level" as "er_level" on "er_level"."method" = "base"."method"
+left join "evolution_requirement_item" as "er_item" on "er_item"."method" = "base"."method"
+left join "item" on "item"."id" = "er_item"."item"
+left join "evolution_requirement_held_item" as "er_held_item" on "er_held_item"."method" = "base"."method"
+left join "item" as "held_item" on "held_item"."id" = "er_held_item"."item"
+left join "evolution_requirement_time" as "er_time" on "er_time"."method" = "base"."method"
+left join "time_of_day" as "time" on "time"."name" = "er_time"."time"
+left join "evolution_requirement_stat_cmp" as "er_stat_cmp" on "er_stat_cmp"."method" = "base"."method"
+left join "stat" as "stat1" on "stat1"."id" = "er_stat_cmp"."stat1"
+left join "stat" as "stat2" on "stat2"."id" = "er_stat_cmp"."stat2"
+left join "evolution_requirement_coin_flip" as "er_coin_flip" on "er_coin_flip"."method" = "base"."method"
+left join "evolution_requirement_gender" as "er_gender" on "er_gender"."method" = "base"."method"
+left join "gender" as "gender" on "gender"."name" = "er_gender"."gender"
+left join "evolution_requirement_teammate" as "er_teammate" on "er_teammate"."method" = "base"."method"
+left join "pokemon" as "teammate" on "teammate"."id" = "er_teammate"."pokemon"
+left join "evolution_requirement_map" as "er_map" on "er_map"."method" = "base"."method"
+left join "map" on "map"."id" = "er_map"."map"
+left join "evolution_requirement_move" as "er_move" on "er_move"."method" = "base"."method"
+left join "move" on "move"."id" = "er_move"."move"
+left join "evolution_requirement_trademate" as "er_trademate" on "er_trademate"."method" = "base"."method"
+left join "pokemon" as "trademate" on "trademate"."id" = "er_trademate"."pokemon"
+left join "evolution_requirement_teammate_type" as "er_teammate_type" on "er_teammate_type"."method" = "base"."method"
+left join "type" as "teammate_type" on "teammate_type"."id" = "er_teammate_type"."type"
+left join "evolution_requirement_move_type" as "er_move_type" on "er_move_type"."method" = "base"."method"
+left join "type" as "move_type" on "move_type"."id" = "er_move_type"."type"
+left join "evolution_requirement_weather" as "er_weather" on "er_weather"."method" = "base"."method" 
+left join "weather" as "weather" on "weather"."name" = "er_weather"."weather"
+order by 
+ "item"."code", "held_item"."code", "time"."order", "stat1"."order", "stat2"."order",
+ "er_coin_flip"."value", "gender"."code", "teammate"."number", "map"."order", "move"."code",
+ "trademate"."number", "teammate_type"."code", "move_type"."code", "weather"."order";
+
+create table "pokemon_evolution_schemes" (
+	"from" text,
+	"from_form" text,
+	"to" text,
+	"to_form" text,
+	"schemes" text,
+	primary key ("from", "to", "from_form", "to_form")
+) without rowid;
+
+insert into "pokemon_evolution_schemes"
 	select
 		"pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form"
 		,evolution_schemes("em"."base_method", "em"."reqs") as "schemes"
@@ -762,3 +565,35 @@ create table "pokemon_evolution_schemes" as
 		group by "em"."id"
 	) as "em" on "em"."id" = "pem"."method"
 	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
+
+create table "trainer_v" (
+	"id" text primary key,
+	"type" text,
+	"name" text,
+	"party" text,
+	"type_name" text,
+	"type_code" integer,
+	"pbs_order" integer,
+	"base_prize" integer,
+	"bg_music" text,
+	"win_music" text,
+	"intro_music" text,
+	"gender" text,
+	"skill" integer,
+	"battle_sprite" blob,
+	"battle_back_sprite" blob,
+	unique ("type", "name", "party"),
+	unique ("pbs_order")
+) without rowid;
+
+insert into "trainer_v"
+	select
+		"type"."name" || ' ' || "trainer"."name" || case
+			when count(*) over (partition by "type"."name", "trainer"."name") > 1
+			then ' ' || row_number() over (partition by "type"."name", "trainer"."name") else ''
+		end as "id",
+		"type"."id" as "type", "trainer"."name", "trainer"."party_id" as "party",
+		"type"."name" as "type_name", "type"."code" as "type_code", "trainer"."pbs_order",
+		"type"."base_prize", "type"."bg_music", "type"."win_music", "type"."intro_music",
+		"type"."gender", "type"."skill", "type"."battle_sprite", "type"."battle_back_sprite"
+	from "trainer" join "trainer_type" as "type" on "trainer"."type" = "type"."id";

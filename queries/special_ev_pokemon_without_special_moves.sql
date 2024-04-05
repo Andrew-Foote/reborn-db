@@ -10,9 +10,9 @@ join "trainer_pokemon_ev" as "tpe_atk" on
 	and "tpe_atk"."pokemon_index" = "tp"."index"
 	and "tpe_atk"."stat" = 'SA'
 join "trainer_v" as "tv" on
-	"tv"."type_id" = "tp"."trainer_type"
-	and "tv"."trainer_name" = "tp"."trainer_name"
-	and "tv"."party_id" = "tp"."party_id"
+	"tv"."type" = "tp"."trainer_type"
+	and "tv"."name" = "tp"."trainer_name"
+	and "tv"."party" = "tp"."party_id"
 join "trainer_pokemon_v" as "tpv" on
 	"tpv"."trainer_id" = "tv"."id" and "tpv"."index" = "tp"."index"
 where exists (

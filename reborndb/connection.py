@@ -90,27 +90,22 @@ class Connection:
         if foreign_keys_enabled is not None and foreign_keys_already_enabled != foreign_keys_enabled:
             self.exec(f'pragma foreign_keys = {int(foreign_keys_already_enabled)}')
 
-    def dropall(self, exceptions=()):
-        """Drop all tables and views, resetting the database to an empty state. (Indexes and
-        triggers will automatically be deleted when their parent tables are deleted.)
-        
-        This only works outside of a transaction.
-
-        You can select some tables or views to keep with the exceptions parameter.
-        """
-
+    def drop_all_views(self, exceptions=()):
         exception_placeholders = ', '.join('?' for _ in exceptions)
 
-        with self.transaction(foreign_keys_enabled=False):
+        with self.transaction():
             views = [name for name, in self.exec(
                 f'select "name" from "sqlite_master" where "type" = ? and "name" not in ({exception_placeholders})',
                 ('view', *exceptions)
             )]
 
             for view in views:
-                print(f'dropping view {view}')
                 self.exec(f'drop view {view}')
 
+    def drop_all_tables(self, exceptions=()):
+        exception_placeholders = ', '.join('?' for _ in exceptions)
+
+        with self.transaction(foreign_keys_enabled=False):
             tables = [name for name, in self.exec(
                 f'select "name" from "sqlite_master" where "type" = ? and "name" not like ? and "name" not in ({exception_placeholders})',
                 ('table', 'sqlite_%', *exceptions)
@@ -122,6 +117,18 @@ class Connection:
 
             # No need to delete indexes and triggers separately; they get deleted along with their
             # parent tables.
+
+    def dropall(self, exceptions=()):
+        """Drop all tables and views, resetting the database to an empty state. (Indexes and
+        triggers will automatically be deleted when their parent tables are deleted.)
+        
+        This only works outside of a transaction.
+
+        You can select some tables or views to keep with the exceptions parameter.
+        """
+
+        self.drop_all_views(exceptions)
+        self.drop_all_tables(exceptions)
 
     def quote(self, name):
         return f'"{name}"'
