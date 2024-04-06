@@ -54,14 +54,20 @@
 	<table>
 		<tr>
 			<th>Area</th>
-			<th>Loss dialogue</th>
+			<th>Dialogue</th>
 			<th>Type</th>
 			<th>Flags</th>
 		</tr>
 		{% for battle in trainer.battles %}
 		<tr>
 			<td><a href="{{ url_base }}/area/{{ battle.area.id }}.html">{{ battle.area.name }} ({{ battle.area.id }})</a></td>
-			<td>{{ battle.end_speech }}</td>
+			<td>
+<small><pre style="margin: 0">{% if battle.pre_battle_speech %}<i>(before battle)</i>
+{{ battle.pre_battle_speech }}
+{% endif %}{% if battle.end_speech %}<i>(in battle, after defeat)</i>
+{{ battle.end_speech }}{% endif %}{% if battle.post_battle_speech %}
+<i>(after battle)</i>
+{{ battle.post_battle_speech }}{% endif %}</pre></small></td>
 			<td>
 				{% if battle.is_double %}
 					{% if battle.partner_index is none %}

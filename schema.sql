@@ -1032,14 +1032,20 @@ values
 ('autorun', 1),
 ('parallel', 2);
 
+create table "character_file" (
+	"name" text primary key,
+	"content" blob not null
+) without rowid;
+
 create table "character_image" (
-	"filename" text,
+	"file" text,
 	"direction" text check ("direction" != 'none'),
 	"pattern" integer check ("pattern" between 0 and 3),
 	"content" blob not null,
-	primary key ("filename", "direction", "pattern"),
+	primary key ("file", "direction", "pattern"),
+	foreign key ("file") references "character_file" ("name"),
 	foreign key ("direction") references "direction" ("name")
-);
+) without rowid;
 
 ------------------------
 -- POKÉMON ENCOUNTERS --
@@ -1239,3 +1245,35 @@ create table "fossil" (
 	foreign key ("item") references "item" ("id"),
 	foreign key ("pokemon") references "pokemon" ("id")
 ) without rowid;
+
+-----------------
+-- THEME TEAMS --
+-----------------
+
+create table "theme_team" (
+	"trainer_id" integer,
+	"trainer_name" text not null,
+	"team_name" text not null,
+	"party" integer,
+	"field_effect" integer not null,
+	"is_double" integer not null check ("is_double" in (0, 1)),
+	primary key ("trainer_id", "party"),
+	unique ("trainer_name", "team_name"),
+	foreign key ("field_effect") references "field_effect" ("code")
+) without rowid;
+
+create table "elite_4_challenger" (
+	"theme_team_trainer_id" integer primary key,
+	"type" text,
+	"pre_battle_speech" text not null,
+	"end_speech" text not null,
+	"post_battle_speech" text not null,
+	"is_double" integer not null check ("is_double" in (0, 1)),
+	"switch_required" integer not null,
+	"character_file" text not null,
+	unique ("type"),
+	foreign key ("theme_team_trainer_id") references "theme_team" ("trainer_id"),
+	foreign key ("type") references "trainer_type" ("id"),
+	foreign key ("switch_required") references "game_switch" ("id"),
+	foreign key ("character_file") references "character_file" ("name")
+)

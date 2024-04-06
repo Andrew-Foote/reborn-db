@@ -9,6 +9,8 @@ select json_object(
 		'area', json_object('id', "battle"."map_id", 'name', "battle"."map_name"),
 		'x', "battle"."x", 'y', "battle"."y",
 		'end_speech', "battle"."end_speech",
+		'pre_battle_speech', "battle"."pre_battle_speech",
+		'post_battle_speech', "battle"."post_battle_speech",
 		'level_100', "battle"."level_100",
 		'is_double', "battle"."is_double",
 		'partner_index', "battle"."partner_index",
@@ -19,7 +21,8 @@ select json_object(
 		select 
 			"map"."id" as "map_id", "map"."name" as "map_name"
 			,"map_event"."x", "map_event"."y"
-			,"tbc"."end_speech", "tbc"."level_100"
+			,"tbc"."end_speech", "tbc"."pre_battle_speech", "tbc"."post_battle_speech"
+			,"tbc"."level_100"
 			,"tbc"."is_double", "tbc"."partner_index", "partner"."id" as "partner"
 			,"tbc"."can_lose"
 		from "trainer_battle_command" as "tbc"

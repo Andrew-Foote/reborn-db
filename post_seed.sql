@@ -1,3 +1,21 @@
+---------------------------------------------------------------------------------------------------
+-- Indexes
+---------------------------------------------------------------------------------------------------
+
+-- We create indexes for tables created in map_event.sql here, so that we don't need to regenerate 
+-- the map events part of the database every time we adjust the indexes.
+
+-- Remember to use glob, not like, for case-sensitivity, otherwise this index won't get used!
+create index if not exists
+	"event_command_text_argument_idx_value" on "event_command_text_argument" ("value");
+
+---------------------------------------------------------------------------------------------------
+-- Breeding
+---------------------------------------------------------------------------------------------------
+
+-- These two views are not strictly breeding-related but they're required to be defined for the
+-- subsequent definitions and this was the most convenient place to put them.
+
 create view "evolution" ("from", "from_form", "to", "to_form") as
 select distinct "from", "from_form", "to", "to_form"
 from "pokemon_evolution_method";
@@ -16,10 +34,6 @@ select * from "evolution_trcl"
 union
 select "form"."pokemon", "form"."name", "form"."pokemon", "form"."name", 0
 from "pokemon_form" as "form";
-
----------------------------------------------------------------------------------------------------
--- Breeding
----------------------------------------------------------------------------------------------------
 
 -- The Pokémon {male} and {female} are gender counterparts of each other, in that an egg laid by
 -- a member of either's evolutionary family may hatch into either one, with a 50% chance for each
@@ -68,7 +82,7 @@ create table "anomalous_baby" (
 
 insert into "anomalous_baby"
 select 'MANAPHY', '', 'PHIONE', ''
-union
+union all
 select 'ROTOM', "form"."name", 'ROTOM', 'Normal'
 from "pokemon_form" as "form"
 where "form"."pokemon" = 'ROTOM' and "form"."name" != 'Normal';
@@ -105,7 +119,7 @@ where "to_baby"."from" is null and "pokemon_egg_group"."egg_group" is null;
 
 update "baby" set "probability" = 0.5
 where "baby"."baby" in (
-	select "male" from "gender_counterpart" union select "female" from "gender_counterpart"
+	select "male" from "gender_counterpart" union all select "female" from "gender_counterpart"
 );
 
 -- this assumes Pokémon with gender counterparts don't have multiple forms
@@ -114,7 +128,7 @@ select "adult", '', 'na', "counterpart"."second", '', 0.5
 from "baby"
 join (
 	select "male" as "first", "female" as "second" from "gender_counterpart"
-	union
+	union all
 	select "female" as "first", "male" as "second" from "gender_counterpart"
 ) as "counterpart" on "counterpart"."first" = "baby"."baby";
 
@@ -566,6 +580,187 @@ insert into "pokemon_evolution_schemes"
 	) as "em" on "em"."id" = "pem"."method"
 	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
 
+
+create table "map_event_comment_line" (
+	"map_id" integer,
+	"event_id" integer,
+	"page_number" integer,
+	"first_command_number" integer,
+	"command_number" integer,
+	"command" integer not null,
+	"line" text not null,
+	primary key ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("map_id", "event_id", "page_number")
+		references "event_page" ("map_id", "event_id", "page_number"),
+	foreign key ("map_id", "event_id", "page_number", "first_command_number")
+		references "event_page_command" ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("map_id", "event_id", "page_number", "command_number")
+		references "event_page_command" ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("command") references "event_command" ("id")
+) without rowid;
+
+create index "map_event_comment_line_idx_first_command_number" on
+	"map_event_comment_line" ("map_id", "event_id", "page_number", "first_command_number");
+
+insert into "map_event_comment_line"
+with "comment" as (
+	select
+		"epc"."map_id", "epc"."event_id", "epc"."page_number",
+		"epc"."command_number", "arg"."value"
+	from "event_page_command" as "epc"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "epc"."command"
+		and "arg"."command_type" = 'Comment'
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+),
+"continue_comment" as (
+	select
+		"epc"."map_id", "epc"."event_id", "epc"."page_number",
+		"epc"."command_number",
+		"epc"."command",
+		"arg"."value"
+	from "event_page_command" as "epc"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "epc"."command"
+		and "arg"."command_type" in ('Comment', 'ContinueComment')
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+)
+select
+	"comment"."map_id", "comment"."event_id", "comment"."page_number",
+	"comment"."command_number",
+	"continue_comment"."command_number",
+	"continue_comment"."command",
+	"continue_comment"."value"
+from "comment"
+left join "comment" as "next_comment" on
+	"next_comment"."map_id" = "comment"."map_id"
+	and "next_comment"."event_id" = "comment"."event_id"
+	and "next_comment"."page_number" = "comment"."page_number"
+	and "next_comment"."command_number" > "comment"."command_number"
+	and not exists ( 
+		select * from "comment" as "in_between_comment"
+		where "in_between_comment"."map_id" = "comment"."map_id"
+		and "in_between_comment"."event_id" = "comment"."event_id"
+		and "in_between_comment"."page_number" = "comment"."page_number"
+		and "in_between_comment"."command_number" between
+			"comment"."command_number" + 1 and "next_comment"."command_number" - 1
+	)
+left join "continue_comment" on
+	"continue_comment"."map_id" = "comment"."map_id"
+	and "continue_comment"."event_id" = "comment"."event_id"
+	and "continue_comment"."page_number" = "comment"."page_number"
+	and (
+		(
+			"next_comment"."command_number" is null
+			and "continue_comment"."command_number" >= "comment"."command_number"
+		)
+		or "continue_comment"."command_number" between "comment"."command_number" and "next_comment"."command_number" - 1
+	);
+
+create table "common_event_comment_line" (
+	"common_event_id" integer,
+	"first_command_number" integer,
+	"command_number" integer,
+	"command" integer not null,
+	"line" text not null,
+	primary key ("common_event_id", "command_number"),
+	foreign key ("common_event_id") references "common_event" ("id"),
+	foreign key ("common_event_id", "first_command_number")
+		references "common_event_command" ("common_event_id", "command_number"),
+	foreign key ("common_event_id", "command_number")
+		references "common_event_command" ("common_event_id", "command_number"),
+	foreign key ("command") references "event_command" ("id")
+) without rowid;
+
+create index "common_event_comment_line_idx_first_command_number" on
+	"common_event_comment_line" ("common_event_id", "first_command_number");
+
+insert into "common_event_comment_line"
+with "comment" as (
+	select
+		"cec"."common_event_id",
+		"cec"."command_number", "arg"."value"
+	from "common_event_command" as "cec"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "cec"."command"
+		and "arg"."command_type" = 'Comment'
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+),
+"continue_comment" as (
+	select
+		"cec"."common_event_id",
+		"cec"."command_number",
+		"cec"."command",
+		"arg"."value"
+	from "common_event_command" as "cec"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "cec"."command"
+		and "arg"."command_type" in ('Comment', 'ContinueComment')
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+)
+select
+	"comment"."common_event_id",
+	"comment"."command_number",
+	"continue_comment"."command_number",
+	"continue_comment"."command",
+	"continue_comment"."value"
+from "comment"
+left join "comment" as "next_comment" on
+	"next_comment"."common_event_id" = "comment"."common_event_id"
+	and "next_comment"."command_number" > "comment"."command_number"
+	and not exists ( 
+		select * from "comment" as "in_between_comment"
+		where "in_between_comment"."common_event_id" = "comment"."common_event_id"
+		and "in_between_comment"."command_number" between
+			"comment"."command_number" + 1 and "next_comment"."command_number" - 1
+	)
+left join "continue_comment" on
+	"continue_comment"."common_event_id" = "comment"."common_event_id"
+	and (
+		(
+			"next_comment"."command_number" is null
+			and "continue_comment"."command_number" >= "comment"."command_number"
+		)
+		or "continue_comment"."command_number" between "comment"."command_number" and "next_comment"."command_number" - 1
+	);
+
+create view "event_comment_line" (
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+) as
+select
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+from "map_event_comment_line"
+union all
+select
+	null, "common_event_id", null,
+	"first_command_number", "command_number", "command",
+	"line"
+from "common_event_comment_line";
+
+create view "map_event_comment" as
+select
+	"map_id", "event_id", "page_number",
+	"first_command_number", max("command_number") as "last_command_number",
+	group_concat("line", char(10)) as "text"
+from "map_event_comment_line"
+group by "map_id", "event_id", "page_number", "first_command_number";
+
+create view "common_event_comment" as
+select
+	"common_event_id",
+	"first_command_number", max("command_number") as "last_command_number",
+	group_concat("line", char(10)) as "text"
+from "common_event_comment_line"
+group by "common_event_id", "first_command_number";
+
 create table "trainer_v" (
 	"id" text primary key,
 	"type" text,
@@ -598,7 +793,6 @@ insert into "trainer_v"
 		"type"."gender", "type"."skill", "type"."battle_sprite", "type"."battle_back_sprite"
 	from "trainer" join "trainer_type" as "type" on "trainer"."type" = "type"."id";
 
-
 create view "trainer_single_battle_command" (
 	"command", "level100",
 	"type", "name", "endspeech", "doublebattle", "party",
@@ -610,7 +804,7 @@ with "args" ("command", "index", "value") as (
 		regexp_capture("arg"."value", '^pbTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",_I\("(.*?)"\)(?:,(true|false)(?:,(\d+)(?:,(true|false)(?:,(\d+))?)?)?)?\)$', "arg_index"."value")
 	from "event_command_text_argument" as "arg"
 	join generate_series(1, 8) as "arg_index"
-	where "arg"."value" like 'pbTrainerBattle%'
+	where "arg"."value" glob 'pbTrainerBattle*'
 	and "arg"."command" not in (
 		471049, -- exclude challengers at elite four
 		488168, -- exclude the themed teams at the nightclub arena
@@ -632,18 +826,35 @@ select
 	max(case when "index" = 8 then cast("value" as integer) else null end)
 from "args" group by "command";
 
-
--- pbDoubleTrainerBattle(
--- trainerid1, trainername1, trainerparty1, endspeech1,
--- trainerid2, trainername2, trainerparty2, endspeech2,
--- canlose=false, variable=nil, switch_sprites=false, recorded=false
--- )
-
--- canlose = if true, all non-fainted pokemon get healed when we lose the battle?
--- otherwise, we do pbStartOver when losing -- pbStartOver takes you to a poke center, etc
--- switch_sprites presumably controls the order in which the two trainers appear in the field
---   (although i'm not sure why they don't just pass in the trainer arguments the other way round)
--- 
+-- Battles with two trainers at once are initiated by calling the pbDoubleTrainerBattle function,
+-- whose parameters and default values are shown in the following example call:
+--
+--     pbDoubleTrainerBattle(
+--         trainerid1, trainername1, trainerparty1, endspeech1,
+--         trainerid2, trainername2, trainerparty2, endspeech2,
+--         canlose=false, variable=nil, switch_sprites=false, recorded=false
+--     )
+--
+-- The first four parameters determine the attributes of the first trainer and the second four
+-- parameters determine the attributes of the second trainer. The traineridX, trainernameX, and
+-- trainerpartyX parameters give the trainer type ID, trainer name, and trainer party ID, 
+-- respectively. Trainer type IDs are always given as references beginning with the prefix
+-- 'PBTrainers::'. The endspeechX parameters give the dialogue lines that are uttered by the
+-- trainers after they are defeated, while the player is still in the battle UI. In all examples in
+-- Reborn, endspeech2 is actually 0, which indicates that the second trainer does not have any 
+-- end speech dialogue, only the first.
+--
+-- The canlose parameter determines whether the player blacks out upon losing the battle. If it is 
+-- true, the player does not black out.
+--
+-- The switch_sprites parameter, if true, means that the trainer sprites shown in the battle UI will
+-- be swapped from their expected positions. I'm not sure why this parameter exists. In Reborn, it 
+-- is only used in a couple of battles with Aster and Eclipse, and only with a keyword argument, not
+-- a positional one.
+--
+-- The variable and recorded parameters are excluded from the tables below since they don't appear
+-- to be used. Although the variable parameter is sometimes supplied via a positional argument, its 
+-- value is always 0. 
 
 create view "trainer_double_battle_command" (
 	"command", "level100",
@@ -651,61 +862,133 @@ create view "trainer_double_battle_command" (
 	"type2", "name2", "party2", "endspeech2",
 	"switch_sprites"
 ) as
-with "args" ("command", "index", "value") as (
-	select
-		"arg"."command", "arg_index"."value",
-		regexp_capture("arg"."value", '^pbDoubleTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\),PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\)(?:,switch_sprites:\s*(true|false))?\)$', "arg_index"."value")
-	from "event_command_text_argument" as "arg"
-	join generate_series(1, 10) as "arg_index"
-	where "arg"."value" like 'pbDoubleTrainerBattle%'
-	and not "arg"."command" in (
-		8542, -- CRAUDBURRY trainer type doesn't exist
-		488240, -- exclude the themed teams at the nightclub arena
-		618842 -- exclude grind trainers
-	)
+with "pat" ("_") as (
+   select
+	'^pbDoubleTrainerBattle((?:100)?)\(PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\),PBTrainers::(.*?),"(.*?)",(\d+),_I\("(.*?)"\)(?:,switch_sprites:\s*(true|false))?\)$'
 )
 select
-	"command",
-	max(case when "index" = 1 then "value" = '100' else null end),
-	max(case when "index" = 2 then "value" else null end),
-	max(case when "index" = 3 then "value" else null end),
-	max(case when "index" = 4 then cast("value" as integer) else null end),
-	max(case when "index" = 5 then "value" else null end),
-	max(case when "index" = 6 then "value" else null end),
-	max(case when "index" = 7 then "value" else null end),
-	max(case when "index" = 8 then "value" else null end),
-	max(case when "index" = 9 then cast("value" as integer) else null end),
-	max(case when "index" = 10 then "value" is not null and "value" = 'true' else null end)
-from "args" group by "command";
+	"arg"."command",
+	regexp_capture("arg"."value", (select * from pat), 1) = '100' as "level100",
+	regexp_capture("arg"."value", (select * from pat), 2) as "type1",
+	regexp_capture("arg"."value", (select * from pat), 3) as "name1",
+	cast(regexp_capture("arg"."value", (select * from pat), 4) as integer) as "party1",
+	regexp_capture("arg"."value", (select * from pat), 5) as "endspeech1",
+	regexp_capture("arg"."value", (select * from pat), 6) as "type2",
+	regexp_capture("arg"."value", (select * from pat), 7) as "name2",
+	regexp_capture("arg"."value", (select * from pat), 8) as "party2",
+	cast(regexp_capture("arg"."value", (select * from pat), 9) as integer) as "endspeech2",
+	ifnull(regexp_capture("arg"."value", (select * from pat), 10) = 'true', 0) as "switchsprites"
+from "event_command_text_argument" as "arg"
+where "arg"."value" glob 'pbDoubleTrainerBattle*'
+and not "arg"."command" in (
+	8542, -- CRAUDBURRY trainer type doesn't exist
+	488240, -- exclude the themed teams at the nightclub arena
+	618842 -- exclude grind trainers
+);
+
+-- A subset of trainers have whole events dedicated to them. These events have a consistent 
+-- structure.
+-- The event name is always something like 'Trainer(n)' where n is a number (the value of the 
+-- number has no apparent significance.) This can be used to identify these events.
+-- The events always have exactly 2 pages.
+-- The two pages always have the exact same graphic, which is a character graphic with the
+-- "trchar" prefix.
+-- The list of event commands for the first page consists of the following elements, in the 
+-- following order:
+-- * A comment beginning with 'Battle: ', followed by the pre-battle dialogue.
+--   There may be ContinueComment commands here.
+-- * A comment beginning with 'Type: ' , followed by the trainer type.
+-- * A comment beginning with 'Name: ', followed by the trainer name.
+-- * A comment beginning with 'BattleID: ', followed by the party ID.
+-- * A comment beginning with 'EndSpeech: ', followed by the end speech.
+--   There may be ContinueCommnet commands here.
+-- * A comment beginning with 'EndBattle: ', followed by the post-battle dialogue.
+--   There may be ContinueCommnet commands here.
+-- * Script: pbTrainerIntro(:<TYPE>)  where TYPE is the trainer type
+-- * Script: Kernel.pbNoticePlayer(get_character(0))
+-- * Text: <the pre-battle speech>
+--   (May use ContinueText)
+-- * Conditional Branch: Script: pbTrainerBattle(...)
+
+create view "trainer_event" (
+	"map_id", "event_id", "event_name",
+	"battle_command", "battle_command_number",
+	"pre_battle_speech",
+	"trainer_type",
+	"trainer_name",
+	"trainer_party",
+	"end_speech",
+	"post_battle_speech"
+) as select
+	"epc"."map_id", "epc"."event_id", "me"."name", 
+	"tsbc"."command", "epc"."command_number",
+	max(iif("prefix"."value" = 'Battle', regexp_capture("mec"."text", '(?s)^Battle: (.*)$', 1), null)),
+	max(iif("prefix"."value" = 'Type', regexp_capture("mec"."text", '(?s)^Type: (.*)$', 1), null)),
+	max(iif("prefix"."value" = 'Name', regexp_capture("mec"."text", '(?s)^Name: (.*)$', 1), null)),
+	max(iif("prefix"."value" = 'BattleID', regexp_capture("mec"."text", '(?s)^BattleID: (.*)$', 1), null)),
+	max(iif("prefix"."value" = 'EndSpeech', regexp_capture("mec"."text", '(?s)^EndSpeech: (.*)$', 1), null)),
+	max(iif("prefix"."value" = 'EndBattle', regexp_capture("mec"."text", '(?s)^EndBattle: (.*)$', 1), null))
+from "trainer_single_battle_command" as "tsbc"
+join "event_page_command" as "epc" on "epc"."command" = "tsbc"."command"
+join "map_event" as "me" on
+	"me"."map_id" = "epc"."map_id" and "me"."event_id" = "epc"."event_id"
+	and "me"."name" glob 'Trainer(*)'
+join json_each('["Battle", "Type", "Name", "BattleID", "EndSpeech", "EndBattle"]') as "prefix"
+join "map_event_comment" as "mec" on
+	"mec"."map_id" = "epc"."map_id"
+	and "mec"."event_id" = "epc"."event_id"
+	and "mec"."page_number" = "epc"."page_number"
+	and "mec"."text" glob "prefix"."value" || ': *'
+group by "tsbc"."command";
 
 create table "trainer_battle_command" (
 	"trainer_type" text,
 	"trainer_name" text,
 	"party" text,
 	"command" integer,
-	"level_100" integer,
+	"level_100" integer not null check ("level_100" in (0, 1)),
 	"end_speech" text,
-    "is_double" integer,
-	"partner_index" integer,
-    "partner_type" integer,
+	"pre_battle_speech" text,
+	"post_battle_speech" text,
+    "is_double" integer check ("is_double" in (0, 1)),
+	"partner_index" integer check ("partner_index" is null or "partner_index" in (1, 2)),
+    "partner_type" text,
 	"partner_name" text,
 	"partner_party" text,
-    "can_lose" integer,
-	primary key ("trainer_type", "trainer_name", "party", "command")
+    "can_lose" integer not null check ("can_lose" in (0, 1)),
+	primary key ("trainer_type", "trainer_name", "party", "command", "is_double"),
+	foreign key ("partner_type", "partner_name", "partner_party")
+		references "trainer" ("type", "name", "party_id")
 ) without rowid;
 
 insert into "trainer_battle_command"
     select
-        "type", "name", "party", "command", "level100", "endspeech",
+        "tsbc"."type", "tsbc"."name", "tsbc"."party",
+		"tsbc"."command", "tsbc"."level100", "tsbc"."endspeech",
+		"te"."pre_battle_speech", "te"."post_battle_speech",
         "doublebattle", null, null, null, null, "canlose"
-    from "trainer_single_battle_command"
-    union
+    from "trainer_single_battle_command" as "tsbc"
+	left join "trainer_event" as "te" on "te"."battle_command" = "tsbc"."command"
+    union all
     select
-        "type1", "name1", "party1", "command", "level100", "endspeech1",
+        "type1", "name1", "party1", "command", "level100",
+		case when "endspeech1" = '0' then null else "endspeech1" end,
+		null, null,
         1, 1, "type2", "name2", "party2", 0
     from "trainer_double_battle_command"
-    union
+    union all
     select
-        "type2", "name2", "party2", "command", "level100", "endspeech2",
+        "type2", "name2", "party2", "command", "level100",
+		case when "endspeech2" = '0' then null else "endspeech2" end,
+		null, null,
         1, 2, "type1", "name1", "party1", 0
-    from "trainer_double_battle_command";
+    from "trainer_double_battle_command"
+	union all
+	select
+		"c"."type", "tt"."trainer_name", "tt"."party", 471049, 1, "c"."end_speech",
+		"c"."pre_battle_speech", "c"."post_battle_speech",
+		"is_double"."value", null, null, null, null, 0
+	from "elite_4_challenger" as "c"
+	join "theme_team" as "tt" on "tt"."trainer_id" = "c"."theme_team_trainer_id"
+	join (select 0 as "value" union all select 1 as "value") as "is_double";
+	

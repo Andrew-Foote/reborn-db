@@ -6,6 +6,9 @@ EXCEPTIONS = [
 	'evolution_requirement_display',
 	'trainer_single_battle_command',
 	'trainer_double_battle_command',
+	'map_event_comment',
+	'common_event_comment',
+	'trainer_event',
 ]
 
 def run():

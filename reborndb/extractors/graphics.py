@@ -9,9 +9,20 @@ def getblob(img):
 	stream.seek(0)
 	return stream.read()
 
-def extract():
+def extract_character_files():
+    rows = []
+
+    for path in (settings.REBORN_GRAPHICS_PATH / 'Characters').iterdir():
+        with path.open('rb') as f:
+            image = f.read()
+            rows.append((path.stem.lower(), image))
+
+    with DB.H.transaction():
+        DB.H.bulk_insert('character_file', ('name', 'content'), rows)
+
+def extract_character_images():
     names = {
-        name.removesuffix('.png')
+        name.removesuffix('.png').lower()
         for name in DB.H.exec1('select distinct "character_name" from "event_page_character"')
     }
 
@@ -39,4 +50,8 @@ def extract():
             continue
 
     with DB.H.transaction():
-        DB.H.bulk_insert('character_image', ('filename', 'direction', 'pattern', 'content'), rows)
+        DB.H.bulk_insert('character_image', ('file', 'direction', 'pattern', 'content'), rows)
+
+def extract():
+    extract_character_files()
+    extract_character_images()

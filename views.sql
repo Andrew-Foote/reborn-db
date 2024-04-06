@@ -146,7 +146,7 @@ from "event_command_text_argument" as "arg"
 where "arg"."command_type" = 'ConditionalBranch'
 and "arg"."command_subtype" = 'Script'
 and "arg"."parameter" = 'expr'
-and "arg"."value" like 'pbMoveTutorChoose(%';
+and "arg"."value" glob 'pbMoveTutorChoose(*';
 
 create view "tutorable_move" ("move") as
 select distinct "move" from "tutor_move_teach_command";
@@ -182,7 +182,7 @@ join "event_command_text_argument" as "arg0" on (
 where "arg"."command_type" = 'Script'
 and "arg"."command_subtype" = ''
 and "arg"."parameter" = 'line'
-and "arg"."value" like "addTutorMove(%";
+and "arg"."value" glob 'addTutorMove(*';
 
 create view "tutor_move_money_cost" (
 	"move", "amount", "command1", "command2",
@@ -228,7 +228,7 @@ join "event_command_diff_type_argument" as "arg0_difftype" on (
 where "arg"."command_type" = 'Script'
 and "arg"."command_subtype" = ''
 and "arg"."parameter" = 'line'
-and "arg"."value" like "addTutorMove(%";
+and "arg"."value" glob 'addTutorMove(*';
 
 create view "event_page_character_image" (
 	"map_id", "event_id", "page_number",
@@ -240,7 +240,7 @@ create view "event_page_character_image" (
 select "epchar".*, "char_img"."content"
 from "event_page_character" as "epchar"
 join "character_image" as "char_img" on (
-	"char_img"."filename" = "epchar"."character_name"
+	"char_img"."file" = "epchar"."character_name"
 	and "char_img"."direction" = "epchar"."direction"
 	and "char_img"."pattern" = "epchar"."pattern"
 );
@@ -263,7 +263,7 @@ join "event_page_character" as "epchar" on (
 	and "epchar"."page_number" = "epcmd"."page_number"
 )
 join "character_image" as "char_img" on (
-	"char_img"."filename" = "epchar"."character_name"
+	"char_img"."file" = "epchar"."character_name"
 	and "char_img"."direction" = "epchar"."direction"
 	and "char_img"."pattern" = "epchar"."pattern"
 )
@@ -504,5 +504,22 @@ left join "map_event" as "me" on (
     and "me"."event_id" = "ep_cmd"."event_id"
 )
 left join "map" on "map"."id" = "ep_cmd"."map_id";
+
+create view "event_comment_line" (
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+) as
+select
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+from "map_event_comment_line"
+union
+select
+	null, "common_event_id", null,
+	"first_command_number", "command_number", "command",
+	"line"
+from "common_event_comment_line";
 
 
