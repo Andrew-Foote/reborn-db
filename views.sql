@@ -263,7 +263,7 @@ join "event_page_character" as "epchar" on (
 	and "epchar"."page_number" = "epcmd"."page_number"
 )
 join "character_image" as "char_img" on (
-	"char_img"."file" = "epchar"."character_name"
+	"char_img"."file" = lower("epchar"."character_name")
 	and "char_img"."direction" = "epchar"."direction"
 	and "char_img"."pattern" = "epchar"."pattern"
 )
