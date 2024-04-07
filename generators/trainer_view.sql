@@ -3,8 +3,14 @@ select json_object(
   ,'front_sprite', base64("trainer"."battle_sprite")
   ,'back_sprite', base64("trainer"."battle_back_sprite")
   ,'gender', ifnull("trainer"."gender", 'Non-binary / Genderless')
-  ,'battle_music', "trainer"."bg_music"
-  ,'win_music', "trainer"."win_music"
+  ,'battle_music', ifnull("trainer"."bg_music", '!default')
+  ,'win_music', case
+  	when "trainer"."win_music" is null then '!default'
+	when not exists (
+		select * from "music_effect" as "me" where "me"."name" = "trainer"."win_music"
+	) then '!none'
+	else "trainer"."win_music"
+  end
   ,'base_prize', "trainer"."base_prize"
   ,'skill', "trainer"."skill"
   ,'battles', (

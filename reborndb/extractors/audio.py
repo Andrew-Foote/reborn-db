@@ -6,7 +6,7 @@ def extract_dir(dirname: str, tablename: str) -> None:
     with DB.H.transaction():
         DB.H.bulk_insert(
             tablename,
-            ('name'),
+            ['name'],
             [
                 (path.stem,) for path
                 in (settings.REBORN_INSTALL_PATH / 'Audio' / dirname).iterdir()

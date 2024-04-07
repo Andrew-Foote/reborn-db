@@ -35,18 +35,20 @@
 		<tr>
 			<th><abbr title="This music is played by default while the player is in battle with this trainer. It may be overridden for specific battles.">Battle music</abbr></th>
 			<td>
-				{% if trainer.battle_music %}
-					<a href="{{ url_base }}/audio/bgm/{{ trainer.battle_music }}.ogg">{{ trainer.battle_music }}</a>
-				{% else %}
+				{% if trainer.battle_music == '!default' %}
 					<abbr title="The battle music will fall back to being determined by other means, e.g. by the area in which the battle takes place.">Default</abbr>
+				{% else %}
+					<a href="{{ url_base }}/audio/bgm/{{ trainer.battle_music }}.ogg">{{ trainer.battle_music }}</a>
 				{% endif %}
 			</td>
 			<th><abbr title="This music plays at the end of a battle when the player defeats this trainer.">Victory music</abbr></th>
 			<td>
-				{% if trainer.win_music %}
-					<a href="{{ url_base }}/audio/me/{{ trainer.win_music }}.ogg">{{ trainer.win_music }}</a>
+				{% if trainer.win_music == '!default' %}
+					<abbr title="The victory music will fall back to being determined by other means, e.g. by the area in which the battle takes place.">Default</abbr>
+				{% elif trainer.win_music == '!none' %}
+					<abbr title="There will be no change of music when the trainer is defeated.">None</abbr>
 				{% else %}
-					<abbr title="The battle music will fall back to being determined by other means, e.g. by the area in which the battle takes place.">Default</abbr>
+					<a href="{{ url_base }}/audio/me/{{ trainer.win_music }}.ogg">{{ trainer.win_music }}</a>
 				{% endif %}
 			</td>
 		</tr>

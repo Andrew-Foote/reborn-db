@@ -20,6 +20,7 @@ extractor_names = [
 	'trainers',
 	'trainerlists',
 	'graphics',
+	'audio',
 ]
 
 #extractors = [importlib.import_module(f'.{name}', 'reborndb.extractors') for name in extractor_names]

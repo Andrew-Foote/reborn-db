@@ -468,10 +468,15 @@ create table "move_learn_method" (
 -- AREAS IN THE GAME WORLD --
 -----------------------------
 
-create table "background_music" ("name" text primary key) without rowid;
-create table "background_sound" ("name" text primary key) without rowid;
-create table "music_effect" ("name" text primary key) without rowid;
-create table "sound_effect" ("name" text primary key) without rowid;
+-- create table "background_music" ("name" text primary key) without rowid;
+-- create table "background_sound" ("name" text primary key) without rowid;
+-- create table "music_effect" ("name" text primary key) without rowid;
+-- create table "sound_effect" ("name" text primary key) without rowid;
+
+create table "background_music" ("name" text);
+create table "background_sound" ("name" text);
+create table "music_effect" ("name" text);
+create table "sound_effect" ("name" text);
 
 create table "map" (
 	"id" integer primary key,
@@ -499,10 +504,16 @@ create table "map" (
 	"underwater_map" integer, -- using dive takes you here
 	"weather" text, "weather_chance" integer,
 	"in_safari_zone" integer not null check ("in_safari_zone" in (0, 1)),
+	-- No FKs on these music fields because they might not point to actually existing files
 	"bicycle_music" text not null,
 	"surf_music" text not null,
+	-- map 822 (Emerald Tower) has "Battle- Wild2." which is probably a typo for "Battle- Wild2"
+	-- it doesn't really matter because there are no encounters in that area
+	-- nightclub maps have "Battle- Nightclub", which doesn't exist, again doesn't matter because
+	-- no wild encounters
 	"wild_battle_music" text not null,
 	"wild_win_music" text not null,
+	-- nightclub maps have "Battle- Nightclub" which doesn't exist
 	"trainer_battle_music" text not null,
 	"trainer_win_music" text not null,
 	"data" blob not null, -- the map tile data
@@ -807,13 +818,14 @@ create table "trainer_type" (
 	"base_prize" integer not null check ("base_prize" >= 0 and "base_prize" <= 255),
 	-- A ChangeBattleBGM event command before the battle seems to override the bg_music setting, 
 	-- from testing, even though I can't see how this happens in the code
-	"bg_music" text,
+	"bg_music" text, -- PGB points to a nonexistent file Battle -PGB, so we can't put a FK on this
 	"win_music" text, -- this is sometimes a BGM rather than a ME, in which case I think it just
 	                  -- gets ignored
 	"intro_music" text, -- always null in Reborn
 	"gender" text,
 	"skill" integer not null check ("skill" >= 0 and "skill" <= 255),
-	"battle_sprite" blob,
+	"battle_sprite" blob, -- there are two unused trainer types (PGB and Developer) which don't 
+	                      -- have it, if not for them we could have a not null constraint
 	"battle_back_sprite" blob,
 	foreign key ("gender") references "gender" ("name")
 ) without rowid;
