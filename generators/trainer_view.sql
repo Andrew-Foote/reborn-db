@@ -2,6 +2,9 @@ select json_object(
   'name', "trainer"."id"
   ,'front_sprite', base64("trainer"."battle_sprite")
   ,'back_sprite', base64("trainer"."battle_back_sprite")
+  ,'gender', ifnull("trainer"."gender", 'Non-binary / Genderless')
+  ,'battle_music', "trainer"."bg_music"
+  ,'win_music', "trainer"."win_music"
   ,'base_prize', "trainer"."base_prize"
   ,'skill', "trainer"."skill"
   ,'battles', (

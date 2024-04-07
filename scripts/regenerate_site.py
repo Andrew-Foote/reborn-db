@@ -22,7 +22,7 @@ generator_names = (
 
 generators = [importlib.import_module(f'.{name}', 'generators') for name in generator_names]
 
-NONGENERATED_SUBPATHS = [settings.SITE_PATH / sp for sp in ('.git', '.gitignore', 'db.sqlite', 'style.css', 'js', 'img')]
+NONGENERATED_SUBPATHS = [settings.SITE_PATH / sp for sp in ('.git', '.gitignore', 'db.sqlite', 'style.css', 'js', 'img', 'audio')]
 
 def run():
 	# remove any files we don't need any more

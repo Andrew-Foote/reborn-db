@@ -166,8 +166,8 @@ def extract():
             np.save(stream, mapdata.data.array)
             databytes = stream.getvalue()
 
-            bgm = (None,) * 3 if mapdata.autoplay_bgm or mapdata.bgm is None else (mapdata.bgm.name, mapdata.bgm.volume, mapdata.bgm.pitch)
-            bgs = (None,) * 3 if mapdata.autoplay_bgs or mapdata.bgs is None else (mapdata.bgs.name, mapdata.bgs.volume, mapdata.bgs.pitch)
+            bgm = (None,) * 3 if not mapdata.autoplay_bgm or mapdata.bgm is None else (mapdata.bgm.name, mapdata.bgm.volume, mapdata.bgm.pitch)
+            bgs = (None,) * 3 if not mapdata.autoplay_bgs or mapdata.bgs is None else (mapdata.bgs.name, mapdata.bgs.volume, mapdata.bgs.pitch)
 
             rows.append((
                 map_id, mapdata.tileset_id, mapdata.width, mapdata.height, databytes,

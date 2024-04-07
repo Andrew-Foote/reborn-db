@@ -1025,6 +1025,15 @@ values
 ('higher', 5),
 ('highest', 6);
 
+create table if not exists "common_event" (
+	"id" integer primary key,
+	"name" text not null,
+	"trigger" text not null,
+	"switch" integer not null,
+	foreign key ("trigger") references "common_event_trigger" ("name"),
+	foreign key ("switch") references "game_switch" ("id")
+);
+
 create table "common_event_trigger" ("name" text primary key, "code" integer not null unique) without rowid;
 insert into "common_event_trigger" ("name", "code")
 values

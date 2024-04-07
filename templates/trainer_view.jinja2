@@ -16,16 +16,40 @@
 
 <div style="display: flex; justify-content: space-between; margin-bottom: 1em">
 	<figure style="margin-left: 0.4em">
-		<img src="data:image/png;base64,{{ trainer.front_sprite }}" alt="">
+		<img src="data:image/png;base64,{{ trainer.front_sprite }}" alt="" style="max-width: 30em">
 	</figure>
 
 	{% if trainer.back_sprite is not none %}
 		<figure style="margin-right: 0.4em">
-			<img src="data:image/png;base64,{{ trainer.back_sprite }}" alt="">
+			<img src="data:image/png;base64,{{ trainer.back_sprite }}" alt="" style="max-width: 30em">
 		</figure>
 	{% endif %}
 
 	<table class="data-table">
+		<tr>
+			<th>Gender</th>
+			<td colspan="3">
+				{{ trainer.gender }}
+			</td>
+		</tr>
+		<tr>
+			<th><abbr title="This music is played while the player is in battle with this trainer.">Battle music</abbr></th>
+			<td>
+				{% if trainer.battle_music %}
+					<a href="{{ url_base }}/audio/bgm/{{ trainer.battle_music }}.ogg">{{ trainer.battle_music }}</a>
+				{% else %}
+					<abbr title="The battle music will fall back to being determined by other means, e.g. by the area in which the battle takes place.">Default</abbr>
+				{% endif %}
+			</td>
+			<th><abbr title="This music plays at the end of a battle when the player defeats this trainer">Victory music</abbr></th>
+			<td>
+				{% if trainer.win_music %}
+					<a href="{{ url_base }}/audio/me/{{ trainer.win_music }}.ogg">{{ trainer.win_music }}</a>
+				{% else %}
+					<abbr title="The battle music will fall back to being determined by other means, e.g. by the area in which the battle takes place.">Default</abbr>
+				{% endif %}
+			</td>
+		</tr>
 		<tr>
 			<th>Base prize money</th>
 			<td>{{ trainer.base_prize }}</td>			
@@ -64,8 +88,8 @@
 			<td>
 <small><pre style="margin: 0">{% if battle.pre_battle_speech %}<i>(before battle)</i>
 {{ battle.pre_battle_speech }}
-{% endif %}{% if battle.end_speech %}<i>(in battle, after defeat)</i>
-{{ battle.end_speech }}{% endif %}{% if battle.post_battle_speech %}
+{% endif %}<i>(in battle, after defeat)</i>
+{% if battle.end_speech %}{{ battle.end_speech }}{% else %}<i>(none)</i>{% endif %}{% if battle.post_battle_speech %}
 <i>(after battle)</i>
 {{ battle.post_battle_speech }}{% endif %}</pre></small></td>
 			<td>

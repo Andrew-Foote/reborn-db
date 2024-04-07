@@ -1,25 +1,11 @@
+from collections import defaultdict
 from parsers import marshal
 from reborndb import DB
 from reborndb import settings
 from reborndb import pbs
 
-FIELDS_WITH_DEFAULTS = {
-    'bicycle_music': 'BicycleBGM',
-    'surf_music': 'SurfBGM',
-    'wild_battle_music': 'WildBattleBGM',
-    'wild_win_music': 'WildVictoryME',
-    'trainer_battle_music': 'TrainerBattleBGM',
-    'trainer_win_music': 'TrainerVictoryME',
-}
-
-BOOLEAN_FIELDS = {
-    'has_location_signpost': ('ShowArea', lambda r: False),
-    'outdoor': ('Outdoor', lambda r: False),
-    'bicycle_usable': ('Bicycle', lambda r: r['outdoor']),
-    'bicycle_required': ('BicycleAlways', lambda r: False),
-    'flashable': ('DarkMap', lambda r: False),
-    'in_safari_zone': ('SafariMap', lambda r: False),
-}
+def remove_ogg_ext(s: str) -> str:
+    return s.removesuffix('.ogg')
 
 def extract():
     pbs_sections = pbs.load('metadata')
@@ -32,6 +18,14 @@ def extract():
     pbs_cols = tuple(pbs_cols_set)
     pbs_rows = []
 
+    massager = defaultdict(lambda: lambda x: x)
+    massager['WildBattleBGM'] = remove_ogg_ext
+    massager['WildVictoryME'] = remove_ogg_ext
+    massager['TrainerBattleBGM'] = remove_ogg_ext
+    massager['TrainerVictoryME'] = remove_ogg_ext
+    massager['SurfBGM'] = remove_ogg_ext
+    massager['BicycleBGM'] = remove_ogg_ext
+
     for section in pbs_sections:
         if section.content.get('Weather', ''):
             weatherbits = section.content['Weather'].split(',')
@@ -41,7 +35,7 @@ def extract():
         pbs_rows.append((
             section.header,
             None if section.comment is None else section.comment.strip(),
-            *(section.content.get(col, '') for col in pbs_cols)
+            *(massager[col](section.content.get(col, '')) for col in pbs_cols)
         ))
 
     with DB.H.transaction():

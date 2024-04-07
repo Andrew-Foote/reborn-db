@@ -1,0 +1,1 @@
+env\Scripts\python -m apsw -init sqlshell_init reborn-db-site/db.sqlite

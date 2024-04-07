@@ -73,6 +73,14 @@ select "map"."id", json_object(
     ,'backdrop', "map"."battle_backdrop", 'field_effect', "field_effect"."name"
     ,'outdoor', "map"."outdoor", 'bicycle_usable', "map"."bicycle_usable"
     ,'flashable', "map"."flashable"
+    ,'bg_music', (select "file" from "map_bgm" where "map_bgm"."map" = "map"."id") || '.ogg'
+    ,'bg_sound', (select "file" from "map_bgs" where "map_bgs"."map" = "map"."id") || '.ogg'
+    ,'wild_battle_music', "map"."wild_battle_music"
+    ,'wild_win_music', "map"."wild_win_music"
+    ,'trainer_battle_music', "map"."trainer_battle_music"
+    ,'trainer_win_music', "map"."trainer_win_music"
+    ,'surf_music', "map"."surf_music"
+    ,'bicycle_music', "map"."bicycle_music"
     ,'weather', case when "map"."weather_chance" = 100 then "map"."weather" else null end
     ,'underwater_id', "map"."underwater_map", 'underwater_name', "underwater"."name"
     ,'surface_id', "surface"."id", 'surface_name', "surface"."name"

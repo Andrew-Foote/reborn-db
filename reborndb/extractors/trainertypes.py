@@ -13,15 +13,15 @@ def extract():
 
 		code = int(row[0])
 		base_prize = int(row[3]) if row[3] else 30
-
+		
 		out_row = [
 			code,
 			id_,
 			row[2], # name
 			base_prize, # base prize
-			row[4] or None, # bg music
-			row[5] or None, # win music
-			row[6] or None, # intro music
+			row[4].removesuffix('.ogg') or None, # bg music
+			row[5].removesuffix('.ogg') or None, # win music
+			row[6].removesuffix('.ogg') or None, # intro music
 			None if not row[7] or row[7] == 'Mixed' else row[7], # gender
 			int(row[8]) if row[8] else base_prize, # skill
 		]
