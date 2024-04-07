@@ -461,22 +461,11 @@ left join "item" on "item"."id" = "trainer_pokemon"."item"
 where "trainer_pokemon"."form" is not null or "sprite_form"."order" = 0;
 
 create view "battle_facility_set_ev" ("list", "set_index", "stat", "ev") as
-	with "set" as (
-		select "list", "set_index" as "index", count(*) as "stat_with_ev_count"
-		from "battle_facility_set_ev_stat"
-		group by "list", "set_index"
-	)
-	select "bes"."list", "bes"."set_index", "bes"."stat", min(252, 510 / "set"."stat_with_ev_count")
-	from "battle_facility_set_ev_stat" as "bes"
-	join "set" on "set"."list" = "bes"."list" and "set"."index" = "bes"."set_index"
-	union
-	select "set"."list", "set"."index", "stat"."id", 0
-	from "battle_facility_set" as "set"
-	join "stat"
-	left join "battle_facility_set_ev_stat" as "bes"
-		on "bes"."list" = "set"."list" and "bes"."set_index" = "set"."index"
-		and "bes"."stat" = "stat"."id"
-	where "bes"."stat" is null; 
+	select "bfs"."list", "bfs"."index", "stat"."id", ifnull(min(252, 510 / (
+		select count(*) from "battle_facility_set_ev_stat" as "bfses"
+		where "bfses"."list" = "bfs"."list" and "bfses"."set_index" = "bfs"."index" and "bfses"."stat" = "stat"."id"
+	)), 0)
+	from "battle_facility_set" as "bfs" join "stat";
 
 create view "event_command_location" (
     "command", "event_type", "event_id", "event_name",

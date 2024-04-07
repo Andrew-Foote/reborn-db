@@ -1,12 +1,8 @@
 select json_object(
-  'name', "type"."name" || ' ' || ifnull("trainer"."name", 'no name') || case
-      when count(*) over (partition by "type"."name", "trainer"."name") > 1
-      then ' ' || row_number() over (partition by "type"."name", "trainer"."name") else ''
-      -- order by?
-  end
-  ,'skill', "type"."skill"
-  ,'front_sprite', base64("type"."battle_sprite")
-  ,'back_sprite', base64("type"."battle_back_sprite")
+  'name', "trainer"."id"
+  ,'skill', "trainer"."skill"
+  ,'front_sprite', base64("trainer"."battle_sprite")
+  ,'back_sprite', base64("trainer"."battle_back_sprite")
   ,'begin_speech', "trainer"."begin_speech"
   ,'win_speech', "trainer"."win_speech"
   ,'lose_speech', "trainer"."lose_speech"
@@ -52,7 +48,7 @@ select json_object(
 					))
 					from (
 						select "move"."name", "move"."id", case
-						  when "type"."skill" >= 100
+						  when "trainer"."skill" >= 100
 							then ("move"."pp" * 8) / 5 else "move"."pp"
 						end as "pp"
 						from "battle_facility_set_move" as "pokemon_move"
@@ -99,11 +95,10 @@ select json_object(
       	"bftp"."list" = "trainer"."list"
       	and "bftp"."trainer_index" = "trainer"."index"
 		    and ("form"."name" is not null or "sprite_form"."order" = 0)
-      order by "bftp"."pokemon_index", "bfset"."index"
+      order by "bftp"."pokemon_index"
   	) as "pokemon"
   )
 )
-from "battle_facility_trainer" as "trainer"
-join "trainer_type" as "type" on "type"."id" = "trainer"."type"
+from "battle_facility_trainer_v" as "trainer";
 
 -- where does the order of the trainers in debug menu come from?

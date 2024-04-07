@@ -9,6 +9,16 @@
 create index if not exists
 	"event_command_text_argument_idx_value" on "event_command_text_argument" ("value");
 
+create index if not exists "common_event_command_idx_command" on "common_event_command" ("command");
+
+create index if not exists "event_command_move_route_argument_move_command_idx_move_command" on "event_command_move_route_argument_move_command" ("move_command");
+
+create index if not exists "event_command_move_command_argument_idx_move_command" on "event_command_move_command_argument" ("move_command");
+    
+create index if not exists "event_page_move_command_idx_command" on "event_page_move_command" ("command");
+    
+create index if not exists "event_page_command_idx_command" on "event_page_command" ("command");
+
 ---------------------------------------------------------------------------------------------------
 -- Breeding
 ---------------------------------------------------------------------------------------------------
@@ -763,35 +773,86 @@ group by "common_event_id", "first_command_number";
 
 create table "trainer_v" (
 	"id" text primary key,
-	"type" text,
-	"name" text,
-	"party" text,
-	"type_name" text,
-	"type_code" integer,
-	"pbs_order" integer,
-	"base_prize" integer,
+	"type" text not null,
+	"name" text not null,
+	"party" integer not null,
+	"type_name" text not null,
+	"type_code" integer not null,
+	"pbs_order" integer not null unique,
+	"base_prize" integer not null check ("base_prize" >= 0 and "base_prize" <= 255),
 	"bg_music" text,
 	"win_music" text,
 	"intro_music" text,
 	"gender" text,
-	"skill" integer,
+	"skill" integer not null check ("skill" >= 0 and "skill" <= 255),
 	"battle_sprite" blob,
 	"battle_back_sprite" blob,
 	unique ("type", "name", "party"),
-	unique ("pbs_order")
+	foreign key ("type", "name", "party") references "trainer" ("type", "name", "party_id"),
+	foreign key ("gender") references "gender" ("name")
 ) without rowid;
 
 insert into "trainer_v"
 	select
 		"type"."name" || ' ' || "trainer"."name" || case
-			when count(*) over (partition by "type"."name", "trainer"."name") > 1
-			then ' ' || row_number() over (partition by "type"."name", "trainer"."name") else ''
+			when count(*) over "win" > 1
+			then ' ' || row_number() over "win"
+			else ''
 		end as "id",
 		"type"."id" as "type", "trainer"."name", "trainer"."party_id" as "party",
 		"type"."name" as "type_name", "type"."code" as "type_code", "trainer"."pbs_order",
 		"type"."base_prize", "type"."bg_music", "type"."win_music", "type"."intro_music",
 		"type"."gender", "type"."skill", "type"."battle_sprite", "type"."battle_back_sprite"
-	from "trainer" join "trainer_type" as "type" on "trainer"."type" = "type"."id";
+	from "trainer" join "trainer_type" as "type" on "trainer"."type" = "type"."id"
+	window "win" as (
+		partition by "type"."name", "trainer"."name" order by "trainer"."party_id"
+		rows between unbounded preceding and unbounded following
+	);
+
+create table "battle_facility_trainer_v" (
+	"id" text primary key,
+	"type" text not null,
+	"name" text,
+	"list" integer not null,
+	"index" integer not null,
+	"type_name" text not null,
+	"type_code" integer not null,
+	"base_prize" integer integer not null check ("base_prize" >= 0 and "base_prize" <= 255),
+	"bg_music" text,
+	"win_music" text,
+	"intro_music" text,
+	"gender" text,
+	"skill" integer not null check ("skill" >= 0 and "skill" <= 255),
+	"battle_sprite" blob,
+	"battle_back_sprite" blob,
+	"begin_speech" text not null,
+	"lose_speech" text not null,
+	"win_speech" text not null,
+	unique ("list", "index"),
+	foreign key ("type") references "trainer_type" ("id"),
+	foreign key ("list", "index") references "battle_facility_trainer" ("list", "index"),
+	foreign key ("gender") references "gender" ("name")
+) without rowid;
+
+insert into "battle_facility_trainer_v"
+	select
+		"type"."name" || ' ' || ifnull("trainer"."name", 'no name') || case
+			when count(*) over "win" > 1
+			then ' ' || row_number() over "win"
+			else ''
+		end as "id",
+		"type"."id" as "type", "trainer"."name",
+		"trainer"."list" as "list", "trainer"."index" as "index",
+		"type"."name" as "type_name", "type"."code" as "type_code",
+		"type"."base_prize", "type"."bg_music", "type"."win_music", "type"."intro_music",
+		"type"."gender", "type"."skill", "type"."battle_sprite", "type"."battle_back_sprite",
+		"trainer"."begin_speech", "trainer"."win_speech", "trainer"."lose_speech"
+	from "battle_facility_trainer" as "trainer"
+	join "trainer_type" as "type" on "trainer"."type" = "type"."id"
+	window "win" as (
+		partition by "type"."name", "trainer"."name" order by "trainer"."list", "trainer"."index"
+		rows between unbounded preceding and unbounded following
+	);
 
 create view "trainer_single_battle_command" (
 	"command", "level100",
