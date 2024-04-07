@@ -18,7 +18,6 @@ def extract() -> None:
     extract_dir('BGS', 'background_sound')
     extract_dir('ME', 'music_effect')
     extract_dir('SE', 'sound_effect')
-
     site_audio_path = Path('reborn-db-site/audio')
 
     if not site_audio_path.exists():

@@ -10,6 +10,7 @@ extractor_names = [
 	'abilities',
 	'moves',
 	'items',
+	'cries',
 	'pokemon',
 	'pokemon_sprite',
 	'tm',

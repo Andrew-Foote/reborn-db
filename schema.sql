@@ -240,6 +240,15 @@ create table "pokemon_egg_group" (
 
 create index "pokemon_egg_group_idx_egg_group" on "pokemon_egg_group" ("egg_group");
 
+-- Cry files are found in the directory Audio/SE within the Reborn installation. The file name
+-- matches the glob ???Cry*.ogg. The first three characters give the Pokédex number of the Pokémon
+-- while the part after "Cry" gives the form index. This second part may be missing, in which case
+-- the file gives the default cry for all forms for which there exists no form-specific cry file.
+create table "cry" (
+	"id" text primary key,	
+	"content" blob not null
+) without rowid;
+
 -- Pokémon forms.
 create table "pokemon_form" (
 	"pokemon" text,
@@ -257,11 +266,13 @@ create table "pokemon_form" (
 	"weight" integer not null check ("weight" >= 0), -- in tenths of a kilogram (100g each)			
 	"pokedex_entry" text not null,
 	"battle_only" integer not null check ("battle_only" in (0, 1)) default 0,
+	"cry_id" text not null,
 	primary key ("pokemon", "name"),
 	unique ("pokemon", "order"),
 	unique ("pokemon", "name", "wild_always_held_item"),
 	foreign key ("pokemon") references "pokemon" ("id"),
-	foreign key ("wild_always_held_item") references "item" ("id")
+	foreign key ("wild_always_held_item") references "item" ("id"),
+	foreign key ("cry_id") references "cry" ("id")
 ) without rowid;
 
 -- for each form we have a normal sprite, shiny sprite, back-normal, back-shiny
@@ -456,6 +467,11 @@ create table "move_learn_method" (
 -----------------------------
 -- AREAS IN THE GAME WORLD --
 -----------------------------
+
+create table "background_music" ("name" text primary key) without rowid;
+create table "background_sound" ("name" text primary key) without rowid;
+create table "music_effect" ("name" text primary key) without rowid;
+create table "sound_effect" ("name" text primary key) without rowid;
 
 create table "map" (
 	"id" integer primary key,
@@ -789,9 +805,12 @@ create table "trainer_type" (
 	"name" text not null,
 	"code" integer not null unique,
 	"base_prize" integer not null check ("base_prize" >= 0 and "base_prize" <= 255),
+	-- A ChangeBattleBGM event command before the battle seems to override the bg_music setting, 
+	-- from testing, even though I can't see how this happens in the code
 	"bg_music" text,
-	"win_music" text,
-	"intro_music" text,
+	"win_music" text, -- this is sometimes a BGM rather than a ME, in which case I think it just
+	                  -- gets ignored
+	"intro_music" text, -- always null in Reborn
 	"gender" text,
 	"skill" integer not null check ("skill" >= 0 and "skill" <= 255),
 	"battle_sprite" blob,

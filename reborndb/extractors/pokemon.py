@@ -232,11 +232,16 @@ def extract():
 			else:
 				wild_always_held_item = 'DUMMY'
 
+			cry_id = f'{number:03}Cry_{form_index}'
+			
+			if not any(DB.H.exec('select * from cry where id = ?', [cry_id])):
+				cry_id = f'{number:03}Cry'
+
 			form_row = {
 				'pokemon': id_, 'name': form_name, 'order': form_index,
 				'catch_rate': catch_rate, 'height': height, 'weight': weight,
 				'pokedex_entry': pokedex_entry, 'wild_always_held_item': wild_always_held_item,
-				'battle_only': is_form_battle_only(id_, form_name)
+				'battle_only': is_form_battle_only(id_, form_name), 'cry_id': cry_id
 			}
 
 			# what is GetEvo? oh, it's an array of 3-arrays, each one containing the method code, "level" (really method arg) and evolved pokemon number (form?)
