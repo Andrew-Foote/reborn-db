@@ -1,5 +1,11 @@
 select json_object(
   'name', "trainer"."id"
+  ,'type_name', "trainer"."type_name"
+  ,'display_name', case when "trainer"."type_name" = 'Alter'
+	then 'Alter X (where X is the player''s name)'
+    else "trainer"."type_name" || ' ' || "trainer"."name"
+  end
+  ,'is_alter', "trainer"."type_name" = 'Alter'
   ,'front_sprite', base64("trainer"."battle_sprite")
   ,'back_sprite', base64("trainer"."battle_back_sprite")
   ,'gender', ifnull("trainer"."gender", 'Non-binary / Genderless')

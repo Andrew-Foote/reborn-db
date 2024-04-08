@@ -54,6 +54,7 @@ EXCEPTIONS = [
 	'bound_type',
 	'diff_type',
 	'text_position',
+	'rpg_weather',
 	'move_command_type',
 	'move_command_parameter',
 	'move_command',

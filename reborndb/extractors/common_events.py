@@ -9,7 +9,7 @@ def extract():
     common_event_rows = []
     event_command_data = []
 
-    DB.H.exec('delete from "common_event"')
+    # DB.H.exec('delete from "common_event"')
 
     # DB.H.exec('create index if not exists "common_event_command_idx_command" on "common_event_command" ("command")')
 
@@ -51,6 +51,12 @@ def extract():
                 event.id_, i,
                 (cmd_type, cmd_subtype, indent, args)
             ))
+
+    existing_common_event_ids = set(DB.H.exec1('select "id" from "common_event"'))
+    
+    common_event_rows = [
+        row for row in common_event_rows if row[0] not in existing_common_event_ids
+    ]
 
     with DB.H.transaction():
         DB.H.bulk_insert('common_event', ('id', 'name', 'trigger', 'switch'), common_event_rows)

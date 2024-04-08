@@ -1030,6 +1030,11 @@ insert into "trainer_battle_command"
         "doublebattle", null, null, null, null, "canlose"
     from "trainer_single_battle_command" as "tsbc"
 	left join "trainer_event" as "te" on "te"."battle_command" = "tsbc"."command"
+	union all
+	-- alter clones
+	select
+		"tt"."id", 'Clone', 0, 585399, 0, '...', '...', '...', 0, null, null, null, null, 0
+		from "trainer_type" as "tt" where "tt"."name" = 'Alter'
     union all
     select
         "type1", "name1", "party1", "command", "level100",

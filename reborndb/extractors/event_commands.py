@@ -53,7 +53,7 @@ def unpack_event_command(cmd):
 def create_move_command(cmd_type, args):
     cmd_id = next(move_command_ids)
     DB.H.exec('insert into "move_command" ("id", "type") values (?, ?)', (cmd_id, cmd_type,))
-    #print('create_move_command', cmd_id, cmd_type, args)
+    print('create_move_command', cmd_id, cmd_type, args)
 
     for param, arg, arg_type in args:
         match arg_type:
@@ -88,7 +88,7 @@ def create_event_command(cmd_type, cmd_subtype, args):
         (cmd_id, cmd_type, cmd_subtype)
     )
 
-    #print('create_event_command', cmd_id, cmd_type, cmd_subtype, args)
+    print('create_event_command', cmd_id, cmd_type, cmd_subtype, args)
 
     for param, arg, arg_type in args:
         match arg_type:

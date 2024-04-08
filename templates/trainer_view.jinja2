@@ -27,6 +27,8 @@
 
 	<table class="data-table">
 		<tr>
+			<th>Name</th>
+			<td>{{ trainer.display_name }}</td>
 			<th>Gender</th>
 			<td colspan="3">
 				{{ trainer.gender }}
@@ -126,6 +128,10 @@
 
 <section>
 	<h2>Team</h2>
+
+	{% if trainer.is_alter %}
+		<p>This trainer's team will be copied from that of the player at the time the battle is initiated, although the Pokémon will be fully healed and will have their IVs all set to 31 and their EVs all set to 252.</p>
+	{% else %}
 
 	<div class="trainer-team">
 	{% for pokemon in trainer.pokemons %}			
@@ -269,6 +275,8 @@
 		</div>
 	{% endfor %}
 	</div>
+
+	{% endif %}
 </section>
 
 </section>
