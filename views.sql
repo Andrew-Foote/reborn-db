@@ -511,4 +511,48 @@ select
 	"line"
 from "common_event_comment_line";
 
+create view "event_showtext_line" (
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+) as
+select
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+from "map_event_showtext_line"
+union
+select
+	null, "common_event_id", null,
+	"first_command_number", "command_number", "command",
+	"line"
+from "common_event_showtext_line";
 
+create view "trainer_battle_command_music" ("command", "name", "volume", "pitch") as
+select "tbc"."command", "arg"."name", "arg"."volume", "arg"."pitch"
+from "trainer_battle_command" as "tbc"
+join "event_page_command" as "epc" on "epc"."command" = "tbc"."command"
+join "event_page_command" as "epc0" on
+	"epc0"."map_id" = "epc"."map_id"
+	and "epc0"."event_id" = "epc"."event_id"
+	and "epc0"."page_number" = "epc"."page_number"
+	and "epc0"."command_number" < "epc"."command_number"
+join "event_command_audio_file_argument" as "arg" on
+	"arg"."command" = "epc0"."command"
+	and "arg"."command_type" = 'ChangeBattleBGM'
+	and "arg"."command_subtype" = ''
+	and "arg"."parameter" = 'audio'
+where not exists (
+	select * from "event_page_command" as "epc_btw"
+	where "epc_btw"."map_id" = "epc0"."map_id"
+	and "epc_btw"."event_id" = "epc0"."event_id"
+	and "epc_btw"."page_number" = "epc0"."page_number"
+	and "epc_btw"."command_number" between "epc0"."command_number" + 1 and "epc"."command_number" - 1
+	and exists (		
+		select * from "event_command_audio_file_argument" as "arg1" where
+		"arg1"."command" = "epc_btw"."command"
+		and "arg1"."command_type" = 'ChangeBattleBGM'
+		and "arg1"."command_subtype" = ''
+		and "arg1"."parameter" = 'audio'
+	)
+);

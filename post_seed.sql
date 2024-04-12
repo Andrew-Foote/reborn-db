@@ -590,6 +590,192 @@ insert into "pokemon_evolution_schemes"
 	) as "em" on "em"."id" = "pem"."method"
 	group by "pem"."from", "pem"."from_form", "pem"."to", "pem"."to_form";	
 
+------------------------------------------------------------------------------------------------------ ShowText commands
+----------------------------------------------------------------------------------------------------
+
+create table "map_event_showtext_line" (
+	"map_id" integer,
+	"event_id" integer,
+	"page_number" integer,
+	"first_command_number" integer,
+	"command_number" integer,
+	"command" integer not null,
+	"line" text not null,
+	primary key ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("map_id", "event_id", "page_number")
+		references "event_page" ("map_id", "event_id", "page_number"),
+	foreign key ("map_id", "event_id", "page_number", "first_command_number")
+		references "event_page_command" ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("map_id", "event_id", "page_number", "command_number")
+		references "event_page_command" ("map_id", "event_id", "page_number", "command_number"),
+	foreign key ("command") references "event_command" ("id")
+) without rowid;
+
+create index "map_event_showtext_line_idx_first_command_number" on
+	"map_event_showtext_line" ("map_id", "event_id", "page_number", "first_command_number");
+
+insert into "map_event_showtext_line"
+with "showtext" as (
+	select
+		"epc"."map_id", "epc"."event_id", "epc"."page_number",
+		"epc"."command_number", "arg"."value"
+	from "event_page_command" as "epc"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "epc"."command"
+		and "arg"."command_type" = 'ShowText'
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+),
+"continue_showtext" as (
+	select
+		"epc"."map_id", "epc"."event_id", "epc"."page_number",
+		"epc"."command_number",
+		"epc"."command",
+		"arg"."value"
+	from "event_page_command" as "epc"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "epc"."command"
+		and "arg"."command_type" in ('ShowText', 'ContinueShowText')
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+)
+select
+	"showtext"."map_id", "showtext"."event_id", "showtext"."page_number",
+	"showtext"."command_number",
+	"continue_showtext"."command_number",
+	"continue_showtext"."command",
+	"continue_showtext"."value"
+from "showtext"
+left join "showtext" as "next_showtext" on
+	"next_showtext"."map_id" = "showtext"."map_id"
+	and "next_showtext"."event_id" = "showtext"."event_id"
+	and "next_showtext"."page_number" = "showtext"."page_number"
+	and "next_showtext"."command_number" > "showtext"."command_number"
+	and not exists ( 
+		select * from "showtext" as "in_between_showtext"
+		where "in_between_showtext"."map_id" = "showtext"."map_id"
+		and "in_between_showtext"."event_id" = "showtext"."event_id"
+		and "in_between_showtext"."page_number" = "showtext"."page_number"
+		and "in_between_showtext"."command_number" between
+			"showtext"."command_number" + 1 and "next_showtext"."command_number" - 1
+	)
+left join "continue_showtext" on
+	"continue_showtext"."map_id" = "showtext"."map_id"
+	and "continue_showtext"."event_id" = "showtext"."event_id"
+	and "continue_showtext"."page_number" = "showtext"."page_number"
+	and (
+		(
+			"next_showtext"."command_number" is null
+			and "continue_showtext"."command_number" >= "showtext"."command_number"
+		)
+		or "continue_showtext"."command_number" between "showtext"."command_number" and "next_showtext"."command_number" - 1
+	);
+
+
+create table "common_event_showtext_line" (
+	"common_event_id" integer,
+	"first_command_number" integer,
+	"command_number" integer,
+	"command" integer not null,
+	"line" text not null,
+	primary key ("common_event_id", "command_number"),
+	foreign key ("common_event_id") references "common_event" ("id"),
+	foreign key ("common_event_id", "first_command_number")
+		references "common_event_command" ("common_event_id", "command_number"),
+	foreign key ("common_event_id", "command_number")
+		references "common_event_command" ("common_event_id", "command_number"),
+	foreign key ("command") references "event_command" ("id")
+) without rowid;
+
+create index "common_event_showtext_line_idx_first_command_number" on
+	"common_event_showtext_line" ("common_event_id", "first_command_number");
+
+insert into "common_event_showtext_line"
+with "showtext" as (
+	select
+		"cec"."common_event_id",
+		"cec"."command_number", "arg"."value"
+	from "common_event_command" as "cec"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "cec"."command"
+		and "arg"."command_type" = 'ShowText'
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+),
+"continue_showtext" as (
+	select
+		"cec"."common_event_id",
+		"cec"."command_number",
+		"cec"."command",
+		"arg"."value"
+	from "common_event_command" as "cec"
+	join "event_command_text_argument" as "arg" on
+		"arg"."command" = "cec"."command"
+		and "arg"."command_type" in ('ShowText', 'ContinueShowText')
+		and "arg"."command_subtype" = ''
+		and "arg"."parameter" = 'text'
+)
+select
+	"showtext"."common_event_id",
+	"showtext"."command_number",
+	"continue_showtext"."command_number",
+	"continue_showtext"."command",
+	"continue_showtext"."value"
+from "showtext"
+left join "showtext" as "next_showtext" on
+	"next_showtext"."common_event_id" = "showtext"."common_event_id"
+	and "next_showtext"."command_number" > "showtext"."command_number"
+	and not exists ( 
+		select * from "showtext" as "in_between_showtext"
+		where "in_between_showtext"."common_event_id" = "showtext"."common_event_id"
+		and "in_between_showtext"."command_number" between
+			"showtext"."command_number" + 1 and "next_showtext"."command_number" - 1
+	)
+left join "continue_showtext" on
+	"continue_showtext"."common_event_id" = "showtext"."common_event_id"
+	and (
+		(
+			"next_showtext"."command_number" is null
+			and "continue_showtext"."command_number" >= "showtext"."command_number"
+		)
+		or "continue_showtext"."command_number" between "showtext"."command_number" and "next_showtext"."command_number" - 1
+	);
+
+create view "event_showtext_line" (
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+) as
+select
+	"map_id", "event_id", "page_number",
+	"first_command_number", "command_number", "command",
+	"line"
+from "map_event_showtext_line"
+union all
+select
+	null, "common_event_id", null,
+	"first_command_number", "command_number", "command",
+	"line"
+from "common_event_showtext_line";
+
+create view "map_event_showtext" as
+select
+	"map_id", "event_id", "page_number",
+	"first_command_number", max("command_number") as "last_command_number",
+	group_concat("line", char(10)) as "text"
+from "map_event_showtext_line"
+group by "map_id", "event_id", "page_number", "first_command_number";
+
+create view "common_event_showtext" as
+select
+	"common_event_id",
+	"first_command_number", max("command_number") as "last_command_number",
+	group_concat("line", char(10)) as "text"
+from "common_event_showtext_line"
+group by "common_event_id", "first_command_number";
+
+------------------------------------------------------------------------------------------------------ Comment commands
+----------------------------------------------------------------------------------------------------
 
 create table "map_event_comment_line" (
 	"map_id" integer,
@@ -1058,3 +1244,4 @@ insert into "trainer_battle_command"
 	join "theme_team" as "tt" on "tt"."trainer_id" = "c"."theme_team_trainer_id"
 	join (select 0 as "value" union all select 1 as "value") as "is_double";
 	
+create index "trainer_battle_command_idx_command" on "trainer_battle_command" ("command");

@@ -95,7 +95,7 @@ select json_object(
       	"bftp"."list" = "trainer"."list"
       	and "bftp"."trainer_index" = "trainer"."index"
 		    and ("form"."name" is not null or "sprite_form"."order" = 0)
-      order by "bftp"."pokemon_index"
+      order by "bftp"."pokemon_index", "bfset"."index"
   	) as "pokemon"
   )
 )

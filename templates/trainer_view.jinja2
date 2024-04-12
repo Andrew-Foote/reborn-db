@@ -85,6 +85,7 @@
 			<th>Dialogue</th>
 			<th>Type</th>
 			<th>Flags</th>
+			<th>Music</th>
 		</tr>
 		{% for battle in trainer.battles %}
 		<tr>
@@ -113,6 +114,16 @@
 				{% endif %}
 				{% if battle.can_lose %}
 					<abbr title="If the player is defeated by this trainer, they will not black out.">Can lose</abbr>
+				{% endif %}
+			</td>
+			<td>
+				{% if battle.music is none %}
+					<abbr title="The battle music will fall back to being determined by other means, e.g. by the area in which the battle takes place.">Default</abbr>
+				{% else %}
+					<a href="{{ url_base }}/audio/bgm/{{ battle.music }}.ogg">{{ battle.music }}</a>
+					{% if battle.music_volume != 100 or battle.music_pitch != 100 %}
+						(volume {{ battle.music_volume }}%, pitch {{ battle.music_pitch }}% )
+					{% endif %}
 				{% endif %}
 			</td>
 		</tr>

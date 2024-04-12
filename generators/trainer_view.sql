@@ -21,16 +21,19 @@ select json_object(
   ,'skill', "trainer"."skill"
   ,'battles', (
 	select json_group_array(json_object(
-		'area', json_object('id', "battle"."map_id", 'name', "battle"."map_name"),
-		'x', "battle"."x", 'y', "battle"."y",
-		'end_speech', "battle"."end_speech",
-		'pre_battle_speech', "battle"."pre_battle_speech",
-		'post_battle_speech', "battle"."post_battle_speech",
-		'level_100', "battle"."level_100",
-		'is_double', "battle"."is_double",
-		'partner_index', "battle"."partner_index",
-		'partner', "battle"."partner",
-		'can_lose', "battle"."can_lose"
+		'area', json_object('id', "battle"."map_id", 'name', "battle"."map_name")
+		,'x', "battle"."x", 'y', "battle"."y"
+		,'end_speech', "battle"."end_speech"
+		,'pre_battle_speech', "battle"."pre_battle_speech"
+		,'post_battle_speech', "battle"."post_battle_speech"
+		,'level_100', "battle"."level_100"
+		,'is_double', "battle"."is_double"
+		,'partner_index', "battle"."partner_index"
+		,'partner', "battle"."partner"
+		,'can_lose', "battle"."can_lose"
+		,'music', "battle"."bgm"
+		,'music_volume', "battle"."bgm_volume"
+		,'music_pitch', "battle"."bgm_pitch"
 	))
 	from (
 		select 
@@ -40,6 +43,7 @@ select json_object(
 			,"tbc"."level_100"
 			,"tbc"."is_double", "tbc"."partner_index", "partner"."id" as "partner"
 			,"tbc"."can_lose"
+			,"tbcm"."name" as "bgm", "tbcm"."volume" as "bgm_volume", "tbcm"."pitch" as "bgm_pitch"
 		from "trainer_battle_command" as "tbc"
 		left join "event_page_command" as "epc" on "epc"."command" = "tbc"."command"
 		left join "map_event" on (
@@ -52,6 +56,7 @@ select json_object(
 			and "partner"."name" = "tbc"."partner_name"
 			and "partner"."party" = "tbc"."partner_party"
 		)
+		left join "trainer_battle_command_music" as "tbcm" on "tbcm"."command" = "tbc"."command"
 		where "tbc"."trainer_type" = "trainer"."type"
 		and "tbc"."trainer_name" = "trainer"."name"
 		and "tbc"."party" = "trainer"."party"
